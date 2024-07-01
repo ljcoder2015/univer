@@ -43,7 +43,7 @@ jobs:
 
     release-npm:
         needs: [prepare]
-        if: github.repository == 'dream-num/univer'
+        if: github.repository == 'ljcoder/univer'
         runs-on: ubuntu-latest
 
         steps:

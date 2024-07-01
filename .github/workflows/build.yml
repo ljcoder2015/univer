@@ -11,7 +11,7 @@ permissions:
 
 jobs:
     build:
-        if: github.repository == 'dream-num/univer'
+        if: github.repository == 'ljcoder/univer'
         runs-on: ubuntu-latest
 
         env:
