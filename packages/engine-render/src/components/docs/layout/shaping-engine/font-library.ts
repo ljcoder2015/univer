@@ -209,9 +209,16 @@ async function checkLocalFontsPermission() {
         return false;
     }
 
-    const status = await window.navigator.permissions.query({ name: 'local-fonts' as PermissionName });
+    try {
+        // 查询 "local-fonts" 权限的状态
+        const status = await window.navigator.permissions.query({ name: 'local-fonts' as PermissionName });
 
-    return status.state === 'granted';
+        // 检查权限是否被授予
+        return status.state === 'granted';
+    } catch (error) {
+        console.error('Error querying permissions:', error);
+        return false;
+    }
 }
 
 class FontLibrary {
