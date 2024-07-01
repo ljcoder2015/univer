@@ -11,7 +11,7 @@ permissions:
 
 jobs:
     build:
-        if: github.repository == 'ljcoder/univer'
+        if: github.repository == 'ljcoder2015/univer'
         runs-on: ubuntu-latest
 
         env:
