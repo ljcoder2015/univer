@@ -1,5 +1,15 @@
 
 
+## [0.1.17](https://github.com/dream-num/univer/compare/v0.0.1...v0.1.17) (2024-07-02)
+
+
+### Bug Fixes
+
+* navigator.permissions ([cb05b79](https://github.com/dream-num/univer/commit/cb05b7913da4e1c187990252130f5e889a35674a))
+* workflow ([69e93e9](https://github.com/dream-num/univer/commit/69e93e9e8749a042e0cbd8ec0e6d8fdbb1aa0819))
+* workflow ([346bc88](https://github.com/dream-num/univer/commit/346bc88e753e0640b1b12e492bcce5e5325f9735))
+* workflow ([56cff68](https://github.com/dream-num/univer/commit/56cff681fc6de30a7c83ca7341d61cd6a272ec66))
+
 ## 0.0.1 (2024-07-01)
 
 
