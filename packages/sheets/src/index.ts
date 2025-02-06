@@ -17,7 +17,16 @@
 export { UniverSheetsPlugin } from './sheets-plugin';
 
 // #region services
-export { COMMAND_LISTENER_SKELETON_CHANGE, COMMAND_LISTENER_VALUE_CHANGE } from './basics/const/command-listener-const';
+export {
+    COMMAND_LISTENER_SKELETON_CHANGE,
+    COMMAND_LISTENER_VALUE_CHANGE,
+    type CommandListenerSkeletonChange,
+    type CommandListenerValueChange,
+    getSkeletonChangedEffectedRange,
+    getValueChangedEffectedRange,
+    SheetSkeletonChangeType,
+    SheetValueChangeType,
+} from './basics/const/command-listener-const';
 export {
     type IAddWorksheetMergeMutationParams,
     type IDeleteRangeMutationParams,
@@ -29,6 +38,7 @@ export {
     type IRemoveRowsMutationParams,
     type IRemoveSheetMutationParams,
     type IRemoveWorksheetMergeMutationParams,
+    type IWorksheetRangeThemeStyleMutationParams,
 } from './basics/interfaces/mutation-interface';
 export {
     convertPrimaryWithCoordToPrimary,
@@ -45,17 +55,12 @@ export { createTopMatrixFromMatrix, createTopMatrixFromRanges, findAllRectangle,
 export { type IUniverSheetsConfig } from './controllers/config.schema';
 export { MAX_CELL_PER_SHEET_KEY } from './controllers/config/config';
 export { BorderStyleManagerService, type IBorderInfo } from './services/border-style-manager.service';
+export { SheetRangeThemeService } from './services/range-theme-service';
+export type { IRangeThemeStyleJSON } from './model/range-theme-util';
 export * from './services/permission/permission-point';
 export { WorksheetPermissionService } from './services/permission/worksheet-permission/worksheet-permission.service';
 export { WorkbookPermissionService } from './services/permission/workbook-permission/workbook-permission.service';
-export {
-    DISABLE_NORMAL_SELECTIONS,
-    IRefSelectionsService,
-    RefSelectionsService,
-    SelectionMoveType,
-    SheetsSelectionsService,
-    WorkbookSelectionModel,
-} from './services/selections';
+export * from './services/selections';
 export { getAddMergeMutationRangeByType } from './controllers/merge-cell.controller';
 export { NumfmtService } from './services/numfmt/numfmt.service';
 export type { INumfmtItem, INumfmtItemWithCache } from './services/numfmt/type';
@@ -106,6 +111,8 @@ export { ExclusiveRangeService, IExclusiveRangeService } from './services/exclus
 // permission
 export { defaultWorksheetPermissionPoint, getAllWorksheetPermissionPoint, getAllWorksheetPermissionPointByPointPanel } from './services/permission';
 export type { IWorksheetProtectionRule } from './services/permission/type';
+export { SheetPermissionCheckController } from './controllers/permission/sheet-permission-check.controller';
+export { SheetPermissionInitController } from './controllers/permission/sheet-permission-init.controller';
 export { WorksheetProtectionPointModel, WorksheetProtectionRuleModel } from './services/permission/worksheet-permission';
 export { defaultWorkbookPermissionPoints, getAllWorkbookPermissionPoint } from './services/permission/workbook-permission';
 export {
@@ -149,6 +156,7 @@ export {
     WorksheetSortPermission,
     WorksheetViewPermission,
 } from './services/permission/permission-point';
+export { PermissionPointsDefinitions } from './services/permission/permission-point/const';
 export { UnitAction, UnitObject } from '@univerjs/protocol';
 export { checkRangesEditablePermission } from './services/permission/util';
 
@@ -182,6 +190,7 @@ export { getInsertRangeMutations, getRemoveRangeMutations } from './commands/uti
 export { handleInsertRangeMutation } from './commands/utils/handle-range-mutation';
 export { type ISheetCommandSharedParams } from './commands/utils/interface';
 export { copyRangeStyles } from './commands/commands/utils/selection-utils';
+export { RangeThemeStyle } from './model/range-theme-util';
 
 // #region - all commands
 
@@ -196,6 +205,8 @@ export {
     AddWorksheetMergeHorizontalCommand,
     AddWorksheetMergeVerticalCommand,
 } from './commands/commands/add-worksheet-merge.command';
+export { SetWorksheetRangeThemeStyleCommand } from './commands/commands/add-worksheet-range-theme.command';
+export { DeleteWorksheetRangeThemeStyleCommand } from './commands/commands/delete-worksheet-range-theme.command';
 export { ClearSelectionAllCommand } from './commands/commands/clear-selection-all.command';
 export { ClearSelectionContentCommand } from './commands/commands/clear-selection-content.command';
 export { ClearSelectionFormatCommand } from './commands/commands/clear-selection-format.command';
@@ -218,9 +229,11 @@ export {
     type IInsertRowCommandParams,
     InsertColAfterCommand,
     InsertColBeforeCommand,
+    InsertColByRangeCommand,
     InsertColCommand,
     InsertRowAfterCommand,
     InsertRowBeforeCommand,
+    InsertRowByRangeCommand,
     InsertRowCommand,
 } from './commands/commands/insert-row-col.command';
 export { type IInsertSheetCommandParams, InsertSheetCommand } from './commands/commands/insert-sheet.command';
@@ -232,7 +245,7 @@ export {
     MoveRowsCommand,
 } from './commands/commands/move-rows-cols.command';
 export { RemoveDefinedNameCommand } from './commands/commands/remove-defined-name.command';
-export { type IRemoveRowColCommandInterceptParams, type IRemoveRowColCommandParams, RemoveColCommand, RemoveRowCommand } from './commands/commands/remove-row-col.command';
+export { type IRemoveColByRangeCommandParams, type IRemoveRowByRangeCommandParams, type IRemoveRowColCommandInterceptParams, type IRemoveRowColCommandParams, RemoveColByRangeCommand, RemoveColCommand, RemoveRowByRangeCommand, RemoveRowCommand } from './commands/commands/remove-row-col.command';
 export { type IRemoveSheetCommandParams, RemoveSheetCommand } from './commands/commands/remove-sheet.command';
 export { RemoveWorksheetMergeCommand } from './commands/commands/remove-worksheet-merge.command';
 export { type IReorderRangeCommandParams, ReorderRangeCommand } from './commands/commands/reorder-range.command';
@@ -325,6 +338,13 @@ export { SetWorksheetShowCommand } from './commands/commands/set-worksheet-show.
 export { SplitTextToColumnsCommand } from './commands/commands/split-text-to-columns.command';
 export type { ISplitTextToColumnsCommandParams } from './commands/commands/split-text-to-columns.command';
 
+export { UnregisterWorksheetRangeThemeStyleCommand } from './commands/commands/unregister-range-theme.command';
+export type { IUnregisterWorksheetRangeThemeStyleCommandParams } from './commands/commands/unregister-range-theme.command';
+export { RegisterWorksheetRangeThemeStyleCommand } from './commands/commands/register-range-theme.command';
+export type { IRegisterWorksheetRangeThemeStyleCommandParams } from './commands/commands/register-range-theme.command';
+export { type IRegisterWorksheetRangeThemeStyleMutationParams, RegisterWorksheetRangeThemeStyleMutation } from './commands/mutations/register-range-theme.mutation';
+export { type IUnregisterWorksheetRangeThemeStyleMutationParams, UnregisterWorksheetRangeThemeStyleMutation } from './commands/mutations/unregister-range-theme-style.mutation';
+
 export type { ISetWorksheetShowCommandParams } from './commands/commands/set-worksheet-show.command';
 export { AddRangeProtectionMutation, FactoryAddRangeProtectionMutation, type IAddRangeProtectionMutationParams } from './commands/mutations/add-range-protection.mutation';
 export { SetProtectionCommand } from './commands/commands/set-protection.command';
@@ -400,6 +420,8 @@ export {
 export { type ISetWorksheetHideMutationParams, SetWorksheetHideMutation } from './commands/mutations/set-worksheet-hide.mutation';
 export { type ISetWorksheetNameMutationParams, SetWorksheetNameMutation } from './commands/mutations/set-worksheet-name.mutation';
 export { type ISetWorksheetOrderMutationParams, SetWorksheetOrderMutation } from './commands/mutations/set-worksheet-order.mutation';
+export { SetWorksheetRangeThemeStyleMutation, SetWorksheetRangeThemeStyleMutationFactory } from './commands/mutations/add-worksheet-range-theme.mutation';
+export { DeleteWorksheetRangeThemeStyleMutation, DeleteWorksheetRangeThemeStyleMutationFactory } from './commands/mutations/delete-worksheet-range-theme.mutation';
 export { SetWorksheetPermissionPointsMutation } from './commands/mutations/set-worksheet-permission-points.mutation';
 export type { ISetWorksheetPermissionPointsMutationParams } from './commands/mutations/set-worksheet-permission-points.mutation';
 export { SetWorksheetProtectionMutation } from './commands/mutations/set-worksheet-protection.mutation';
@@ -422,4 +444,6 @@ export { type ISetWorksheetActiveOperationParams, SetWorksheetActiveOperation } 
 export { type IToggleCellCheckboxCommandParams, ToggleCellCheckboxCommand } from './commands/commands/toggle-checkbox.command';
 export { SCOPE_WORKBOOK_VALUE_DEFINED_NAME } from './controllers/defined-name-data.controller';
 export type { ICellOverGridPosition, ISheetOverGridPosition } from './basics/cell-position';
+
+export { SheetSkeletonService } from './skeleton/skeleton.service';
 // #endregion

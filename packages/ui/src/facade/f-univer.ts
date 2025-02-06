@@ -15,14 +15,18 @@
  */
 
 import type { IDisposable } from '@univerjs/core';
-import type { IMessageOptions } from '@univerjs/design';
-import type { IDialogPartMethodOptions, ISidebarMethodOptions } from '@univerjs/ui';
+import type { IMessageProps } from '@univerjs/design';
+import type { BuiltInUIPart, ComponentType, IComponentOptions, IDialogPartMethodOptions, ISidebarMethodOptions } from '@univerjs/ui';
 import type { IFacadeMenuItem, IFacadeSubmenuItem } from './f-menu-builder';
-import { FUniver } from '@univerjs/core';
-import { ComponentManager, CopyCommand, IDialogService, IMessageService, ISidebarService, PasteCommand } from '@univerjs/ui';
+import { connectInjector, FUniver } from '@univerjs/core';
+import { IRenderManagerService } from '@univerjs/engine-render';
+import { ComponentManager, CopyCommand, IDialogService, IMessageService, ISidebarService, IUIPartsService, PasteCommand } from '@univerjs/ui';
 import { FMenu, FSubmenu } from './f-menu-builder';
 import { FShortcut } from './f-shortcut';
 
+/**
+ * @ignore
+ */
 export interface IFUniverUIMixin {
     /**
      * Return the URL of the current page.
@@ -44,7 +48,6 @@ export interface IFUniverUIMixin {
     /**
      * Create a menu build object. You can insert new menus into the UI.
      * @param {IFacadeMenuItem} menuItem the menu item
-     *
      * @example
      * ```ts
      * univerAPI.createMenu({
@@ -53,14 +56,12 @@ export interface IFUniverUIMixin {
      *   action: () => {},
      * }).appendTo('ribbon.start.others');
      * ```
-     *
      * @returns the {@link FMenu} object
      */
     createMenu(menuItem: IFacadeMenuItem): FMenu;
     /**
      * Create a menu that contains submenus, and later you can append this menu and its submenus to the UI.
      * @param submenuItem the submenu item
-     *
      * @example
      * ```ts
      * univerAPI.createSubmenu({ id: 'custom-submenu', title: 'Custom Submenu' })
@@ -71,13 +72,11 @@ export interface IFUniverUIMixin {
      *   )
      *   .appendTo('contextMenu.others');
      * ```
-     *
      * @returns the {@link FSubmenu} object
      */
     createSubmenu(submenuItem: IFacadeSubmenuItem): FSubmenu;
     /**
      * Open a sidebar.
-     *
      * @deprecated Please use `openSidebar` instead.
      * @param params the sidebar options
      * @returns the disposable object
@@ -85,7 +84,6 @@ export interface IFUniverUIMixin {
     openSiderbar(params: ISidebarMethodOptions): IDisposable;
     /**
      * Open a sidebar.
-     *
      * @deprecated Please use `openSidebar` instead.
      * @param params the sidebar options
      * @returns the disposable object
@@ -104,7 +102,6 @@ export interface IFUniverUIMixin {
     getComponentManager(): ComponentManager;
     /**
      * Show a message.
-     *
      * @example
      * ```ts
      * const message = univerAPI.showMessage({ key: 'my-message', content: 'Warning', duration: 0 });
@@ -112,9 +109,73 @@ export interface IFUniverUIMixin {
      * someAction().then(() => message.dispose());
      * ```
      */
-    showMessage(options: IMessageOptions): IDisposable;
+    showMessage(options: IMessageProps): void;
+
+    /**
+     * Set the visibility of a built-in UI part.
+     * @param key the built-in UI part
+     * @param visible the visibility
+     * @returns the {@link FUniver} object
+     * example
+     * ```ts
+     * univerAPI.setUIVisible(BuiltInUIPart.HEADER, false);
+     * ```
+     */
+    setUIVisible(key: BuiltInUIPart, visible: boolean): FUniver;
+
+    /**
+     * Get the visibility of a built-in UI part.
+     * @param key the built-in UI part
+     * @returns the visibility
+     * example
+     * ```ts
+     * univerAPI.isUIVisible(BuiltInUIPart.HEADER);
+     * ```
+     */
+    isUIVisible(key: BuiltInUIPart): boolean;
+
+    /**
+     * register an component to a built-in UI part
+     * @param key the built-in UI part
+     * @param component the react component
+     * @example
+     * ```ts
+     * univerAPI.registerUIPart(BuiltInUIPart.CUSTOM_HEADER, () => React.createElement('h1', null, 'Custom Header'));
+     * ```
+     */
+    registerUIPart(key: BuiltInUIPart, component: any): IDisposable;
+
+    /**
+     * register an component.
+     * @param component
+     * @example
+     * ```ts
+     * univerAPI.registerComponent('my-comp', () => React.createElement('h1', null, 'Custom Header'));
+     * ```
+     */
+    registerComponent(name: string, component: ComponentType, options?: IComponentOptions): IDisposable;
+
+    /**
+     * Set a unit as the current unit and render a unit in the workbench's main area. If you have multiple units in Univer,
+     * you should call this method to render the unit.
+     * @param unitId Unit to be rendered.
+     *
+     * @example
+     * Let's assume you have created two units, `unit1` and `unit2`. Univer is rendering `unit1` and you want to
+     * render `unit2`.
+     *
+     * ```ts
+     * univerAPI.setCurrent('unit2');
+     * ```
+     *
+     * This will render `unit2` in the workbench's main area.
+     */
+    setCurrent(unitId: string): void;
 }
 
+/**
+ * @ignore
+ */
 export class FUniverUIMixin extends FUniver implements IFUniverUIMixin {
     override getURL(): URL {
         return new URL(window.location.href);
@@ -125,11 +186,11 @@ export class FUniverUIMixin extends FUniver implements IFUniverUIMixin {
     }
 
     override copy(): Promise<boolean> {
-        return this._commandService.executeCommand(CopyCommand.id);
+        return this._commandService.syncExecuteCommand(CopyCommand.id);
     }
 
     override paste(): Promise<boolean> {
-        return this._commandService.executeCommand(PasteCommand.id);
+        return this._commandService.syncExecuteCommand(PasteCommand.id);
     }
 
     override createMenu(menuItem: IFacadeMenuItem): FMenu {
@@ -164,9 +225,41 @@ export class FUniverUIMixin extends FUniver implements IFUniverUIMixin {
         return this._injector.get(ComponentManager);
     }
 
-    override showMessage(options: IMessageOptions): IDisposable {
+    override showMessage(options: IMessageProps): FUniver {
         const messageService = this._injector.get(IMessageService);
-        return messageService.show(options);
+        messageService.show(options);
+        return this;
+    }
+
+    override setUIVisible(ui: BuiltInUIPart, visible: boolean): FUniver {
+        const uiPartService = this._injector.get(IUIPartsService);
+        uiPartService.setUIVisible(ui, visible);
+        return this;
+    }
+
+    override isUIVisible(ui: BuiltInUIPart): boolean {
+        const uiPartService = this._injector.get(IUIPartsService);
+        return uiPartService.isUIVisible(ui);
+    }
+
+    override registerUIPart(key: BuiltInUIPart, component: any): IDisposable {
+        const uiPartService = this._injector.get(IUIPartsService);
+        return uiPartService.registerComponent(key, () => connectInjector(component, this._injector));
+    }
+
+    override registerComponent(name: string, component: any, options?: IComponentOptions): IDisposable {
+        const componentManager = this._injector.get(ComponentManager);
+        return this.disposeWithMe(componentManager.register(name, component, options));
+    }
+
+    override setCurrent(unitId: string): void {
+        const rendererManagerService = this._injector.get(IRenderManagerService);
+        const renderUnit = rendererManagerService.getRenderById(unitId);
+        if (!renderUnit) {
+            throw new Error('Unit not found');
+        }
+
+        this._univerInstanceService.setCurrentUnitForType(unitId);
     }
 }
 

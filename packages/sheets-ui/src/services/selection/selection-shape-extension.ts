@@ -27,7 +27,7 @@ import { SELECTION_CONTROL_BORDER_BUFFER_WIDTH } from '@univerjs/sheets';
 import { SheetSkeletonManagerService } from '../sheet-skeleton-manager.service';
 import { ISheetSelectionRenderService } from './base-selection-render.service';
 import { genNormalSelectionStyle, RANGE_FILL_PERMISSION_CHECK, RANGE_MOVE_PERMISSION_CHECK } from './const';
-import { attachPrimaryWithCoord, attachSelectionWithCoord } from './util';
+import { attachSelectionWithCoord } from './util';
 
 const HELPER_SELECTION_TEMP_NAME = '__SpreadsheetHelperSelectionTempRect';
 
@@ -129,7 +129,7 @@ export class SelectionShapeExtension {
     private _getFreeze() {
         const renderManagerService = this._injector.get(IRenderManagerService);
         const freeze = renderManagerService.withCurrentTypeOfUnit(UniverInstanceType.UNIVER_SHEET, SheetSkeletonManagerService)
-            ?.getCurrent()
+            ?.getCurrentParam()
             ?.skeleton
             .getWorksheetConfig()
             .freeze;
@@ -243,8 +243,8 @@ export class SelectionShapeExtension {
             style: null,
         };
         const selectionWithCoord = attachSelectionWithCoord(selection, this._skeleton);
-        const startCell = this._skeleton.getNoMergeCellPositionByIndex(startRow, startColumn);
-        const endCell = this._skeleton.getNoMergeCellPositionByIndex(endRow, endColumn);
+        const startCell = this._skeleton.getNoMergeCellWithCoordByIndex(startRow, startColumn);
+        const endCell = this._skeleton.getNoMergeCellWithCoordByIndex(endRow, endColumn);
         const startY = startCell?.startY || 0;
         const endY = endCell?.endY || 0;
         const startX = startCell?.startX || 0;
@@ -258,8 +258,12 @@ export class SelectionShapeExtension {
         });
 
         this._targetSelection = { ...selectionWithCoord.rangeWithCoord };
-        const primaryWithCoordAndMergeInfo = attachPrimaryWithCoord(this._skeleton, primaryCell);
-        this._control.updateCurrCell(primaryWithCoordAndMergeInfo);
+        // DO NOT UPDATE CURR CELL while dragging whole selection.
+        // Updating the primary cell during the middle of a drag operation may result in the primary cell being out of range in certain scenarios.
+        // ex: dragging normal selection to a merged area. there is a check to see if this move is valid, if not, the selection process would revert back to  original state.
+
+        // normal selection should keep the original state when dragging whole selection.
+        // Now ref selection needs _control.selectionMoving$ update selection when dragging.
         this._control.selectionMoving$.next(selectionWithCoord.rangeWithCoord);
     }
 
@@ -709,8 +713,8 @@ export class SelectionShapeExtension {
             isLighten = rulerValue.isLighten;
         }
 
-        const startCell = this._skeleton.getNoMergeCellPositionByIndex(startRow, startColumn);
-        const endCell = this._skeleton.getNoMergeCellPositionByIndex(endRow, endColumn);
+        const startCell = this._skeleton.getNoMergeCellWithCoordByIndex(startRow, startColumn);
+        const endCell = this._skeleton.getNoMergeCellWithCoordByIndex(endRow, endColumn);
 
         const startY = startCell?.startY || 0;
         const endY = endCell?.endY || 0;

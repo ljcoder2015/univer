@@ -17,8 +17,10 @@
 import type {
     BorderStyleTypes,
     HorizontalAlign,
+    ICellDataForSheetInterceptor,
     ICellWithCoord,
     ImageCacheMap,
+    Nullable,
     ObjectMatrix,
     VerticalAlign,
     WrapStrategy,
@@ -41,17 +43,13 @@ export interface BorderCacheItem {
 
 export interface IFontCacheItem {
     documentSkeleton: DocumentSkeleton;
-    // marginTop?: number;
-    // marginBottom?: number;
-    // marginRight?: number;
-    // marginLeft?: number;
     vertexAngle?: number; // Text rotation offset based on the top-left corner.
     centerAngle?: number; // Text rotation based on the center point.
     verticalAlign: VerticalAlign;
     horizontalAlign: HorizontalAlign;
     wrapStrategy: WrapStrategy;
-    // content?: string;
     imageCacheMap: ImageCacheMap;
+    cellData: Nullable<ICellDataForSheetInterceptor>;
 }
 
 type colorString = string;
@@ -59,6 +57,9 @@ export interface IStylesCache {
     background?: Record<colorString, ObjectMatrix<string>>;
     backgroundPositions?: ObjectMatrix<ICellWithCoord>;
     font?: Record<string, ObjectMatrix<IFontCacheItem>>;
+    /**
+     * Get value from getCell in skeleton and this value is used in font extension
+     */
     fontMatrix: ObjectMatrix<IFontCacheItem>;
     border?: ObjectMatrix<BorderCache>;
 }
@@ -103,7 +104,7 @@ export interface IPaintForScrolling {
     scaleX: number;
     scaleY: number;
 }
-export interface IColumnStyleCfg {
+export interface IHeaderStyleCfg {
     fontFamily: string;
     fontColor: string;
     fontSize: number;
@@ -111,10 +112,14 @@ export interface IColumnStyleCfg {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     backgroundColor: string;
+    /**
+     * column header height
+     */
+    size?: number;
 }
 
-export type IAColumnCfgObj = IColumnStyleCfg & { text: string };
-export type IAColumnCfg = undefined | null | string | Partial<IAColumnCfgObj>;
+export type IAColumnCfgObj = IHeaderStyleCfg & { text: string };
+export type IAColumnCfg = undefined | null | string | Partial<Omit<IAColumnCfgObj, 'size'>>;
 
 export interface IRowStyleCfg {
     fontFamily: string;
@@ -124,7 +129,11 @@ export interface IRowStyleCfg {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     backgroundColor: string;
+    /**
+     * row header width
+     */
+    size?: number;
 }
 
-export type IARowCfgObj = IColumnStyleCfg & { text: string };
+export type IARowCfgObj = IHeaderStyleCfg & { text: string };
 export type IARowCfg = undefined | null | string | Partial<IARowCfgObj>;
