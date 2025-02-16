@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 
 import type { Ctor, IDisposable } from '../../common/di';
+import type { UnitType } from '../../common/unit';
 import type { Plugin, PluginCtor } from './plugin';
 import { skip } from 'rxjs';
 import { Inject, Injector } from '../../common/di';
-import { type UnitType, UniverInstanceType } from '../../common/unit';
+import { UniverInstanceType } from '../../common/unit';
 import { Disposable } from '../../shared/lifecycle';
 import { LifecycleStages } from '../lifecycle/lifecycle';
 import { getLifecycleStagesAndBefore, LifecycleService } from '../lifecycle/lifecycle.service';
@@ -249,18 +250,25 @@ export class PluginHolder extends Disposable {
         const dependents = plugin[DependentOnSymbol];
         if (dependents) {
             const exhaustUnregisteredDependents = () => {
-                const NotRegistered = dependents.find((d) => !this._checkPluginRegistered(d));
-                if (NotRegistered) {
-                    this._logService.debug(
-                        '[PluginService]',
-                        `Plugin "${plugin.pluginName}" depends on "${NotRegistered.pluginName}" which is not registered. Univer will automatically register it with default configuration.`
-                    );
-
-                    this._registerPlugin(NotRegistered, undefined);
-                    return true;
+                const notRegisteredPlugin = dependents.find((d) => !this._checkPluginRegistered(d));
+                if (!notRegisteredPlugin) {
+                    return false;
                 }
 
-                return false;
+                // TODO: plugin with Univer type cannot dependent on types other than Univer.
+                if (plugin.type === UniverInstanceType.UNIVER_UNKNOWN && notRegisteredPlugin.type !== UniverInstanceType.UNIVER_UNKNOWN) {
+                    throw new Error('[PluginService]: cannot register a plugin with Univer type that depends on a plugin with other type. '
+                        + `The dependent is ${plugin.pluginName} and the dependency is ${notRegisteredPlugin.pluginName}.`
+                    );
+                }
+
+                this._logService.debug(
+                    '[PluginService]',
+                    `Plugin "${plugin.pluginName}" depends on "${notRegisteredPlugin.pluginName}" which is not registered. Univer will automatically register it with default configuration.`
+                );
+
+                this._registerPlugin(notRegisteredPlugin, undefined);
+                return true;
             };
 
             while (exhaustUnregisteredDependents()) {
@@ -306,4 +314,3 @@ export class PluginHolder extends Disposable {
         });
     }
 }
-

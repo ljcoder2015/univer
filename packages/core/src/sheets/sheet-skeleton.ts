@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ export interface IGetRowColByPosOptions {
     firstMatch?: boolean;
 }
 
-export const RENDER_RAW_FORMULA_KEY = 'RENDER_RAW_FORMULA';
 export class SheetSkeleton extends Skeleton {
     /**
      * @deprecated avoid use `IWorksheetData` directly, use API provided by `Worksheet`, otherwise
@@ -1042,9 +1041,8 @@ export class SheetSkeleton extends Skeleton {
 }
 
 /**
- * Only the coordinates of the corresponding cells in rows and columns are considered, without taking into account the merged data.
+ * Not same as getCellWithCoordByIndex, Only the coordinates of the corresponding cells in rows and columns are considered, without taking into account the merged data.
  *
- * Original name: getCellPositionByIndexSimple
  * @param row
  * @param column
  * @param rowHeightAccumulation
@@ -1079,6 +1077,23 @@ export function getCellCoordByIndexSimple(
         startX,
         endX,
     };
+}
+
+/**
+ * @deprecated use `getCellCoordByIndexSimple` instead.
+ * @param row
+ * @param column
+ * @param rowHeightAccumulation
+ * @param columnWidthAccumulation
+ * @returns
+ */
+export function getCellPositionByIndexSimple(
+    row: number,
+    column: number,
+    rowHeightAccumulation: number[],
+    columnWidthAccumulation: number[]
+): IPosition {
+    return getCellCoordByIndexSimple(row, column, rowHeightAccumulation, columnWidthAccumulation);
 }
 
 /**

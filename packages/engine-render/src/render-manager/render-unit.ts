@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,15 +128,6 @@ export class RenderUnit extends Disposable implements IRender {
 
         this._activated$.next(false);
         this._activated$.complete();
-
-        // Avoid memory leak. Basically it is because RenderUnit itself is leaking.
-        // We use this as a temporary solution to make CI pass.
-        // @ts-ignore
-        this._renderContext.activated$ = null;
-        // @ts-ignore
-        this._renderContext.activate = null;
-        // @ts-ignore
-        this._renderContext.deactivate = null;
     }
 
     /**

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import type { IEventBase, IRange, RichTextValue } from '@univerjs/core';
+import type { IRange, RichTextValue } from '@univerjs/core';
+import type { IEventBase } from '@univerjs/core/facade';
 import type { DeviceInputEventType, SpreadsheetSkeleton } from '@univerjs/engine-render';
 import type { CommandListenerSkeletonChange } from '@univerjs/sheets';
 import type { FRange, FWorkbook, FWorksheet } from '@univerjs/sheets/facade';
 import type { KeyCode } from '@univerjs/ui';
-import { FEventName } from '@univerjs/core';
+import { FEventName } from '@univerjs/core/facade';
 
 /**
  * Event interface triggered when cell editing starts
@@ -540,125 +541,133 @@ export interface IFSheetsUIEventNameMixin {
 
 }
 
-export class FSheetsUIEventName extends FEventName implements IFSheetsUIEventNameMixin {
-    override get BeforeClipboardChange(): 'BeforeClipboardChange' {
+export class FSheetsUIEventName implements IFSheetsUIEventNameMixin {
+    get BeforeClipboardChange(): 'BeforeClipboardChange' {
         return 'BeforeClipboardChange' as const;
     }
 
-    override get ClipboardChanged(): 'ClipboardChanged' {
+    get ClipboardChanged(): 'ClipboardChanged' {
         return 'ClipboardChanged' as const;
     }
 
-    override get BeforeClipboardPaste(): 'BeforeClipboardPaste' {
+    get BeforeClipboardPaste(): 'BeforeClipboardPaste' {
         return 'BeforeClipboardPaste' as const;
     }
 
-    override get ClipboardPasted(): 'ClipboardPasted' {
+    get ClipboardPasted(): 'ClipboardPasted' {
         return 'ClipboardPasted' as const;
     }
 
-    override get BeforeSheetEditStart(): 'BeforeSheetEditStart' {
+    get BeforeSheetEditStart(): 'BeforeSheetEditStart' {
         return 'BeforeSheetEditStart';
     }
 
-    override get SheetEditStarted(): 'SheetEditStarted' {
+    get SheetEditStarted(): 'SheetEditStarted' {
         return 'SheetEditStarted';
     }
 
-    override get SheetEditChanging(): 'SheetEditChanging' {
+    get SheetEditChanging(): 'SheetEditChanging' {
         return 'SheetEditChanging';
     }
 
-    override get BeforeSheetEditEnd(): 'BeforeSheetEditEnd' {
+    get BeforeSheetEditEnd(): 'BeforeSheetEditEnd' {
         return 'BeforeSheetEditEnd';
     }
 
-    override get SheetEditEnded(): 'SheetEditEnded' {
+    get SheetEditEnded(): 'SheetEditEnded' {
         return 'SheetEditEnded';
     }
 
-    override get CellClicked(): 'CellClicked' {
+    get CellClicked(): 'CellClicked' {
         return CellFEventName.CellClicked;
     }
 
-    override get CellHover(): 'CellHover' {
+    get CellHover(): 'CellHover' {
         return CellFEventName.CellHover;
     }
 
-    override get CellPointerDown(): 'CellPointerDown' {
+    get CellPointerDown(): 'CellPointerDown' {
         return CellFEventName.CellPointerDown;
     }
 
-    override get CellPointerUp(): 'CellPointerUp' {
+    get CellPointerUp(): 'CellPointerUp' {
         return CellFEventName.CellPointerUp;
     }
 
-    override get CellPointerMove(): 'CellPointerMove' {
+    get CellPointerMove(): 'CellPointerMove' {
         return CellFEventName.CellPointerMove;
     }
 
-    override get DragOver(): 'DragOver' {
+    get DragOver(): 'DragOver' {
         return 'DragOver' as const;
     }
 
-    override get Drop(): 'Drop' {
+    get Drop(): 'Drop' {
         return 'Drop' as const;
     }
 
-    override get Scroll(): 'Scroll' {
+    get Scroll(): 'Scroll' {
         return 'Scroll' as const;
     }
 
-    override get SelectionMoveStart(): 'SelectionMoveStart' {
+    get SelectionMoveStart(): 'SelectionMoveStart' {
         return 'SelectionMoveStart' as const;
     }
 
-    override get SelectionChanged(): 'SelectionChanged' {
+    get SelectionChanged(): 'SelectionChanged' {
         return 'SelectionChanged' as const;
     }
 
-    override get SelectionMoving(): 'SelectionMoving' {
+    get SelectionMoving(): 'SelectionMoving' {
         return 'SelectionMoving' as const;
     }
 
-    override get SelectionMoveEnd(): 'SelectionMoveEnd' {
+    get SelectionMoveEnd(): 'SelectionMoveEnd' {
         return 'SelectionMoveEnd' as const;
     }
 
-    override get RowHeaderClick(): 'RowHeaderClick' {
+    get RowHeaderClick(): 'RowHeaderClick' {
         return 'RowHeaderClick' as const;
     }
 
-    override get RowHeaderPointerDown(): 'RowHeaderPointerDown' {
+    get RowHeaderPointerDown(): 'RowHeaderPointerDown' {
         return 'RowHeaderPointerDown' as const;
     }
 
-    override get RowHeaderPointerUp(): 'RowHeaderPointerUp' {
+    get RowHeaderPointerUp(): 'RowHeaderPointerUp' {
         return 'RowHeaderPointerUp' as const;
     }
 
-    override get RowHeaderHover(): 'RowHeaderHover' {
+    get RowHeaderHover(): 'RowHeaderHover' {
         return 'RowHeaderHover' as const;
     }
 
-    override get ColumnHeaderClick(): 'ColumnHeaderClick' {
+    get ColumnHeaderClick(): 'ColumnHeaderClick' {
         return 'ColumnHeaderClick' as const;
     }
 
-    override get ColumnHeaderPointerDown(): 'ColumnHeaderPointerDown' {
+    get ColumnHeaderPointerDown(): 'ColumnHeaderPointerDown' {
         return 'ColumnHeaderPointerDown' as const;
     }
 
-    override get ColumnHeaderPointerUp(): 'ColumnHeaderPointerUp' {
+    get ColumnHeaderPointerUp(): 'ColumnHeaderPointerUp' {
         return 'ColumnHeaderPointerUp' as const;
     }
 
-    override get ColumnHeaderHover(): 'ColumnHeaderHover' {
+    get ColumnHeaderHover(): 'ColumnHeaderHover' {
         return 'ColumnHeaderHover' as const;
     }
 
-    override get SheetSkeletonChanged(): 'SheetSkeletonChanged' {
+    get SheetSkeletonChanged(): 'SheetSkeletonChanged' {
         return 'SheetSkeletonChanged' as const;
+    }
+
+    get BeforeSheetZoomChange(): 'BeforeSheetZoomChange' {
+        return 'BeforeSheetZoomChange' as const;
+    }
+
+    get SheetZoomChanged(): 'SheetZoomChanged' {
+        return 'SheetZoomChanged' as const;
     }
 }
 
@@ -811,7 +820,7 @@ export interface IFSheetsUIEventParamConfig {
 }
 
 FEventName.extend(FSheetsUIEventName);
-declare module '@univerjs/core' {
+declare module '@univerjs/core/facade' {
     // eslint-disable-next-line ts/naming-convention
     interface FEventName extends IFSheetsUIEventNameMixin { }
     interface IEventParamConfig extends IFSheetsUIEventParamConfig { }

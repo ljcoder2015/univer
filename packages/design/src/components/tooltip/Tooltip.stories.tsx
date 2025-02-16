@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,8 +101,7 @@ export const Playground = {
                         placement="bottom"
                         asChild
                     >
-                        <div className="univer-h-8 univer-w-8 univer-bg-blue-400 univer-absolute univer-right-0">
-                        </div>
+                        <div className="univer-h-8 univer-w-8 univer-bg-blue-400 univer-absolute univer-right-0" />
                     </Tooltip>
                 </div>
             </>

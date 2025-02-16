@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 import type { ILocale } from '@univerjs/design';
 import type { IWorkbenchOptions } from '../controllers/ui/ui.controller';
-import { LocaleService, ThemeService, useDependency } from '@univerjs/core';
+import { LocaleService, ThemeService } from '@univerjs/core';
 import { ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BuiltInUIPart } from '../services/parts/parts.service';
+import { useDependency } from '../utils/di';
 import { ComponentContainer, useComponentsOfPart } from './components/ComponentContainer';
 import { MobileContextMenu } from './components/context-menu/MobileContextMenu';
 import { Sidebar } from './components/sidebar/Sidebar';
@@ -102,7 +103,7 @@ export function MobileApp(props: IUniverAppProps) {
             <div className={styles.appLayout} tabIndex={-1} onBlur={(e) => e.stopPropagation()}>
                 {/* header */}
                 {header && (
-                    <header className={styles.appContainerHeader}></header>
+                    <header className={styles.appContainerHeader} />
                 )}
 
                 {/* content */}

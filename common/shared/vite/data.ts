@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,16 @@ export const peerDepsMap = {
         global: 'rxjs.operators',
         name: 'rxjs',
         version: 'rxjs',
+    },
+    '@wendellhu/redi': {
+        global: '@wendellhu/redi',
+        name: '@wendellhu/redi',
+        version: '0.17.1',
+    },
+    '@wendellhu/redi/react-bindings': {
+        global: '@wendellhu/redi/react-bindings',
+        name: '@wendellhu/redi',
+        version: '@wendellhu/redi',
     },
     vue: {
         global: 'Vue',

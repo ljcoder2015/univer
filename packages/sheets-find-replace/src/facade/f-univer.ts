@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 import type { IFindReplaceState } from '@univerjs/find-replace';
-import { FUniver } from '@univerjs/core';
+import { FUniver } from '@univerjs/core/facade';
 import { FTextFinder } from './f-text-finder';
 
 /**
@@ -45,7 +45,7 @@ export class FUniverFindReplaceMixin extends FUniver implements IFUniverFindRepl
 }
 
 FUniver.extend(FUniverFindReplaceMixin);
-declare module '@univerjs/core' {
+declare module '@univerjs/core/facade' {
     // eslint-disable-next-line ts/naming-convention
     interface FUniver extends IFUniverFindReplaceMixin {}
 }

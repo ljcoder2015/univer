@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 import type { IAccessor } from '@univerjs/core';
 import type { IMenuButtonItem, IMenuItem, MenuSchemaType } from '@univerjs/ui';
-import { CommandType, FBase, ICommandService, Inject, Injector, Tools } from '@univerjs/core';
+import { CommandType, ICommandService, Inject, Injector, Tools } from '@univerjs/core';
+import { FBase } from '@univerjs/core/facade';
 import { IMenuManagerService, MenuItemType, MenuManagerPosition, RibbonPosition, RibbonStartGroup } from '@univerjs/ui';
 
 /**

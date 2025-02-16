@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 import type { ComponentType } from 'react';
 import type { IMenuSchema } from '../../../services/menu/menu-manager.service';
-import { LocaleService, useDependency } from '@univerjs/core';
+import { LocaleService } from '@univerjs/core';
 import { clsx } from '@univerjs/design';
 import { MoreFunctionSingle } from '@univerjs/icons';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IMenuManagerService } from '../../../services/menu/menu-manager.service';
 import { MenuManagerPosition, RibbonPosition } from '../../../services/menu/types';
+import { useDependency } from '../../../utils/di';
 import { ComponentContainer } from '../ComponentContainer';
 import { ToolbarButton } from '../ribbon/Button/ToolbarButton';
 import styles from './index.module.less';
@@ -68,24 +69,26 @@ export function Ribbon(props: IRibbonProps) {
     // resize observer
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
-            const toolbar = entries[0].target;
-            const toolbarWidth = toolbar.clientWidth;
-            const toolbarItems = Object.values(toolbarItemRefs.current);
-            const collapsedIds: string[] = [];
-            let totalWidth = 0;
+            requestAnimationFrame(() => {
+                const toolbar = entries[0].target;
+                const toolbarWidth = toolbar.clientWidth;
+                const toolbarItems = Object.values(toolbarItemRefs.current);
+                const collapsedIds: string[] = [];
+                let totalWidth = 0;
 
-            const allGroups = ribbon.find((group) => group.key === activatedTab)?.children ?? [];
+                const allGroups = ribbon.find((group) => group.key === activatedTab)?.children ?? [];
 
-            for (const { el, key } of toolbarItems) {
-                if (!el) continue;
+                for (const { el, key } of toolbarItems) {
+                    if (!el) continue;
 
-                totalWidth += el?.getBoundingClientRect().width + 8;
-                if (totalWidth > toolbarWidth - 32 - 8 * (allGroups.length - 1)) {
-                    collapsedIds.push(key);
+                    totalWidth += el?.getBoundingClientRect().width + 8;
+                    if (totalWidth > toolbarWidth - 32 - 8 * (allGroups.length - 1)) {
+                        collapsedIds.push(key);
+                    }
                 }
-            }
 
-            setCollapsedIds(collapsedIds);
+                setCollapsedIds(collapsedIds);
+            });
         });
 
         if (toolbarRef.current) {
@@ -240,9 +243,9 @@ export function Ribbon(props: IRibbonProps) {
                 aria-hidden
                 ref={toolbarRef}
                 className={`
-                  univer-absolute univer-left-0 univer-right-0 univer-top-[-99999px] univer-mx-auto univer-box-border
-                  univer-flex univer-h-full univer-flex-1 univer-items-center univer-justify-center univer-gap-1
-                  univer-overflow-hidden univer-px-4 univer-opacity-0
+                  univer-invisible univer-absolute univer-left-0 univer-right-0 univer-top-[-99999px] univer-mx-auto
+                  univer-box-border univer-flex univer-h-full univer-flex-1 univer-items-center univer-justify-center
+                  univer-gap-1 univer-overflow-hidden univer-px-4
                 `}
             >
                 {fakeToolbarContent}

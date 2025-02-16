@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import type { UniverInstanceType } from '../common/unit';
-import type { CommandType } from '../services/command/command.service';
-import type { LifecycleStages } from '../services/lifecycle/lifecycle';
-import type { IDocumentData } from '../types/interfaces';
+/* eslint-disable ts/explicit-function-return-type */
+
+import type { CommandType, IDocumentData, LifecycleStages, UniverInstanceType } from '@univerjs/core';
 import type { FDoc } from './f-doc';
 
 /**
@@ -134,7 +133,7 @@ export class FEventName {
      * @see {@link IDocCreatedParam}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.DocCreated, (params) => {
+     * univerAPI.addEvent(univerAPI.Event.DocCreated, (params) => {
      *   const { unitId, type, doc, unit } = params;
      *   console.log('doc created', params);
      * });
@@ -149,7 +148,7 @@ export class FEventName {
      * @see {@link IDocDisposedEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.DocDisposed, (params) => {
+     * univerAPI.addEvent(univerAPI.Event.DocDisposed, (params) => {
      *   const { unitId, unitType, snapshot } = params;
      *   console.log('doc disposed', params);
      * });
@@ -164,7 +163,7 @@ export class FEventName {
      * @see {@link ILifeCycleChangedEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.LifeCycleChanged, (params) => {
+     * univerAPI.addEvent(univerAPI.Event.LifeCycleChanged, (params) => {
      *   const { stage } = params;
      *   console.log('life cycle changed', params);
      * });
@@ -179,9 +178,9 @@ export class FEventName {
      * @see {@link ICommandEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.Redo, (event) => {
+     * univerAPI.addEvent(univerAPI.Event.Redo, (event) => {
      *   const { params, id, type } = event;
-     *   console.log('command executed', event);
+     *   console.log('redo command executed', event);
      * });
      * ```
      */
@@ -194,9 +193,9 @@ export class FEventName {
      * @see {@link ICommandEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.Undo, (event) => {
+     * univerAPI.addEvent(univerAPI.Event.Undo, (event) => {
      *   const { params, id, type } = event;
-     *   console.log('command executed', event);
+     *   console.log('undo command executed', event);
      * });
      * ```
      */
@@ -209,9 +208,9 @@ export class FEventName {
      * @see {@link ICommandEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.BeforeRedo, (event) => {
+     * univerAPI.addEvent(univerAPI.Event.BeforeRedo, (event) => {
      *   const { params, id, type } = event;
-     *   console.log('command executed', event);
+     *   console.log('before redo command executed', event);
      * });
      * ```
      */
@@ -224,9 +223,9 @@ export class FEventName {
      * @see {@link ICommandEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.BeforeUndo, (event) => {
+     * univerAPI.addEvent(univerAPI.Event.BeforeUndo, (event) => {
      *   const { params, id, type } = event;
-     *   console.log('command executed', event);
+     *   console.log('before undo command executed', event);
      * });
      * ```
      */
@@ -239,7 +238,7 @@ export class FEventName {
      * @see {@link ICommandEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.CommandExecuted, (event) => {
+     * univerAPI.addEvent(univerAPI.Event.CommandExecuted, (event) => {
      *   const { params, id, type } = event;
      *   console.log('command executed', event);
      * });
@@ -254,9 +253,9 @@ export class FEventName {
      * @see {@link ICommandEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.event.BeforeCommandExecute, (event) => {
+     * univerAPI.addEvent(univerAPI.Event.BeforeCommandExecute, (event) => {
      *   const { params, id, type } = event;
-     *   console.log('command executed', event);
+     *   console.log('before command executed', event);
      * });
      * ```
      */

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import type { IEventBase, IWorkbookData, IWorksheetData, UniverInstanceType } from '@univerjs/core';
+import type { IWorkbookData, IWorksheetData, UniverInstanceType } from '@univerjs/core';
+import type { IEventBase } from '@univerjs/core/facade';
 import type { CommandListenerValueChange } from '@univerjs/sheets';
 import type { FRange } from './f-range';
 import type { FWorkbook } from './f-workbook';
 import type { FWorksheet } from './f-worksheet';
-import { FEventName } from '@univerjs/core';
+import { FEventName } from '@univerjs/core/facade';
 
 /**
  * Interface for sheet-related events
@@ -38,7 +39,8 @@ export interface IFSheetEventMixin {
      * });
      * ```
      */
-    get SheetCreated(): 'SheetCreated' ;
+    get SheetCreated(): 'SheetCreated';
+
     /**
      * Event fired before a sheet is created
      * @see {@link IBeforeSheetCreateEventParams}
@@ -51,18 +53,20 @@ export interface IFSheetEventMixin {
      * ```
      */
     get BeforeSheetCreate(): 'BeforeSheetCreate';
+
     /**
      * Event fired before the active sheet changes
-     * @see {@link IActiveSheetChangedEvent}
+     * @see {@link IBeforeActiveSheetChangeEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.Event.ActiveSheetChanged, (params) => {
+     * univerAPI.addEvent(univerAPI.Event.BeforeActiveSheetChange, (params) => {
      *   const { workbook, activeSheet, oldActiveSheet } = params;
-     *   console.log('before active sheet changed', params);
+     *   console.log('before active sheet change', params);
      * });
      * ```
      */
     get BeforeActiveSheetChange(): 'BeforeActiveSheetChange';
+
     /**
      * Event fired after the active sheet changes
      * @see {@link IActiveSheetChangedEvent}
@@ -75,18 +79,20 @@ export interface IFSheetEventMixin {
      * ```
      */
     get ActiveSheetChanged(): 'ActiveSheetChanged';
+
     /**
-     * Event fired before a sheet is deleted
-     * @see {@link IBeforeSheetDeleteEvent}
+     * Event fired after a sheet is deleted
+     * @see {@link ISheetDeletedEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.Event.BeforeSheetDelete, (params) => {
-     *   const { workbook, worksheetId } = params;
-     *   console.log('before sheet delete', params);
+     * univerAPI.addEvent(univerAPI.Event.SheetDeleted, (params) => {
+     *   const { workbook, sheetId } = params;
+     *   console.log('sheet deleted', params);
      * });
      * ```
      */
     get SheetDeleted(): 'SheetDeleted';
+
     /**
      * Event fired before a sheet is deleted
      * @see {@link IBeforeSheetDeleteEvent}
@@ -99,6 +105,7 @@ export interface IFSheetEventMixin {
      * ```
      */
     get BeforeSheetDelete(): 'BeforeSheetDelete';
+
     /**
      * Event fired after a sheet is moved
      * @see {@link ISheetMovedEvent}
@@ -111,6 +118,7 @@ export interface IFSheetEventMixin {
      * ```
      */
     get SheetMoved(): 'SheetMoved';
+
     /**
      * Event fired before a sheet is moved
      * @see {@link IBeforeSheetMoveEvent}
@@ -123,6 +131,7 @@ export interface IFSheetEventMixin {
      * ```
      */
     get BeforeSheetMove(): 'BeforeSheetMove';
+
     /**
      * Event fired after a sheet name is changed
      * @see {@link ISheetNameChangedEvent}
@@ -135,6 +144,7 @@ export interface IFSheetEventMixin {
      * ```
      */
     get SheetNameChanged(): 'SheetNameChanged';
+
     /**
      * Event fired before a sheet name is changed
      * @see {@link IBeforeSheetNameChangeEvent}
@@ -142,59 +152,64 @@ export interface IFSheetEventMixin {
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.BeforeSheetNameChange, (params) => {
      *   const { workbook, worksheet, newName, oldName } = params;
-     *   console.log('before sheet name changed', params);
+     *   console.log('before sheet name change', params);
      * });
      * ```
      */
     get BeforeSheetNameChange(): 'BeforeSheetNameChange';
+
     /**
      * Event fired after a sheet tab color is changed
      * @see {@link ISheetTabColorChangedEvent}
      * @example
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.SheetTabColorChanged, (params) => {
-     *   const { workbook, worksheet, color } = params;
+     *   const { workbook, worksheet, newColor } = params;
      *   console.log('sheet tab color changed', params);
      * });
      * ```
      */
     get SheetTabColorChanged(): 'SheetTabColorChanged';
+
     /**
      * Event fired before a sheet tab color is changed
      * @see {@link IBeforeSheetTabColorChangeEvent}
      * @example
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.BeforeSheetTabColorChange, (params) => {
-     *   const { workbook, worksheet, color, oldColor } = params;
-     *   console.log('before sheet tab color changed', params);
+     *   const { workbook, worksheet, newColor, oldColor } = params;
+     *   console.log('before sheet tab color change', params);
      * });
      * ```
      */
     get BeforeSheetTabColorChange(): 'BeforeSheetTabColorChange';
+
     /**
      * Event fired after a sheet is hidden
      * @see {@link ISheetHideChangedEvent}
      * @example
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.SheetHideChanged, (params) => {
-     *   const { workbook, worksheet } = params;
+     *   const { workbook, worksheet, hidden } = params;
      *   console.log('sheet hide changed', params);
      * });
      * ```
      */
     get SheetHideChanged(): 'SheetHideChanged';
+
     /**
      * Event fired before a sheet is hidden
      * @see {@link IBeforeSheetHideChangeEvent}
      * @example
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.BeforeSheetHideChange, (params) => {
-     *   const { workbook, worksheet, hide } = params;
-     *   console.log('before sheet hide changed', params);
+     *   const { workbook, worksheet, hidden } = params;
+     *   console.log('before sheet hide change', params);
      * });
      * ```
      */
     get BeforeSheetHideChange(): 'BeforeSheetHideChange';
+
     /**
      * Event fired after a workbook is created
      * @see {@link IWorkbookCreateParam}
@@ -207,6 +222,7 @@ export interface IFSheetEventMixin {
      * ```
      */
     get WorkbookCreated(): 'WorkbookCreated';
+
     /**
      * Event fired after a workbook is disposed
      * @see {@link IWorkbookDisposedEvent}
@@ -214,7 +230,7 @@ export interface IFSheetEventMixin {
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.WorkbookDisposed, (params) => {
      *   const { unitId, unitType, snapshot } = params;
-     *   console.log('unit disposed', params);
+     *   console.log('workbook disposed', params);
      * });
      * ```
      */
@@ -240,7 +256,7 @@ export interface IFSheetEventMixin {
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.BeforeGridlineEnableChange, (params) => {
      *   const { workbook, worksheet, enabled } = params;
-     *   console.log('gridline changed', params);
+     *   console.log('before gridline enable change', params);
      * });
      * ```
      */
@@ -253,7 +269,7 @@ export interface IFSheetEventMixin {
      * ```ts
      * univerAPI.addEvent(univerAPI.Event.BeforeGridlineColorChange, (params) => {
      *   const { workbook, worksheet, color } = params;
-     *   console.log('gridline changed', params);
+     *   console.log('before gridline color change', params);
      * });
      * ```
      */
@@ -261,10 +277,12 @@ export interface IFSheetEventMixin {
 
     /**
      * Event fired when sheet value changed
+     * @see {@link ISheetValueChangedEvent}
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.Event.SheetValueChanged, (p)=> {
-     *   const { workbook, effectedRanges, payload } = p;
+     * univerAPI.addEvent(univerAPI.Event.SheetValueChanged, (params)=> {
+     *   const { effectedRanges, payload } = params;
+     *   console.log('sheet value changed', params);
      * });
      * ```
      */
@@ -580,90 +598,90 @@ export interface ISheetEventParamConfig {
     SheetValueChanged: ISheetValueChangedEvent;
 }
 
-export class FSheetEventName extends FEventName implements IFSheetEventMixin {
-    override get SheetCreated(): 'SheetCreated' {
+export class FSheetEventName implements IFSheetEventMixin {
+    get SheetCreated(): 'SheetCreated' {
         return 'SheetCreated' as const;
     }
 
-    override get BeforeSheetCreate(): 'BeforeSheetCreate' {
+    get BeforeSheetCreate(): 'BeforeSheetCreate' {
         return 'BeforeSheetCreate' as const;
     }
 
-    override get WorkbookCreated(): 'WorkbookCreated' {
+    get WorkbookCreated(): 'WorkbookCreated' {
         return 'WorkbookCreated' as const;
     }
 
-    override get WorkbookDisposed(): 'WorkbookDisposed' {
+    get WorkbookDisposed(): 'WorkbookDisposed' {
         return 'WorkbookDisposed' as const;
     }
 
-    override get GridlineChanged(): 'GridlineChanged' {
+    get GridlineChanged(): 'GridlineChanged' {
         return 'GridlineChanged' as const;
     }
 
-    override get BeforeGridlineEnableChange(): 'BeforeGridlineEnableChange' {
+    get BeforeGridlineEnableChange(): 'BeforeGridlineEnableChange' {
         return 'BeforeGridlineEnableChange' as const;
     }
 
-    override get BeforeGridlineColorChange(): 'BeforeGridlineColorChange' {
+    get BeforeGridlineColorChange(): 'BeforeGridlineColorChange' {
         return 'BeforeGridlineColorChange' as const;
     }
 
-    override get BeforeActiveSheetChange(): 'BeforeActiveSheetChange' {
+    get BeforeActiveSheetChange(): 'BeforeActiveSheetChange' {
         return 'BeforeActiveSheetChange' as const;
     }
 
-    override get ActiveSheetChanged(): 'ActiveSheetChanged' {
+    get ActiveSheetChanged(): 'ActiveSheetChanged' {
         return 'ActiveSheetChanged' as const;
     }
 
-    override get SheetDeleted(): 'SheetDeleted' {
+    get SheetDeleted(): 'SheetDeleted' {
         return 'SheetDeleted' as const;
     }
 
-    override get BeforeSheetDelete(): 'BeforeSheetDelete' {
+    get BeforeSheetDelete(): 'BeforeSheetDelete' {
         return 'BeforeSheetDelete' as const;
     }
 
-    override get SheetMoved(): 'SheetMoved' {
+    get SheetMoved(): 'SheetMoved' {
         return 'SheetMoved' as const;
     }
 
-    override get BeforeSheetMove(): 'BeforeSheetMove' {
+    get BeforeSheetMove(): 'BeforeSheetMove' {
         return 'BeforeSheetMove' as const;
     }
 
-    override get SheetNameChanged(): 'SheetNameChanged' {
+    get SheetNameChanged(): 'SheetNameChanged' {
         return 'SheetNameChanged' as const;
     }
 
-    override get BeforeSheetNameChange(): 'BeforeSheetNameChange' {
+    get BeforeSheetNameChange(): 'BeforeSheetNameChange' {
         return 'BeforeSheetNameChange' as const;
     }
 
-    override get SheetTabColorChanged(): 'SheetTabColorChanged' {
+    get SheetTabColorChanged(): 'SheetTabColorChanged' {
         return 'SheetTabColorChanged' as const;
     }
 
-    override get BeforeSheetTabColorChange(): 'BeforeSheetTabColorChange' {
+    get BeforeSheetTabColorChange(): 'BeforeSheetTabColorChange' {
         return 'BeforeSheetTabColorChange' as const;
     }
 
-    override get SheetHideChanged(): 'SheetHideChanged' {
+    get SheetHideChanged(): 'SheetHideChanged' {
         return 'SheetHideChanged' as const;
     }
 
-    override get BeforeSheetHideChange(): 'BeforeSheetHideChange' {
+    get BeforeSheetHideChange(): 'BeforeSheetHideChange' {
         return 'BeforeSheetHideChange' as const;
     }
 
-    override get SheetValueChanged(): 'SheetValueChanged' {
+    get SheetValueChanged(): 'SheetValueChanged' {
         return 'SheetValueChanged' as const;
     }
 }
 
 FEventName.extend(FSheetEventName);
-declare module '@univerjs/core' {
+declare module '@univerjs/core/facade' {
     // eslint-disable-next-line ts/naming-convention
     interface FEventName extends IFSheetEventMixin { }
     interface IEventParamConfig extends ISheetEventParamConfig { }

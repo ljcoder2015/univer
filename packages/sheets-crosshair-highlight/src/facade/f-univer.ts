@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import type { IEventBase, Injector } from '@univerjs/core';
+import type { Injector } from '@univerjs/core';
+import type { IEventBase } from '@univerjs/core/facade';
 import type { ISetCrosshairHighlightColorOperationParams } from '@univerjs/sheets-crosshair-highlight';
 import type { FWorkbook, FWorksheet } from '@univerjs/sheets/facade';
-import { FUniver, ICommandService } from '@univerjs/core';
-import { CROSSHAIR_HIGHLIGHT_COLORS, DisableCrosshairHighlightOperation, EnableCrosshairHighlightOperation, SetCrosshairHighlightColorOperation, SheetsCrosshairHighlightService } from '@univerjs/sheets-crosshair-highlight';
+import { ICommandService } from '@univerjs/core';
+import { FEventName, FUniver } from '@univerjs/core/facade';
+import { CROSSHAIR_HIGHLIGHT_COLORS, DisableCrosshairHighlightOperation, EnableCrosshairHighlightOperation, SetCrosshairHighlightColorOperation, SheetsCrosshairHighlightService, ToggleCrosshairHighlightOperation } from '@univerjs/sheets-crosshair-highlight';
 
 /**
  * @ignore
@@ -163,27 +165,37 @@ export class FUniverCrosshairHighlightMixin extends FUniver implements IFUniverC
     override _initialize(injector: Injector): void {
         const commandService = injector.get(ICommandService);
 
-        this.disposeWithMe(commandService.onCommandExecuted((commandInfo) => {
-            if (commandInfo.id === EnableCrosshairHighlightOperation.id || commandInfo.id === DisableCrosshairHighlightOperation.id) {
-                const activeSheet = this.getActiveSheet();
-                if (!activeSheet) return;
-                if (!this._eventListend(this.Event.CrosshairHighlightEnabledChanged)) return;
-                this.fireEvent(this.Event.CrosshairHighlightEnabledChanged, {
-                    enabled: this.getCrosshairHighlightEnabled(),
-                    ...activeSheet,
-                });
-            }
+        this.registerEventHandler(
+            this.Event.CrosshairHighlightEnabledChanged,
+            () => commandService.onCommandExecuted((commandInfo) => {
+                if (
+                    commandInfo.id === EnableCrosshairHighlightOperation.id ||
+                    commandInfo.id === DisableCrosshairHighlightOperation.id ||
+                    commandInfo.id === ToggleCrosshairHighlightOperation.id
+                ) {
+                    const activeSheet = this.getActiveSheet();
+                    if (!activeSheet) return;
+                    this.fireEvent(this.Event.CrosshairHighlightEnabledChanged, {
+                        enabled: this.getCrosshairHighlightEnabled(),
+                        ...activeSheet,
+                    });
+                }
+            })
+        );
 
-            if (commandInfo.id === SetCrosshairHighlightColorOperation.id) {
-                const activeSheet = this.getActiveSheet();
-                if (!activeSheet) return;
-                if (!this._eventListend(this.Event.CrosshairHighlightColorChanged)) return;
-                this.fireEvent(this.Event.CrosshairHighlightColorChanged, {
-                    color: this.getCrosshairHighlightColor(),
-                    ...activeSheet,
-                });
-            }
-        }));
+        this.registerEventHandler(
+            this.Event.CrosshairHighlightColorChanged,
+            () => commandService.onCommandExecuted((commandInfo) => {
+                if (commandInfo.id === SetCrosshairHighlightColorOperation.id) {
+                    const activeSheet = this.getActiveSheet();
+                    if (!activeSheet) return;
+                    this.fireEvent(this.Event.CrosshairHighlightColorChanged, {
+                        color: this.getCrosshairHighlightColor(),
+                        ...activeSheet,
+                    });
+                }
+            })
+        );
     }
 
     override setCrosshairHighlightEnabled(enabled: boolean): FUniver {
@@ -218,8 +230,10 @@ export class FUniverCrosshairHighlightMixin extends FUniver implements IFUniverC
     }
 }
 
+FEventName.extend(FSheetCrosshairHighlightEventMixin);
 FUniver.extend(FUniverCrosshairHighlightMixin);
-declare module '@univerjs/core' {
+
+declare module '@univerjs/core/facade' {
     // eslint-disable-next-line ts/naming-convention
     interface FUniver extends IFUniverCrosshairHighlightMixin {}
 

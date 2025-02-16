@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -370,12 +370,6 @@ export class HeaderResizeRenderController extends Disposable implements IRenderM
                 const rowResizeRectY = this._rowResizeRect?.top || 0;
                 scene.addObject(this._resizeHelperShape, SHEET_COMPONENT_HEADER_LAYER_INDEX);
                 scene.disableObjectsEvent();
-
-                // TODO: do it in another way
-                // this._editorBridgeService.changeVisible({
-                //     visible: false,
-                //     eventType: DeviceInputEventType.PointerDown,
-                // });
 
                 this._scenePointerMoveSub = scene.onPointerMove$.subscribeEvent((moveEvt: IPointerEvent | IMouseEvent) => {
                     const relativeCoords = scene.getCoordRelativeToViewport(

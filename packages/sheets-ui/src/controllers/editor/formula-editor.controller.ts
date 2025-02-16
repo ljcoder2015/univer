@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,10 @@ export class FormulaEditorController extends RxDisposable {
 
         this.disposeWithMe(this._editorService.focus$.subscribe(() => {
             const focusUnitId = this._editorService.getFocusEditor()?.getEditorId();
-            if (focusUnitId === DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY) {
+            if (focusUnitId !== DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY) {
                 this._contextService.setContextValue(FOCUSING_FX_BAR_EDITOR, false);
+            } else {
+                this._contextService.setContextValue(FOCUSING_FX_BAR_EDITOR, true);
             }
         }));
     }

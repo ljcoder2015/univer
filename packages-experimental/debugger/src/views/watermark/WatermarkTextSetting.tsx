@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 
 import type { ITextWatermarkConfig } from '@univerjs/watermark';
-import { LocaleService, useDependency } from '@univerjs/core';
+import { LocaleService } from '@univerjs/core';
 import { Checkbox, ColorPicker, DropdownLegacy, Input, InputNumber, Select } from '@univerjs/design';
 import { BoldSingle, FontColor, ItalicSingle } from '@univerjs/icons';
+import { useDependency } from '@univerjs/ui';
 import clsx from 'clsx';
 import React from 'react';
 import styles from './index.module.less';
@@ -44,8 +45,7 @@ export const WatermarkTextSetting: React.FC<IWatermarkTextSettingProps> = (props
                     onChange={(val) => onChange({ ...config, content: val })}
                     className={styles.watermarkInputContent}
                     placeholder={localeService.t('univer-watermark.textPlaceholder')}
-                >
-                </Input>
+                />
             </div>
 
             <div className={styles.watermarkTextSettingFontStyle}>
@@ -74,8 +74,7 @@ export const WatermarkTextSetting: React.FC<IWatermarkTextSettingProps> = (props
                                 { label: localeService.t('univer-watermark.ltr'), value: 'ltr' },
                                 { label: localeService.t('univer-watermark.rtl'), value: 'rtl' },
                             ]}
-                        >
-                        </Select>
+                        />
                     </div>
 
                     <div>
@@ -140,9 +139,7 @@ export const WatermarkTextSetting: React.FC<IWatermarkTextSettingProps> = (props
                         <Checkbox
                             checked={config.repeat}
                             onChange={(val) => onChange({ ...config, repeat: val as boolean })}
-                        >
-
-                        </Checkbox>
+                        />
                     </div>
                 </div>
                 <div className={styles.watermarkTextSettingFontStylePart}>

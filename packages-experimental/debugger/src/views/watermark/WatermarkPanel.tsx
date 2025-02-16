@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 
 import type { IWatermarkConfig, IWatermarkConfigWithType } from '@univerjs/watermark';
-import { ILocalStorageService, LocaleService, useDependency, useObservable } from '@univerjs/core';
+import { ILocalStorageService, LocaleService } from '@univerjs/core';
 import { Select } from '@univerjs/design';
+import { useDependency, useObservable } from '@univerjs/ui';
 import { IWatermarkTypeEnum, UNIVER_WATERMARK_STORAGE_KEY, WatermarkImageBaseConfig, WatermarkService, WatermarkTextBaseConfig } from '@univerjs/watermark';
 import React, { useCallback, useEffect, useState } from 'react';
 import styles from './index.module.less';
@@ -68,8 +69,7 @@ export const WatermarkPanel: React.FC = () => {
                     { label: localeService.t('univer-watermark.image'), value: IWatermarkTypeEnum.Image },
                 ]}
                 className={styles.watermarkPanelTypeSelect}
-            >
-            </Select>
+            />
             <div className={styles.watermarkPanelSetting}>
                 {watermarkType === IWatermarkTypeEnum.Text && <WatermarkTextSetting config={config?.text} onChange={(v) => handleConfigChange({ text: v })} />}
                 {watermarkType === IWatermarkTypeEnum.Image && <WatermarkImageSetting config={config?.image} onChange={(v) => handleConfigChange({ image: v })} />}
@@ -77,4 +77,3 @@ export const WatermarkPanel: React.FC = () => {
         </div>
     );
 };
-

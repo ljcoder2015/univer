@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 import type { Workbook } from '@univerjs/core';
 import type { IEditorBridgeServiceVisibleParam } from '../../services/editor-bridge.service';
-import { DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY, DOCS_NORMAL_EDITOR_UNIT_ID_KEY, FOCUSING_FX_BAR_EDITOR, ICommandService, IContextService, IPermissionService, IUniverInstanceService, UniverInstanceType, useDependency, useObservable } from '@univerjs/core';
+import { DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY, DOCS_NORMAL_EDITOR_UNIT_ID_KEY, FOCUSING_FX_BAR_EDITOR, ICommandService, IContextService, IPermissionService, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
 import { IEditorService } from '@univerjs/docs-ui';
 import { DeviceInputEventType } from '@univerjs/engine-render';
 import { CheckMarkSingle, CloseSingle, DropdownSingle, FxSingle } from '@univerjs/icons';
 import { RangeProtectionCache, RangeProtectionRuleModel, SheetsSelectionsService, UnitAction, WorksheetEditPermission, WorksheetProtectionRuleModel, WorksheetViewPermission } from '@univerjs/sheets';
-import { ComponentContainer, ComponentManager, KeyCode, useComponentsOfPart } from '@univerjs/ui';
+import { ComponentContainer, ComponentManager, KeyCode, useComponentsOfPart, useDependency, useObservable } from '@univerjs/ui';
 import clsx from 'clsx';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { EMPTY, merge, of, switchMap } from 'rxjs';
@@ -52,7 +52,7 @@ export function FormulaBar() {
     const selectionManager = useDependency(SheetsSelectionsService);
     const permissionService = useDependency(IPermissionService);
     const rangeProtectionCache = useDependency(RangeProtectionCache);
-
+    const commandService = useDependency(ICommandService);
     const [disableInfo, setDisableInfo] = useState<{ editDisable: boolean; viewDisable: boolean }>({
         editDisable: false,
         viewDisable: false,
@@ -181,7 +181,7 @@ export function FormulaBar() {
     function handleCloseBtnClick() {
         const visibleState = editorBridgeService.isVisible();
         if (visibleState.visible) {
-            editorBridgeService.changeVisible({
+            commandService.executeCommand(SetCellEditVisibleOperation.id, {
                 visible: false,
                 eventType: DeviceInputEventType.Keyboard,
                 keycode: KeyCode.ESC,
@@ -194,7 +194,7 @@ export function FormulaBar() {
     function handleConfirmBtnClick() {
         const visibleState = editorBridgeService.isVisible();
         if (visibleState.visible) {
-            editorBridgeService.changeVisible({
+            commandService.executeCommand(SetCellEditVisibleOperation.id, {
                 visible: false,
                 eventType: DeviceInputEventType.PointerDown,
                 unitId: currentWorkbook?.getUnitId() ?? '',
@@ -210,7 +210,7 @@ export function FormulaBar() {
     const { viewDisable, editDisable } = disableInfo;
     const disabled = editDisable || imageDisable;
     const shouldSkipFocus = useRef(false);
-    const commandService = useDependency(ICommandService);
+
     const unitId = currentWorkbook?.getUnitId() ?? '';
 
     const handlePointerDown = () => {
@@ -327,7 +327,7 @@ export function FormulaBar() {
                 </div>
             </div>
 
-            <ComponentContainer key="formula-aux" components={formulaAuxUIParts}></ComponentContainer>
+            <ComponentContainer key="formula-aux" components={formulaAuxUIParts} />
         </div>
     );
 }

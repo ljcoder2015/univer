@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -413,6 +413,8 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
                     commandId,
                 }, true);
 
+                // TODO @lumixraku
+                // This is insane !!! Tons changes would call sk.setCurrent.
                 this._sheetSkeletonManagerService.setCurrent({
                     sheetId: worksheetId,
                     commandId,

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,12 @@ import type {
     ISheetClipboardHook,
     ISheetDiscreteRangeLocation,
 } from '../../services/clipboard/type';
+import type { IScrollStateWithSearchParam } from '../../services/scroll-manager.service';
+
 import type { IUniverSheetsUIConfig } from '../config.schema';
 
 import {
     BooleanNumber,
-    connectInjector,
     convertBodyToHtml,
     DEFAULT_WORKSHEET_COLUMN_WIDTH,
     DEFAULT_WORKSHEET_COLUMN_WIDTH_KEY,
@@ -61,19 +62,16 @@ import {
     isFormulaString,
     IUniverInstanceService,
     LocaleService,
-
     ObjectMatrix,
-
     RxDisposable,
     Tools,
     UniverInstanceType,
 } from '@univerjs/core';
 
 import { MessageType } from '@univerjs/design';
-
 import { DocSelectionRenderService } from '@univerjs/docs-ui';
-import { IRenderManagerService } from '@univerjs/engine-render';
 
+import { IRenderManagerService } from '@univerjs/engine-render';
 import {
     InsertColMutation,
     InsertRowMutation,
@@ -88,8 +86,8 @@ import {
     SetWorksheetColWidthMutation,
     SetWorksheetRowHeightMutation,
 } from '@univerjs/sheets';
-import { BuiltInUIPart, IMessageService, IUIPartsService } from '@univerjs/ui';
-import { takeUntil } from 'rxjs';
+import { BuiltInUIPart, connectInjector, IMessageService, IUIPartsService } from '@univerjs/ui';
+import { Subject, takeUntil } from 'rxjs';
 import { AddWorksheetMergeCommand } from '../../commands/commands/add-worksheet-merge.command';
 import {
     SheetCopyCommand,
@@ -102,6 +100,7 @@ import {
     SheetPasteShortKeyCommand,
     SheetPasteValueCommand,
 } from '../../commands/commands/clipboard.command';
+import { SetScrollOperation } from '../../commands/operations/scroll.operation';
 import { ISheetClipboardService, PREDEFINED_HOOK_NAME } from '../../services/clipboard/clipboard.service';
 import { SheetSkeletonManagerService } from '../../services/sheet-skeleton-manager.service';
 import { ClipboardPopupMenu } from '../../views/clipboard/ClipboardPopupMenu';
@@ -133,6 +132,9 @@ const shouldRemoveShapeIds = [
 ];
 
 export class SheetClipboardController extends RxDisposable {
+    private _refreshOptionalPaste$ = new Subject();
+    refreshOptionalPaste$ = this._refreshOptionalPaste$.asObservable();
+
     constructor(
         @Inject(Injector) private readonly _injector: Injector,
         @IUniverInstanceService private readonly _currentUniverSheet: IUniverInstanceService,
@@ -150,6 +152,10 @@ export class SheetClipboardController extends RxDisposable {
         this._initCommandListener();
         this._initUIComponents();
         this._pasteWithDoc();
+    }
+
+    refreshOptionalPaste() {
+        this._refreshOptionalPaste$.next(Math.random());
     }
 
     private _pasteWithDoc() {
@@ -906,6 +912,23 @@ export class SheetClipboardController extends RxDisposable {
                 }
             })
         );
+
+        this.disposeWithMe(
+            this._commandService.onCommandExecuted((command: ICommandInfo) => {
+                if (command.id === SetScrollOperation.id) {
+                    if (!this._sheetClipboardService.getPasteMenuVisible()) {
+                        return;
+                    }
+                    const params = command.params as IScrollStateWithSearchParam;
+                    const scrollUnitId = params.unitId;
+                    const pasteOptionsCache = this._sheetClipboardService.getPasteOptionsCache();
+                    const menuUnitId = pasteOptionsCache?.target.unitId;
+                    if (scrollUnitId === menuUnitId) {
+                        this._refreshOptionalPaste$.next(Math.random());
+                    }
+                }
+            })
+        );
     }
 
     private _initUIComponents() {
@@ -913,6 +936,7 @@ export class SheetClipboardController extends RxDisposable {
         if (sheetsUIConfig?.clipboardConfig?.hidePasteOptions) {
             return;
         }
+
         this.disposeWithMe(
             this._uiPartsService.registerComponent(BuiltInUIPart.CONTENT, () => connectInjector(ClipboardPopupMenu, this._injector))
         );

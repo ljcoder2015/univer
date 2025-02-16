@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-present DreamNum Inc.
+ * Copyright 2023-present DreamNum Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -523,6 +523,7 @@ export function getCellPositionByIndex(
 }
 
 /**
+ * @deprecated use same function in @univerjs/core
  * @description Get the cell position information of the specified row and column, including the position information of the cell and the merge information of the cell
  * @param {number} row The row index of the cell
  * @param {number} column The column index of the cell
@@ -531,7 +532,7 @@ export function getCellPositionByIndex(
  * @param {ICellInfo} mergeDataInfo The merge information of the cell
  * @returns {ICellWithCoord} The cell position information of the specified row and column, including the position information of the cell and the merge information of the cell
  */
-export function getCellWithCoordByIndexCore(
+function getCellWithCoordByIndexCore(
     row: number,
     column: number,
     rowHeightAccumulation: number[],
@@ -605,7 +606,7 @@ export function getCellWithCoordByIndexCore(
 }
 
 /**
- * @deprecated please use getCellWithCoordByIndexCore instead
+ * @deprecated please use getCellWithCoordByIndexCore in @univerjs/core instead
  */
 const getCellByIndexWithMergeInfo = getCellWithCoordByIndexCore;
 export { getCellByIndexWithMergeInfo };
