@@ -19,7 +19,7 @@ import type { IIconSet, IIconType } from '@univerjs/sheets-conditional-formattin
 import type { IStyleEditorProps } from './type';
 
 import { get, IUniverInstanceService, LocaleService, set, Tools, UniverInstanceType } from '@univerjs/core';
-import { Checkbox, DropdownLegacy, InputNumber, Select } from '@univerjs/design';
+import { Checkbox, clsx, Dropdown, InputNumber, Select } from '@univerjs/design';
 import { MoreDownSingle, SlashSingle } from '@univerjs/icons';
 import {
     CFNumberOperator,
@@ -190,8 +190,7 @@ const IconSetRuleEdit = (props: {
     const { onChange, configList, errorMap = {} } = props;
     const localeService = useDependency(LocaleService);
 
-    const options = [{ label: localeService.t(`sheet.cf.symbol.${CFNumberOperator.greaterThan}`), value: CFNumberOperator.greaterThan },
-        { label: localeService.t(`sheet.cf.symbol.${CFNumberOperator.greaterThanOrEqual}`), value: CFNumberOperator.greaterThanOrEqual }];
+    const options = [{ label: localeService.t(`sheet.cf.symbol.${CFNumberOperator.greaterThan}`), value: CFNumberOperator.greaterThan }, { label: localeService.t(`sheet.cf.symbol.${CFNumberOperator.greaterThanOrEqual}`), value: CFNumberOperator.greaterThanOrEqual }];
     const valueTypeOptions = [
         { label: localeService.t(`sheet.cf.valueType.${CFValueType.num}`), value: CFValueType.num },
         { label: localeService.t(`sheet.cf.valueType.${CFValueType.percent}`), value: CFValueType.percent },
@@ -285,12 +284,18 @@ const IconSetRuleEdit = (props: {
                               ${styles.width45}
                             `}
                         >
-                            <DropdownLegacy overlay={<IconItemList onClick={handleIconClick} iconId={item.iconId} iconType={item.iconType} />}>
-                                <div className={styles.dropdownIcon}>
+                            <Dropdown
+                                overlay={(
+                                    <div className="univer-rounded-lg univer-p-4">
+                                        <IconItemList onClick={handleIconClick} iconId={item.iconId} iconType={item.iconType} />
+                                    </div>
+                                )}
+                            >
+                                <div className={clsx(styles.dropdownIcon, 'univer-box-border univer-h-7')}>
                                     {icon ? <img src={icon} className={styles.icon} /> : <SlashSingle className={styles.icon} />}
                                     <MoreDownSingle />
                                 </div>
-                            </DropdownLegacy>
+                            </Dropdown>
 
                         </div>
                         {!isEnd
@@ -560,24 +565,24 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
                   ${stylesBase.mTSm}
                 `}
             >
-                <DropdownLegacy
-                    placement="bottomLeft"
+                <Dropdown
                     overlay={(
-                        <IconGroupList
-                            ref={(el) => {
-                                !iconGroupListEl && el && setIconGroupListEl(el);
-                            }}
-                            iconType={currentIconType}
-                            onClick={handleClickIconList}
-                        />
+                        <div className="univer-rounded-lg univer-p-4">
+                            <IconGroupList
+                                ref={(el) => {
+                                    !iconGroupListEl && el && setIconGroupListEl(el);
+                                }}
+                                iconType={currentIconType}
+                                onClick={handleClickIconList}
+                            />
+                        </div>
                     )}
                 >
-                    <div className={styles.dropdownIcon} style={{ width: 'unset' }}>
+                    <div className={clsx(styles.dropdownIcon, 'univer-box-border univer-h-7 univer-w-auto')}>
                         {previewIcon}
                         <MoreDownSingle />
                     </div>
-                    {/* <div>{previewIcon}</div> */}
-                </DropdownLegacy>
+                </Dropdown>
             </div>
             <div
                 className={`

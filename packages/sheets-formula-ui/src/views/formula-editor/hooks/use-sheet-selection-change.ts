@@ -20,10 +20,10 @@ import type { IRange, Workbook } from '@univerjs/core';
 import type { Editor } from '@univerjs/docs-ui';
 import type { ISelectionWithCoord, ISetSelectionsOperationParams } from '@univerjs/sheets';
 import type { RefObject } from 'react';
-import type { IRefSelection } from '../../range-selector/hooks/use-highlight';
+import type { IRefSelection } from './use-highlight';
 import { DisposableCollection, ICommandService, IUniverInstanceService, ThemeService } from '@univerjs/core';
 import { DocSelectionManagerService } from '@univerjs/docs';
-import { deserializeRangeWithSheet, LexerTreeBuilder, sequenceNodeType } from '@univerjs/engine-formula';
+import { deserializeRangeWithSheet, generateStringWithSequence, LexerTreeBuilder, sequenceNodeType, serializeRange, serializeRangeWithSheet } from '@univerjs/engine-formula';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { IRefSelectionsService, SetSelectionsOperation } from '@univerjs/sheets';
 import { SheetSkeletonManagerService } from '@univerjs/sheets-ui';
@@ -32,13 +32,13 @@ import { useEffect, useMemo } from 'react';
 import { merge } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { RefSelectionsRenderService } from '../../../services/render-services/ref-selections.render-service';
-import { calcHighlightRanges } from '../../range-selector/hooks/use-highlight';
 import { findIndexFromSequenceNodes, findRefSequenceIndex } from '../../range-selector/utils/find-index-from-sequence-nodes';
 import { getOffsetFromSequenceNodes } from '../../range-selector/utils/get-offset-from-sequence-nodes';
 import { sequenceNodeToText } from '../../range-selector/utils/sequence-node-to-text';
 import { unitRangesToText } from '../../range-selector/utils/unit-ranges-to-text';
 import { useStateRef } from '../hooks/use-state-ref';
 import { FormulaSelectingType } from './use-formula-selection';
+import { calcHighlightRanges } from './use-highlight';
 
 const prepareSelectionChangeContext = (opts: { editor?: Editor; lexerTreeBuilder: LexerTreeBuilder }) => {
     const { editor, lexerTreeBuilder } = opts;
@@ -127,6 +127,16 @@ export const useSheetSelectionChange = (
                 sequenceNodes.unshift({ token: refRanges[0], nodeType: sequenceNodeType.REFERENCE } as any);
                 const result = sequenceNodeToText(sequenceNodes);
                 handleRangeChange(result, refRanges[0].length, isEnd);
+            }
+        } else if (isSelectingRef.current === FormulaSelectingType.EDIT_OTHER_SHEET_REFERENCE) {
+            const last = selections.pop();
+            if (!last) return;
+            const node = sequenceNodes[nodeIndex];
+            if (typeof node === 'object' && node.nodeType === sequenceNodeType.REFERENCE) {
+                const oldToken = node.token;
+                node.token = sheetName === activeSheet?.getName() ? serializeRange(last) : serializeRangeWithSheet(activeSheet!.getName(), last);
+                const newOffset = offset + (node.token.length - oldToken.length);
+                handleRangeChange(generateStringWithSequence(sequenceNodes), newOffset, isEnd);
             }
         } else {
             const orderedSelections = [...selections];

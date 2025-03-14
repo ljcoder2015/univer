@@ -16,26 +16,25 @@
 
 import type { ICollaborator } from '@univerjs/protocol';
 import { LocaleService } from '@univerjs/core';
-import { Avatar, Button, Input } from '@univerjs/design';
+import { Avatar, Button, clsx, Input } from '@univerjs/design';
 import { CheckMarkSingle } from '@univerjs/icons';
 import { UnitRole } from '@univerjs/protocol';
-import { IDialogService, useDependency } from '@univerjs/ui';
-import clsx from 'clsx';
-import React, { useState } from 'react';
+import { IDialogService, useDependency, useObservable } from '@univerjs/ui';
+import { useState } from 'react';
 import { UNIVER_SHEET_PERMISSION_USER_DIALOG_ID } from '../../../consts/permission';
 import { SheetPermissionUserManagerService } from '../../../services/permission/sheet-permission-user-list.service';
 import { UserEmptyBase64 } from './constant';
 import styles from './index.module.less';
 
 export const SheetPermissionUserDialog = () => {
-    const [inputValue, setInputValue] = React.useState('');
+    const [inputValue, setInputValue] = useState('');
     const localeService = useDependency(LocaleService);
     const dialogService = useDependency(IDialogService);
     const sheetPermissionUserManagerService = useDependency(SheetPermissionUserManagerService);
-    const userList = sheetPermissionUserManagerService.userList;
-    const searchUserList = userList.filter((item) => {
+    const userList = useObservable(sheetPermissionUserManagerService.userList$, sheetPermissionUserManagerService.userList);
+    const searchUserList = userList?.filter((item) => {
         return item.subject?.name.toLocaleLowerCase().includes(inputValue.toLocaleLowerCase()) && item.role === UnitRole.Editor;
-    });
+    }) ?? [];
     const [selectUserInfo, setSelectUserInfo] = useState<ICollaborator[]>(sheetPermissionUserManagerService.selectUserList);
 
     const handleChangeUser = (item: ICollaborator) => {

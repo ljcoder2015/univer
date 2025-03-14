@@ -16,13 +16,13 @@
 
 import type { Workbook } from '@univerjs/core';
 import type { IEditorBridgeServiceVisibleParam } from '../../services/editor-bridge.service';
-import { DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY, DOCS_NORMAL_EDITOR_UNIT_ID_KEY, FOCUSING_FX_BAR_EDITOR, ICommandService, IContextService, IPermissionService, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
+import { DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY, FOCUSING_FX_BAR_EDITOR, ICommandService, IContextService, IPermissionService, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
+import { clsx } from '@univerjs/design';
 import { IEditorService } from '@univerjs/docs-ui';
 import { DeviceInputEventType } from '@univerjs/engine-render';
 import { CheckMarkSingle, CloseSingle, DropdownSingle, FxSingle } from '@univerjs/icons';
 import { RangeProtectionCache, RangeProtectionRuleModel, SheetsSelectionsService, UnitAction, WorksheetEditPermission, WorksheetProtectionRuleModel, WorksheetViewPermission } from '@univerjs/sheets';
 import { ComponentContainer, ComponentManager, KeyCode, useComponentsOfPart, useDependency, useObservable } from '@univerjs/ui';
-import clsx from 'clsx';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { EMPTY, merge, of, switchMap } from 'rxjs';
 import { SetCellEditVisibleOperation } from '../../commands/operations/cell-edit.operation';
@@ -40,7 +40,13 @@ enum ArrowDirection {
     Up,
 }
 
-export function FormulaBar() {
+interface IProps {
+    className?: string;
+}
+
+export function FormulaBar(props: IProps) {
+    const { className } = props;
+
     const [iconStyle, setIconStyle] = useState<string>(styles.formulaGrey);
     const [arrowDirection, setArrowDirection] = useState<ArrowDirection>(ArrowDirection.Down);
 
@@ -62,7 +68,7 @@ export function FormulaBar() {
     const componentManager = useDependency(ComponentManager);
     const workbook = useObservable(() => univerInstanceService.getCurrentTypeOfUnit$<Workbook>(UniverInstanceType.UNIVER_SHEET), undefined, undefined, [])!;
     const isRefSelecting = useRef<0 | 1 | 2>(0);
-    const editState = editorBridgeService.getEditLocation();
+    const editState = useObservable(editorBridgeService.currentEditCellState$);
     const keyCodeConfig = useKeyEventConfig(isRefSelecting, editState?.unitId ?? '');
     const FormulaEditor = componentManager.get(EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY);
     const formulaAuxUIParts = useComponentsOfPart(SheetsUIPart.FORMULA_AUX);
@@ -154,12 +160,14 @@ export function FormulaBar() {
     }, [editorBridgeService.currentEditCellState$]);
 
     useEffect(() => {
-        if (ref.current) {
-            const handleResize = () => {
-                const editorRect = ref.current!.getBoundingClientRect();
-                formulaEditorManagerService.setPosition(editorRect);
-            };
+        const handleResize = () => {
+            if (!ref.current) return;
 
+            const editorRect = ref.current.getBoundingClientRect();
+            formulaEditorManagerService.setPosition(editorRect);
+        };
+
+        if (ref.current) {
             handleResize();
             const a = new ResizeObserver(handleResize);
 
@@ -211,8 +219,6 @@ export function FormulaBar() {
     const disabled = editDisable || imageDisable;
     const shouldSkipFocus = useRef(false);
 
-    const unitId = currentWorkbook?.getUnitId() ?? '';
-
     const handlePointerDown = () => {
         try {
             // When clicking on the formula bar, the cell editor also needs to enter the edit state
@@ -223,7 +229,7 @@ export function FormulaBar() {
                     {
                         visible: true,
                         eventType: DeviceInputEventType.PointerDown,
-                        unitId: DOCS_NORMAL_EDITOR_UNIT_ID_KEY,
+                        unitId: currentWorkbook?.getUnitId() ?? '',
                     } as IEditorBridgeServiceVisibleParam
                 );
                 // undoRedoService.clearUndoRedo(DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY);
@@ -246,9 +252,12 @@ export function FormulaBar() {
         shouldSkipFocus.current = false;
     };
 
+    const isCellImage = (editState?.documentLayoutObject.documentModel?.getDrawingsOrder()?.length ?? 0) > 0;
+    const hideEditor = isCellImage || viewDisable;
+
     return (
         <div
-            className={styles.formulaBox}
+            className={clsx(styles.formulaBox, className)}
             style={{
                 height: ArrowDirection.Down === arrowDirection ? '28px' : '82px',
                 pointerEvents: editDisable ? 'none' : 'auto',
@@ -287,6 +296,7 @@ export function FormulaBar() {
                         onPointerDown={handlePointerDown}
                         onPointerUp={handlePointerUp}
                         ref={ref}
+                        style={{ pointerEvents: hideEditor ? 'none' : 'auto' }}
                     >
                         {FormulaEditor && (
                             <FormulaEditor
@@ -314,6 +324,7 @@ export function FormulaBar() {
                                 disableContextMenu={false}
                             />
                         )}
+                        {hideEditor ? <div className={styles.formulaInputMask} /> : null}
                     </div>
                     <div className={clsx(styles.arrowContainer, { [styles.arrowContainerDisable]: editDisable })} onClick={handleArrowClick}>
                         {arrowDirection === ArrowDirection.Down

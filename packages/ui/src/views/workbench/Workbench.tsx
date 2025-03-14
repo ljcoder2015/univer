@@ -18,18 +18,16 @@ import type { DocumentDataModel, IDocumentData, Nullable } from '@univerjs/core'
 import type { ILocale } from '@univerjs/design';
 import type { IWorkbenchOptions } from '../../controllers/ui/ui.controller';
 import { DocumentFlavor, IUniverInstanceService, LocaleService, ThemeService, UniverInstanceType } from '@univerjs/core';
-import { ConfigContext, ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
-import clsx from 'clsx';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { clsx, ConfigContext, ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BuiltInUIPart } from '../../services/parts/parts.service';
 import { useDependency } from '../../utils/di';
 import { ComponentContainer, useComponentsOfPart } from '../components/ComponentContainer';
 import { DesktopContextMenu } from '../components/context-menu/ContextMenu';
-
+import { GlobalZone } from '../components/global-zone/GlobalZone';
 import { Sidebar } from '../components/sidebar/Sidebar';
 import { ZenZone } from '../components/zen-zone/ZenZone';
-import { builtInGlobalComponents } from '../parts';
 import styles from './workbench.module.less';
 
 export interface IUniverWorkbenchProps extends IWorkbenchOptions {
@@ -80,14 +78,12 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
         return () => {
             sub.unsubscribe();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (!themeService.getCurrentTheme()) {
             themeService.setTheme(defaultTheme);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -197,7 +193,7 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
                 </section>
             </div>
             <ComponentContainer key="global" components={globalComponents} />
-            <ComponentContainer key="built-in-global" components={builtInGlobalComponents} />
+            <GlobalZone />
             {contextMenu && <DesktopContextMenu />}
             <FloatingContainer />
             <div id="univer-popup-portal" />

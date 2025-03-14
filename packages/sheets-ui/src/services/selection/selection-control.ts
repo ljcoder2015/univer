@@ -230,9 +230,14 @@ export class SelectionControl extends Disposable {
 
         const shapes = [
             this._autoFillControl,
-            this._leftBorder, this._rightBorder, this._topBorder, this._bottomBorder,
-            this._backgroundControlTop, this._backgroundControlMiddleLeft,
-            this._backgroundControlMiddleRight, this._backgroundControlBottom,
+            this._leftBorder,
+            this._rightBorder,
+            this._topBorder,
+            this._bottomBorder,
+            this._backgroundControlTop,
+            this._backgroundControlMiddleLeft,
+            this._backgroundControlMiddleRight,
+            this._backgroundControlBottom,
             this._dashedRect,
         ];
 
@@ -682,8 +687,10 @@ export class SelectionControl extends Disposable {
      */
     updateRangeBySelectionWithCoord(selectionWthCoord: ISelectionWithCoord, sk?: SpreadsheetSkeleton) {
         if (sk) {
-            this._rowHeaderWidth = sk.getWorksheetConfig().rowHeader.width;
-            this._columnHeaderHeight = sk.getWorksheetConfig().columnHeader.height;
+            // do not get header size from workbook, that is default value.
+            // if row is over one million, row header width would be bigger than default value.
+            this._rowHeaderWidth = sk.rowHeaderWidth;
+            this._columnHeaderHeight = sk.columnHeaderHeight;
         }
         this._selectionRenderModel.setValue(selectionWthCoord.rangeWithCoord, selectionWthCoord.primaryWithCoord);
         // if primaryWithCoord is undefined, that means keeps the previous value.
@@ -852,8 +859,11 @@ export class SelectionControl extends Disposable {
         const scale = this._getScale();
 
         const {
-            stroke, rowHeaderFill = defaultStyle.rowHeaderFill!, rowHeaderStroke = defaultStyle.rowHeaderStroke!,
-            columnHeaderFill = defaultStyle.columnHeaderFill!, columnHeaderStroke = defaultStyle.columnHeaderStroke!,
+            stroke,
+            rowHeaderFill = defaultStyle.rowHeaderFill!,
+            rowHeaderStroke = defaultStyle.rowHeaderStroke!,
+            columnHeaderFill = defaultStyle.columnHeaderFill!,
+            columnHeaderStroke = defaultStyle.columnHeaderStroke!,
         } = style;
 
         let {
@@ -883,7 +893,7 @@ export class SelectionControl extends Disposable {
             this._columnHeaderBorder.transformByState({
                 width: endX - startX,
                 height: columnHeaderStrokeWidth,
-                top: columnHeaderHeight - columnHeaderStrokeWidth + 1 / scale,
+                top: columnHeaderHeight - columnHeaderStrokeWidth + 1 / scale, // + 1 / scale: Avoid appearing thicker due to the adjacency of the first row cells.
             });
 
             this._columnHeaderGroup.show();

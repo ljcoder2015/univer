@@ -56,6 +56,7 @@ export class SheetsFilterController extends Disposable {
         this.disposeWithMe(this._sheetInterceptorService.interceptCommand({
             getMutations: (command) => this._getUpdateFilter(command),
         }));
+
         this.disposeWithMe(this._commandService.onCommandExecuted((commandInfo) => {
             if (commandInfo.id === SetWorksheetActiveOperation.id) {
                 const params = commandInfo.params as ISetWorksheetActiveOperationParams;
@@ -150,9 +151,11 @@ export class SheetsFilterController extends Disposable {
                 if (!unitId || !subUnitId || !targetSubUnitId) {
                     return this._handleNull();
                 }
+
                 return this._handleCopySheetCommand(unitId, subUnitId, targetSubUnitId);
             }
         }
+
         return {
             redos: [],
             undos: [],
@@ -239,7 +242,8 @@ export class SheetsFilterController extends Disposable {
         redos.push({ id: SetSheetsFilterRangeMutation.id, params: setFilterRangeParams });
         undos.push({ id: SetSheetsFilterRangeMutation.id, params: undoSetFilterRangeMutationParams });
         return {
-            redos: mergeSetFilterCriteria(redos), undos: mergeSetFilterCriteria(undos),
+            redos: mergeSetFilterCriteria(redos),
+            undos: mergeSetFilterCriteria(undos),
         };
     }
 
@@ -333,13 +337,15 @@ export class SheetsFilterController extends Disposable {
             return {
                 undos: [{ id: SetSheetsFilterRangeMutation.id, params: { range: filterRange, unitId, subUnitId } }],
                 redos: [{
-                    id: SetSheetsFilterRangeMutation.id, params: {
+                    id: SetSheetsFilterRangeMutation.id,
+                    params: {
                         range: {
                             ...filterRange,
                             startRow: startRow - (removeEndRow - removeStartRow + 1),
                             endRow: endRow - (removeEndRow - removeStartRow + 1),
                         },
-                        unitId, subUnitId,
+                        unitId,
+                        subUnitId,
                     },
                 }],
             };
@@ -688,7 +694,9 @@ export class SheetsFilterController extends Disposable {
             handler: (filtered, rowLocation) => {
                 if (filtered) return true;
                 return this._sheetsFilterService.getFilterModel(
-                    rowLocation.unitId, rowLocation.subUnitId)?.isRowFiltered(rowLocation.row) ?? false;
+                    rowLocation.unitId,
+                    rowLocation.subUnitId
+                )?.isRowFiltered(rowLocation.row) ?? false;
             },
         }));
     }

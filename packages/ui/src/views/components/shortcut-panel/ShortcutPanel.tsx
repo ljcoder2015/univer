@@ -19,11 +19,10 @@ import React, { useCallback, useEffect } from 'react';
 
 import { IShortcutService } from '../../../services/shortcut/shortcut.service';
 import { useDependency, useObservable } from '../../../utils/di';
-import styles from './index.module.less';
 
 interface IRenderShortcutItem {
     title: string;
-    shortcut: string;
+    shortcut: string | null;
 }
 
 interface IShortcutGroup {
@@ -76,7 +75,6 @@ export function ShortcutPanel() {
             .sort((a, b) => a.sequence - b.sequence);
 
         setShortcutItems(toRender);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shortcutService, localeService, currentLocale]);
 
     useEffect(() => {
@@ -87,18 +85,35 @@ export function ShortcutPanel() {
     }, [shortcutService, updateShortcuts]);
 
     return (
-        <div className={styles.shortcutPanel}>
+        <ul className="univer-m-0 univer-list-none univer-p-0 univer-text-gray-900">
             {shortcutItems.map((group) => (
-                <div className={styles.shortcutPanelGroup} key={group.name}>
-                    <div className={styles.shortcutPanelGroupTitle}>{group.name}</div>
-                    {group.items.map((item, index) => (
-                        <div className={styles.shortcutPanelItem} key={`${item.title}-${item.shortcut}`}>
-                            <span className={styles.shortcutPanelItemTitle}>{item.title}</span>
-                            <span className={styles.shortcutPanelItemShortcut}>{item.shortcut}</span>
-                        </div>
-                    ))}
-                </div>
+                <li key={group.name}>
+                    <div className="univer-flex univer-h-10 univer-items-center univer-text-sm univer-font-semibold">
+                        {group.name}
+                    </div>
+
+                    <ul
+                        className={`
+                          univer-list-none univer-p-0
+                          [&>li]:univer-border-0 [&>li]:univer-border-b [&>li]:univer-border-solid
+                          [&>li]:univer-border-b-gray-200
+                        `}
+                    >
+                        {group.items.map((item) => (
+                            <li
+                                key={`${item.title}-${item.shortcut}`}
+                                className={`
+                                  univer-flex univer-h-10 univer-items-center univer-justify-between univer-text-[13px]
+                                  last:univer-border-b-0
+                                `}
+                            >
+                                <span className="univer-line-clamp-1">{item.title}</span>
+                                <span className="univer-text-gray-500">{item.shortcut}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </li>
             ))}
-        </div>
+        </ul>
     );
 }

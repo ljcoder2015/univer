@@ -15,12 +15,10 @@
  */
 
 import { HorizontalAlign, LocaleService, SpacingRule } from '@univerjs/core';
-import { InputNumber, Select, Tooltip } from '@univerjs/design';
+import { clsx, InputNumber, Select, Tooltip } from '@univerjs/design';
 import { AlignTextBothSingle, HorizontallySingle, LeftJustifyingSingle, RightJustifyingSingle } from '@univerjs/icons';
 import { useDependency } from '@univerjs/ui';
-import clsx from 'clsx';
-import * as React from 'react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import {
     useCurrentParagraph,
     useFirstParagraphHorizontalAlign,
@@ -35,10 +33,15 @@ import {
 import styles from './index.module.less';
 
 const AutoFocusInputNumber = (props: {
-    value: number; onChange: (v: number) => Promise<unknown>; className?: string; min?: number; max?: number; step?: number;
+    value: number;
+    onChange: (v: number) => Promise<unknown>;
+    className?: string;
+    min?: number;
+    max?: number;
+    step?: number;
 }) => {
     const { value, onChange, className = '', min = 0, max = 100, step = 1 } = props;
-    const ref = React.useRef<HTMLInputElement>(null);
+    const ref = useRef<HTMLInputElement>(null);
     return (
         <InputNumber
             step={step}
@@ -67,8 +70,8 @@ export function ParagraphSetting() {
         { label: localeService.t('toolbar.alignLeft'), value: String(HorizontalAlign.LEFT), icon: <LeftJustifyingSingle /> },
         { label: localeService.t('toolbar.alignCenter'), value: String(HorizontalAlign.CENTER), icon: <HorizontallySingle /> },
         { label: localeService.t('toolbar.alignRight'), value: String(HorizontalAlign.RIGHT), icon: <RightJustifyingSingle /> },
-        { label: localeService.t('toolbar.alignJustify'), value: String(HorizontalAlign.JUSTIFIED), icon: <AlignTextBothSingle /> }],
-    []);
+        { label: localeService.t('toolbar.alignJustify'), value: String(HorizontalAlign.JUSTIFIED), icon: <AlignTextBothSingle /> },
+    ], []);
 
     const currentParagraph = useCurrentParagraph();
     const [horizontalAlignValue, horizontalAlignSet] = useFirstParagraphHorizontalAlign(currentParagraph, alignmentOptions[0].value);
@@ -103,8 +106,7 @@ export function ParagraphSetting() {
                     return (
                         <Tooltip title={item.label} key={item.value} placement="bottom">
                             <span
-                                className={clsx(styles.paragraphSettingIconListItem,
-                                    { [styles.paragraphSettingIconListActive]: horizontalAlignValue === item.value })}
+                                className={clsx(styles.paragraphSettingIconListItem, { [styles.paragraphSettingIconListActive]: horizontalAlignValue === item.value })}
 
                                 onClick={() => horizontalAlignSet(item.value)}
                             >

@@ -29,7 +29,7 @@ import type {
 import type { CommandListenerSkeletonChange } from '@univerjs/sheets';
 import type { IEditorBridgeServiceVisibleParam, ISetZoomRatioCommandParams, ISheetPasteByShortKeyParams, IViewportScrollState } from '@univerjs/sheets-ui';
 import type { FRange } from '@univerjs/sheets/facade';
-import type { IBeforeClipboardChangeParam, IBeforeClipboardPasteParam, IBeforeSheetEditEndEventParams, IBeforeSheetEditStartEventParams, ISheetEditChangingEventParams, ISheetEditEndedEventParams, ISheetEditStartedEventParams } from './f-event';
+import type { IBeforeClipboardChangeParam, IBeforeClipboardPasteParam, IBeforeSheetEditEndEventParams, IBeforeSheetEditStartEventParams, ISheetEditChangingEventParams, ISheetEditEndedEventParams, ISheetEditStartedEventParams, ISheetZoomEvent } from './f-event';
 import { CanceledError, DisposableCollection, DOCS_NORMAL_EDITOR_UNIT_ID_KEY, ICommandService, ILogService, IUniverInstanceService, LifecycleService, LifecycleStages, RichTextValue, toDisposable, UniverInstanceType } from '@univerjs/core';
 import { FUniver } from '@univerjs/core/facade';
 import { RichTextEditingMutation } from '@univerjs/docs';
@@ -266,11 +266,15 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
                 if (!target) return;
 
                 const { workbook, worksheet } = target;
-                this.fireEvent(this.Event.BeforeSheetZoomChange, {
+                const eventParams: ISheetZoomEvent = {
                     zoom: (commandInfo.params as ISetZoomRatioCommandParams).zoomRatio,
                     workbook,
                     worksheet,
-                });
+                };
+                this.fireEvent(this.Event.BeforeSheetZoomChange, eventParams);
+                if (eventParams.cancel) {
+                    throw new CanceledError();
+                }
             })
         );
 
@@ -294,258 +298,252 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
 
     // eslint-disable-next-line max-lines-per-function
     private _initObserverListener(injector: Injector): void {
-        const univerInstanceService = injector.get(IUniverInstanceService);
-        const unitM = univerInstanceService.getFocusedUnit();
-        const unitId = unitM?.getUnitId();
         const renderManagerService = injector.get(IRenderManagerService);
 
-        if (unitId) {
-            const lifeCycleService = injector.get(LifecycleService);
-            const disposable = new DisposableCollection();
+        const lifeCycleService = injector.get(LifecycleService);
+        const disposable = new DisposableCollection();
 
-            // eslint-disable-next-line max-lines-per-function
-            this.disposeWithMe(lifeCycleService.lifecycle$.subscribe((lifecycle) => {
-                if (lifecycle < LifecycleStages.Rendered) return;
-                disposable.dispose();
-                const hoverManagerService = injector.get(HoverManagerService);
-                const dragManagerService = injector.get(DragManagerService);
-                if (!hoverManagerService) return;
+        // eslint-disable-next-line max-lines-per-function
+        this.disposeWithMe(lifeCycleService.lifecycle$.subscribe((lifecycle) => {
+            if (lifecycle !== LifecycleStages.Rendered) return;
+            disposable.dispose();
+            const hoverManagerService = injector.get(HoverManagerService);
+            const dragManagerService = injector.get(DragManagerService);
+            if (!hoverManagerService) return;
 
-                // Cell events
-                this.registerEventHandler(
-                    this.Event.CellClicked,
-                    () => hoverManagerService.currentClickedCell$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.location.unitId, cell.location.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.CellClicked, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.location.row,
-                                column: cell.location.col,
-                            });
-                        })
-                );
+            // Cell events
+            this.registerEventHandler(
+                this.Event.CellClicked,
+                () => hoverManagerService.currentClickedCell$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.location.unitId, cell.location.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.CellClicked, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.location.row,
+                            column: cell.location.col,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.CellHover,
-                    () => hoverManagerService.currentRichText$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.CellHover, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.row,
-                                column: cell.col,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.CellHover,
+                () => hoverManagerService.currentRichText$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.CellHover, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.row,
+                            column: cell.col,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.CellPointerDown,
-                    () => hoverManagerService.currentPointerDownCell$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.CellPointerDown, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.row,
-                                column: cell.col,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.CellPointerDown,
+                () => hoverManagerService.currentPointerDownCell$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.CellPointerDown, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.row,
+                            column: cell.col,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.CellPointerUp,
-                    () => hoverManagerService.currentPointerUpCell$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.CellPointerUp, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.row,
-                                column: cell.col,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.CellPointerUp,
+                () => hoverManagerService.currentPointerUpCell$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.CellPointerUp, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.row,
+                            column: cell.col,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.CellPointerMove,
-                    () => hoverManagerService.currentCellPosWithEvent$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.CellPointerMove, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.row,
-                                column: cell.col,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.CellPointerMove,
+                () => hoverManagerService.currentCellPosWithEvent$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.unitId, cell.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.CellPointerMove, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.row,
+                            column: cell.col,
+                        });
+                    })
+            );
 
-                // Drag events
-                this.registerEventHandler(
-                    this.Event.DragOver,
-                    () => dragManagerService.currentCell$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.location.unitId, cell.location.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.DragOver, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.location.row,
-                                column: cell.location.col,
-                            });
-                        })
-                );
+            // Drag events
+            this.registerEventHandler(
+                this.Event.DragOver,
+                () => dragManagerService.currentCell$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.location.unitId, cell.location.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.DragOver, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.location.row,
+                            column: cell.location.col,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.Drop,
-                    () => dragManagerService.endCell$
-                        ?.pipe(filter((cell) => !!cell))
-                        .subscribe((cell) => {
-                            const baseParams = this.getSheetTarget(cell.location.unitId, cell.location.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.Drop, {
-                                ...baseParams,
-                                ...cell,
-                                row: cell.location.row,
-                                column: cell.location.col,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.Drop,
+                () => dragManagerService.endCell$
+                    ?.pipe(filter((cell) => !!cell))
+                    .subscribe((cell) => {
+                        const baseParams = this.getSheetTarget(cell.location.unitId, cell.location.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.Drop, {
+                            ...baseParams,
+                            ...cell,
+                            row: cell.location.row,
+                            column: cell.location.col,
+                        });
+                    })
+            );
 
-                // Row Header events
-                this.registerEventHandler(
-                    this.Event.RowHeaderClick,
-                    () => hoverManagerService.currentRowHeaderClick$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.RowHeaderClick, {
-                                ...baseParams,
-                                row: header.index,
-                            });
-                        })
-                );
+            // Row Header events
+            this.registerEventHandler(
+                this.Event.RowHeaderClick,
+                () => hoverManagerService.currentRowHeaderClick$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.RowHeaderClick, {
+                            ...baseParams,
+                            row: header.index,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.RowHeaderPointerDown,
-                    () => hoverManagerService.currentRowHeaderPointerDown$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.RowHeaderPointerDown, {
-                                ...baseParams,
-                                row: header.index,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.RowHeaderPointerDown,
+                () => hoverManagerService.currentRowHeaderPointerDown$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.RowHeaderPointerDown, {
+                            ...baseParams,
+                            row: header.index,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.RowHeaderPointerUp,
-                    () => hoverManagerService.currentRowHeaderPointerUp$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.RowHeaderPointerUp, {
-                                ...baseParams,
-                                row: header.index,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.RowHeaderPointerUp,
+                () => hoverManagerService.currentRowHeaderPointerUp$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.RowHeaderPointerUp, {
+                            ...baseParams,
+                            row: header.index,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.RowHeaderHover,
-                    () => hoverManagerService.currentHoveredRowHeader$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.RowHeaderHover, {
-                                ...baseParams,
-                                row: header.index,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.RowHeaderHover,
+                () => hoverManagerService.currentHoveredRowHeader$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.RowHeaderHover, {
+                            ...baseParams,
+                            row: header.index,
+                        });
+                    })
+            );
 
-                // Column Header events
-                this.registerEventHandler(
-                    this.Event.ColumnHeaderClick,
-                    () => hoverManagerService.currentColHeaderClick$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.ColumnHeaderClick, {
-                                ...baseParams,
-                                column: header.index,
-                            });
-                        })
-                );
+            // Column Header events
+            this.registerEventHandler(
+                this.Event.ColumnHeaderClick,
+                () => hoverManagerService.currentColHeaderClick$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.ColumnHeaderClick, {
+                            ...baseParams,
+                            column: header.index,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.ColumnHeaderPointerDown,
-                    () => hoverManagerService.currentColHeaderPointerDown$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.ColumnHeaderPointerDown, {
-                                ...baseParams,
-                                column: header.index,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.ColumnHeaderPointerDown,
+                () => hoverManagerService.currentColHeaderPointerDown$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.ColumnHeaderPointerDown, {
+                            ...baseParams,
+                            column: header.index,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.ColumnHeaderPointerUp,
-                    () => hoverManagerService.currentColHeaderPointerUp$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.ColumnHeaderPointerUp, {
-                                ...baseParams,
-                                column: header.index,
-                            });
-                        })
-                );
+            this.registerEventHandler(
+                this.Event.ColumnHeaderPointerUp,
+                () => hoverManagerService.currentColHeaderPointerUp$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.ColumnHeaderPointerUp, {
+                            ...baseParams,
+                            column: header.index,
+                        });
+                    })
+            );
 
-                this.registerEventHandler(
-                    this.Event.ColumnHeaderHover,
-                    () => hoverManagerService.currentHoveredColHeader$
-                        ?.pipe(filter((header) => !!header))
-                        .subscribe((header) => {
-                            const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
-                            if (!baseParams) return;
-                            this.fireEvent(this.Event.ColumnHeaderHover, {
-                                ...baseParams,
-                                column: header.index,
-                            });
-                        })
-                );
-            }));
-            this.disposeWithMe(disposable);
-        }
+            this.registerEventHandler(
+                this.Event.ColumnHeaderHover,
+                () => hoverManagerService.currentHoveredColHeader$
+                    ?.pipe(filter((header) => !!header))
+                    .subscribe((header) => {
+                        const baseParams = this.getSheetTarget(header.unitId, header.subUnitId);
+                        if (!baseParams) return;
+                        this.fireEvent(this.Event.ColumnHeaderHover, {
+                            ...baseParams,
+                            column: header.index,
+                        });
+                    })
+            );
+        }));
+        this.disposeWithMe(disposable);
 
         // UI Events in renderUnit
         const unitMap = new Map<string, IDisposable>();
         let sheetRenderUnit: Nullable<IRender>;
-        const lifeCycleService = injector.get(LifecycleService);
         const combined$ = combineLatest([
             renderManagerService.created$,
             lifeCycleService.lifecycle$,
@@ -565,9 +563,9 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
                 sheetRenderUnit = created;
             }
             if (lifecycle <= LifecycleStages.Rendered) return;
-            const disposable = new DisposableCollection();
-
             if (!sheetRenderUnit) return;
+
+            const disposable = new DisposableCollection();
             const workbook = this.getWorkbook(sheetRenderUnit.unitId);
             if (!workbook) return;
 
@@ -656,77 +654,27 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
     /**
      * @ignore
      */
-    // eslint-disable-next-line max-lines-per-function
+
     override _initialize(injector: Injector): void {
         this._initSheetUIEvent(injector);
         this._initObserverListener(injector);
         const commandService = injector.get(ICommandService);
+
         this.registerEventHandler(
             this.Event.BeforeClipboardChange,
-            () => {
-                const disposableCollection = new DisposableCollection();
-                disposableCollection.add(
-                    commandService.beforeCommandExecuted((commandInfo) => {
-                        switch (commandInfo.id) {
-                            case CopyCommand.id:
-                            case CutCommand.id:
-                                this._beforeClipboardChange();
-                                break;
-                        }
-                    })
-                );
-
-                return disposableCollection;
-            }
-        );
-
-        this.registerEventHandler(
-            this.Event.ClipboardChanged,
-            () => {
-                const disposableCollection = new DisposableCollection();
-                disposableCollection.add(commandService.beforeCommandExecuted((commandInfo) => {
-                    switch (commandInfo.id) {
-                        case SheetPasteShortKeyCommand.id:
-                            this._beforeClipboardPaste(commandInfo.params);
-                            break;
-                    }
-                }));
-
-                disposableCollection.add(
-                    commandService.beforeCommandExecuted(async (commandInfo) => {
-                        switch (commandInfo.id) {
-                            case PasteCommand.id:
-                                await this._beforeClipboardPasteAsync();
-                                break;
-                        }
-                    })
-                );
-                return disposableCollection;
-            }
-        );
-
-        this.disposeWithMe(commandService.onCommandExecuted((commandInfo) => {
-            if (COMMAND_LISTENER_SKELETON_CHANGE.indexOf(commandInfo.id) > -1) {
-                const sheet = this.getActiveSheet();
-                if (!sheet) return;
-                const ranges = getSkeletonChangedEffectedRange(commandInfo, sheet.worksheet.getMaxColumns())
-                    .map((range) => this.getWorkbook(range.unitId)?.getSheetBySheetId(range.subUnitId)?.getRange(range.range))
-                    .filter(Boolean) as FRange[];
-                if (!ranges.length) return;
-
-                this.fireEvent(this.Event.SheetSkeletonChanged, {
-                    workbook: sheet.workbook,
-                    worksheet: sheet.worksheet,
-                    payload: commandInfo as CommandListenerSkeletonChange,
-                    skeleton: sheet.worksheet.getSkeleton()!,
-                    effectedRanges: ranges,
-                });
-            }
-        }));
-
-        this.registerEventHandler(
-            this.Event.ClipboardChanged,
             () => commandService.beforeCommandExecuted((commandInfo) => {
+                switch (commandInfo.id) {
+                    case CopyCommand.id:
+                    case CutCommand.id:
+                        this._beforeClipboardChange();
+                        break;
+                }
+            })
+        );
+
+        this.registerEventHandler(
+            this.Event.ClipboardChanged,
+            () => commandService.onCommandExecuted((commandInfo) => {
                 switch (commandInfo.id) {
                     case CopyCommand.id:
                     case CutCommand.id:
@@ -737,8 +685,22 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
         );
 
         this.registerEventHandler(
-            this.Event.ClipboardPasted,
+            this.Event.BeforeClipboardPaste,
             () => commandService.beforeCommandExecuted((commandInfo) => {
+                switch (commandInfo.id) {
+                    case SheetPasteShortKeyCommand.id:
+                        this._beforeClipboardPaste(commandInfo.params);
+                        break;
+                    case PasteCommand.id:
+                        this._beforeClipboardPasteAsync();
+                        break;
+                }
+            })
+        );
+
+        this.registerEventHandler(
+            this.Event.ClipboardPasted,
+            () => commandService.onCommandExecuted((commandInfo) => {
                 switch (commandInfo.id) {
                     case SheetPasteShortKeyCommand.id:
                         this._clipboardPaste(commandInfo.params);
@@ -750,7 +712,27 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
             })
         );
 
-        // async listeners
+        this.registerEventHandler(
+            this.Event.SheetSkeletonChanged,
+            () => commandService.onCommandExecuted((commandInfo) => {
+                if (COMMAND_LISTENER_SKELETON_CHANGE.indexOf(commandInfo.id) > -1) {
+                    const sheet = this.getActiveSheet();
+                    if (!sheet) return;
+                    const ranges = getSkeletonChangedEffectedRange(commandInfo, sheet.worksheet.getMaxColumns())
+                        .map((range) => this.getWorkbook(range.unitId)?.getSheetBySheetId(range.subUnitId)?.getRange(range.range))
+                        .filter(Boolean) as FRange[];
+                    if (!ranges.length) return;
+
+                    this.fireEvent(this.Event.SheetSkeletonChanged, {
+                        workbook: sheet.workbook,
+                        worksheet: sheet.worksheet,
+                        payload: commandInfo as CommandListenerSkeletonChange,
+                        skeleton: sheet.worksheet.getSkeleton()!,
+                        effectedRanges: ranges,
+                    });
+                }
+            })
+        );
     }
 
     private _generateClipboardCopyParam(): IBeforeClipboardChangeParam | undefined {
@@ -784,7 +766,7 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
 
         this.fireEvent(this.Event.BeforeClipboardChange, eventParams);
         if (eventParams.cancel) {
-            throw new Error('Before clipboard change is canceled');
+            throw new CanceledError();
         }
     }
 
@@ -793,9 +775,6 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
         if (!eventParams) return;
 
         this.fireEvent(this.Event.ClipboardChanged, eventParams);
-        if (eventParams.cancel) {
-            throw new Error('Clipboard changed is canceled');
-        }
     }
 
     private _generateClipboardPasteParam(params?: ISheetPasteByShortKeyParams): IBeforeClipboardPasteParam | undefined {
@@ -852,7 +831,7 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
         if (!eventParams) return;
         this.fireEvent(this.Event.BeforeClipboardPaste, eventParams);
         if (eventParams.cancel) {
-            throw new Error('Before clipboard paste is canceled');
+            throw new CanceledError();
         }
     }
 
@@ -861,7 +840,7 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
         if (!eventParams) return;
         this.fireEvent(this.Event.ClipboardPasted, eventParams);
         if (eventParams.cancel) {
-            throw new Error('Clipboard pasted is canceled');
+            throw new CanceledError();
         }
     }
 
@@ -875,7 +854,7 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
         if (!eventParams) return;
         this.fireEvent(this.Event.BeforeClipboardPaste, eventParams);
         if (eventParams.cancel) {
-            throw new Error('Before clipboard paste is canceled');
+            throw new CanceledError();
         }
     }
 
@@ -889,7 +868,7 @@ export class FUniverSheetsUIMixin extends FUniver implements IFUniverSheetsUIMix
         if (!eventParams) return;
         this.fireEvent(this.Event.ClipboardPasted, eventParams);
         if (eventParams.cancel) {
-            throw new Error('Clipboard pasted is canceled');
+            throw new CanceledError();
         }
     }
 

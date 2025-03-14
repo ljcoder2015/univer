@@ -18,7 +18,7 @@ import type { CommandListener, CustomData, ICommandInfo, IDisposable, IRange, IW
 import type { ISetDefinedNameMutationParam } from '@univerjs/engine-formula';
 import type { IRangeThemeStyleJSON, ISetSelectionsOperationParams, ISheetCommandSharedParams } from '@univerjs/sheets';
 import type { FontLine as _FontLine } from './f-range';
-import { ICommandService, ILogService, Inject, Injector, IPermissionService, IResourceLoaderService, IUniverInstanceService, LocaleService, mergeWorksheetSnapshotWithDefault, RedoCommand, toDisposable, UndoCommand, UniverInstanceType } from '@univerjs/core';
+import { ICommandService, ILogService, Inject, Injector, IPermissionService, IResourceLoaderService, IUniverInstanceService, LocaleService, mergeWorksheetSnapshotWithDefault, RANGE_TYPE, RedoCommand, toDisposable, UndoCommand, UniverInstanceType } from '@univerjs/core';
 import { FBaseInitialable } from '@univerjs/core/facade';
 import { IDefinedNamesService } from '@univerjs/engine-formula';
 import { CopySheetCommand, getPrimaryForRange, InsertSheetCommand, RangeThemeStyle, RegisterWorksheetRangeThemeStyleCommand, RemoveSheetCommand, SCOPE_WORKBOOK_VALUE_DEFINED_NAME, SetDefinedNameCommand, SetSelectionsOperation, SetWorksheetActiveOperation, SetWorksheetOrderCommand, SheetRangeThemeService, SheetsSelectionsService, UnregisterWorksheetRangeThemeStyleCommand, WorkbookEditablePermission } from '@univerjs/sheets';
@@ -259,7 +259,7 @@ export class FWorkbook extends FBaseInitialable {
 
     /**
      * Sets the given worksheet to be the active worksheet in the workbook.
-     * @param {FWorksheet | string} sheet The worksheet to set as the active worksheet.
+     * @param {FWorksheet | string} sheet The instance or id of the worksheet to set as active.
      * @returns {FWorksheet} The active worksheet
      * @example
      * ```ts
@@ -318,7 +318,7 @@ export class FWorkbook extends FBaseInitialable {
 
     /**
      * Deletes the specified worksheet.
-     * @param {FWorksheet | string} sheet The worksheet to delete.
+     * @param {FWorksheet | string} sheet The instance or id of the worksheet to delete.
      * @returns {boolean} True if the worksheet was deleted, false otherwise.
      * @example
      * ```ts
@@ -326,6 +326,9 @@ export class FWorkbook extends FBaseInitialable {
      * const fWorkbook = univerAPI.getActiveWorkbook();
      * const sheet = fWorkbook.getSheets()[1];
      * fWorkbook.deleteSheet(sheet);
+     *
+     * // The code below deletes the specified worksheet by id
+     * // fWorkbook.deleteSheet(sheet.getSheetId());
      * ```
      */
     deleteSheet(sheet: FWorksheet | string): boolean {
@@ -544,6 +547,31 @@ export class FWorkbook extends FBaseInitialable {
         }
 
         return this._injector.createInstance(FRange, this._workbook, activeSheet, active.range);
+    }
+
+    /**
+     * Returns the active cell in this spreadsheet.
+     * @returns {FRange | null} The active cell
+     * @example
+     * ```ts
+     * const fWorkbook = univerAPI.getActiveWorkbook();
+     * console.log(fWorkbook.getActiveCell().getA1Notation());
+     * ```
+     */
+    getActiveCell(): FRange | null {
+        const activeSheet = this._workbook.getActiveSheet();
+        const selections = this._selectionManagerService.getCurrentSelections();
+        const active = selections.find((selection) => !!selection.primary);
+        if (!active) {
+            return null;
+        }
+
+        const cell: IRange = {
+            ...active.primary!,
+            rangeType: RANGE_TYPE.NORMAL,
+        };
+
+        return this._injector.createInstance(FRange, this._workbook, activeSheet, cell);
     }
 
     /**
@@ -867,7 +895,6 @@ export class FWorkbook extends FBaseInitialable {
      * @returns {void}
      * @example
      * ```ts
-     * // import {RangeThemeStyle} from '@univerjs/sheets';
      * const fWorkbook = univerAPI.getActiveWorkbook();
      * const rangeThemeStyle = fWorkbook.createRangeThemeStyle('MyTheme', {
      *   secondRowStyle: {

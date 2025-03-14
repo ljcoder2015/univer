@@ -28,7 +28,7 @@ import {
     UndoCommand,
     UniverInstanceType,
 } from '@univerjs/core';
-import { DEFAULT_TEXT_FORMAT } from '@univerjs/engine-numfmt';
+import { DEFAULT_TEXT_FORMAT_EXCEL } from '@univerjs/engine-numfmt';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { SheetsSelectionsService } from '../../../services/selections/selection.service';
 import { SetRangeValuesMutation } from '../../mutations/set-range-values.mutation';
@@ -123,7 +123,7 @@ const getTestWorkbookDataDemo = (): IWorkbookData => ({
         s4: { fs: 12 },
         s5: {
             n: {
-                pattern: DEFAULT_TEXT_FORMAT, // text
+                pattern: DEFAULT_TEXT_FORMAT_EXCEL, // text
             },
         },
     },
@@ -142,10 +142,7 @@ describe('Test set range values commands', () => {
         endColumn: number
     ) => Nullable<Array<Array<Nullable<ICellData>>>>;
     let getStyle: () => any;
-    let getStyles: (startRow: number,
-        startColumn: number,
-        endRow: number,
-        endColumn: number) => Nullable<Nullable<IStyleData>[][]>;
+    let getStyles: (startRow: number, startColumn: number, endRow: number, endColumn: number) => Nullable<Nullable<IStyleData>[][]>;
 
     beforeEach(() => {
         const testBed = createCommandTestBed(getTestWorkbookDataDemo());
@@ -192,10 +189,7 @@ describe('Test set range values commands', () => {
             }
         };
 
-        getStyles = (startRow: number,
-            startColumn: number,
-            endRow: number,
-            endColumn: number): Nullable<Nullable<IStyleData>[][]> => {
+        getStyles = (startRow: number, startColumn: number, endRow: number, endColumn: number): Nullable<Nullable<IStyleData>[][]> => {
             const values = getValues(startRow, startColumn, endRow, endColumn);
             const styles = get(IUniverInstanceService).getUniverSheetInstance('test')?.getStyles();
 
@@ -895,7 +889,7 @@ describe('Test set range values commands', () => {
             it('set value when origin cell has text number format', async () => {
                 function getParams() {
                     const params: ISetRangeValuesCommandParams = {
-                        value: { 0: { 2: { v: '01' }, 3: { v: '0.20' }, 4: { v: '001', t: CellValueType.FORCE_STRING }, 5: { s: { n: { pattern: DEFAULT_TEXT_FORMAT } } } } },
+                        value: { 0: { 2: { v: '01' }, 3: { v: '0.20' }, 4: { v: '001', t: CellValueType.FORCE_STRING }, 5: { s: { n: { pattern: DEFAULT_TEXT_FORMAT_EXCEL } } } } },
                     };
 
                     return params;

@@ -17,7 +17,7 @@
 import { installShims } from './common/shims';
 
 installShims();
-
+export { getPlainText } from './docs/data-model/text-x/build-utils/parse';
 export type { INumfmt } from './shared/types/numfmt.type';
 export { debounce, get, merge, mergeWith, set } from 'lodash-es';
 export { textDiff } from './shared/text-diff';
@@ -116,9 +116,8 @@ export type { IPermissionParam } from './services/permission/type';
 
 export type { IPermissionPoint } from './services/permission/type';
 export type { IPermissionTypes, RangePermissionPointConstructor, WorkbookPermissionPointConstructor, WorkSheetPermissionPointConstructor } from './services/permission/type';
-export { Plugin } from './services/plugin/plugin';
-export type { PluginCtor } from './services/plugin/plugin';
-export { DependentOn, PluginService } from './services/plugin/plugin.service';
+export type { PluginCtor } from './services/plugin/plugin.service.ts';
+export { DependentOn, Plugin, PluginService } from './services/plugin/plugin.service';
 export { type DependencyOverride, mergeOverrideWithDependencies } from './services/plugin/plugin-override';
 export { IResourceLoaderService } from './services/resource-loader/type';
 export { ResourceManagerService } from './services/resource-manager/resource-manager.service';

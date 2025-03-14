@@ -40,6 +40,7 @@ export {
 export { ShortcutPanelController } from './controllers/shortcut-display/shortcut-panel.controller';
 export { IUIController, type IWorkbenchOptions } from './controllers/ui/ui.controller';
 export { DesktopUIController } from './controllers/ui/ui-desktop.controller';
+export { SingleUnitUIController } from './controllers/ui/ui-shared.controller';
 export { UniverMobileUIPlugin } from './mobile-ui-plugin';
 export { DesktopBeforeCloseService, IBeforeCloseService } from './services/before-close/before-close.service';
 export { CopyCommand, CutCommand, PasteCommand, SheetPasteShortKeyCommandName } from './services/clipboard/clipboard.command';
@@ -120,7 +121,6 @@ export { UNIVER_UI_PLUGIN_NAME } from './ui-plugin';
 export * from './utils';
 export { ComponentContainer, type IComponentContainerProps, useComponentsOfPart } from './views/components/ComponentContainer';
 export { ZenZone } from './views/components/zen-zone/ZenZone';
-export { builtInGlobalComponents } from './views/parts';
 
 // #region - workbench components
 
@@ -135,8 +135,7 @@ export { ToolbarButton } from './views/components/ribbon/Button/ToolbarButton';
 export { useToolbarItemStatus } from './views/components/ribbon/hook';
 export { Ribbon } from './views/components/ribbon/Ribbon';
 export { ToolbarItem } from './views/components/ribbon/ToolbarItem';
-export { type ISidebarMethodOptions } from './views/components/sidebar/interface';
-export { Sidebar } from './views/components/sidebar/Sidebar';
+export { type ISidebarMethodOptions, Sidebar } from './views/components/sidebar/Sidebar';
 // #endregion
 
 // #region - all commands

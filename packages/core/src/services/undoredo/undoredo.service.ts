@@ -34,6 +34,11 @@ export interface IUndoRedoItem {
 
     undoMutations: IMutationInfo[];
     redoMutations: IMutationInfo[];
+
+    /**
+     * sometimes we need an id to mark the undo-redo item
+     */
+    id?: string;
 }
 
 export interface IUndoRedoService {
@@ -48,6 +53,8 @@ export interface IUndoRedoService {
 
     popUndoToRedo(): void;
     popRedoToUndo(): void;
+
+    rollback(id: string, unitId?: string): void;
 
     clearUndoRedo(unitId: string): void;
 
@@ -268,6 +275,17 @@ export class LocalUndoRedoService extends Disposable implements IUndoRedoService
             const undoStack = this._getUndoStackForFocused();
             undoStack.push(element);
             this._updateStatus();
+        }
+    }
+
+    rollback(id: string, unitID?: string): void {
+        const unitId = unitID || this._getFocusedUnitId();
+        const stack = this._getUndoStack(unitId);
+        const item = stack?.[stack?.length - 1];
+        // if the last item is the one we want to rollback
+        if (item && item.id === id) {
+            stack.pop();
+            sequenceExecute(item.undoMutations, this._commandService);
         }
     }
 

@@ -4,6 +4,9 @@
     "description": "Univer vanilla ts demo project",
     "author": "DreamNum <developer@univer.ai>",
     "license": "Apache-2.0",
+    "exports": {
+        "./*": "./src/*"
+    },
     "scripts": {
         "prepare": "tsx ./scripts/generate-locales.ts && tsx ./scripts/generate-html.ts",
         "build:demo": "tsx ./esbuild.config.ts",
@@ -31,8 +34,11 @@
         "@univerjs/engine-formula": "workspace:*",
         "@univerjs/engine-render": "workspace:*",
         "@univerjs/find-replace": "workspace:*",
+        "@univerjs/icons": "0.2.20",
         "@univerjs/mockdata": "workspace:*",
+        "@univerjs/network": "workspace:*",
         "@univerjs/rpc": "workspace:*",
+        "@univerjs/rpc-node": "workspace:*",
         "@univerjs/sheets": "workspace:*",
         "@univerjs/sheets-conditional-formatting": "workspace:*",
         "@univerjs/sheets-conditional-formatting-ui": "workspace:*",
@@ -80,7 +86,8 @@
         "@univerjs-infra/shared": "workspace:*",
         "cross-env": "^7.0.3",
         "detect-port": "^2.1.0",
-        "esbuild": "^0.24.2",
+        "esbuild": "^0.25.0",
+        "esbuild-plugin-alias": "^0.2.1",
         "esbuild-plugin-clean": "^1.0.1",
         "esbuild-plugin-copy": "^2.1.1",
         "esbuild-plugin-vue3": "^0.4.2",
@@ -89,9 +96,9 @@
         "fs-extra": "^11.3.0",
         "less": "^4.2.2",
         "minimist": "^1.2.8",
-        "postcss": "^8.5.2",
+        "postcss": "^8.5.3",
         "tailwindcss": "^3.4.17",
         "tailwindcss-animate": "^1.0.7",
-        "typescript": "^5.7.3"
+        "typescript": "^5.8.2"
     }
 }

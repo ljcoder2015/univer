@@ -71,7 +71,7 @@ import {
 import { MessageType } from '@univerjs/design';
 import { DocSelectionRenderService } from '@univerjs/docs-ui';
 
-import { IRenderManagerService } from '@univerjs/engine-render';
+import { IRenderManagerService, withCurrentTypeOfRenderer } from '@univerjs/engine-render';
 import {
     InsertColMutation,
     InsertRowMutation,
@@ -137,7 +137,7 @@ export class SheetClipboardController extends RxDisposable {
 
     constructor(
         @Inject(Injector) private readonly _injector: Injector,
-        @IUniverInstanceService private readonly _currentUniverSheet: IUniverInstanceService,
+        @IUniverInstanceService private readonly _instanceService: IUniverInstanceService,
         @IRenderManagerService private readonly _renderManagerService: IRenderManagerService,
         @ICommandService private readonly _commandService: ICommandService,
         @IContextService private readonly _contextService: IContextService,
@@ -312,7 +312,7 @@ export class SheetClipboardController extends RxDisposable {
             },
             getFilteredOutRows(range: IRange) {
                 const { startRow, endRow } = range;
-                const worksheet = self._currentUniverSheet.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)?.getActiveSheet();
+                const worksheet = self._instanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)?.getActiveSheet();
                 const res: number[] = [];
                 if (!worksheet) {
                     return res;
@@ -443,8 +443,10 @@ export class SheetClipboardController extends RxDisposable {
                         unitId: unitId!,
                         subUnitId: subUnitId!,
                         ranges: [{
-                            startRow: range.rows[0], endRow: Math.min(range.rows[range.rows.length - 1], maxRow),
-                            startColumn: range.cols[0], endColumn: range.cols[range.cols.length - 1],
+                            startRow: range.rows[0],
+                            endRow: Math.min(range.rows[range.rows.length - 1], maxRow),
+                            startColumn: range.cols[0],
+                            endColumn: range.cols[range.cols.length - 1],
                         }],
                         rowHeight,
                     };
@@ -585,7 +587,13 @@ export class SheetClipboardController extends RxDisposable {
     }
 
     private _generateDocumentDataModelSnapshot(snapshot: Partial<IDocumentData>) {
-        const currentSkeleton = this._renderManagerService.withCurrentTypeOfUnit(UniverInstanceType.UNIVER_SHEET, SheetSkeletonManagerService)?.getCurrentParam();
+        const currentSkeleton = withCurrentTypeOfRenderer(
+            UniverInstanceType.UNIVER_SHEET,
+            SheetSkeletonManagerService,
+            this._instanceService,
+            this._renderManagerService
+        )?.getCurrentParam();
+
         if (currentSkeleton == null) {
             return null;
         }
@@ -739,7 +747,7 @@ export class SheetClipboardController extends RxDisposable {
                 };
             },
             onPasteColumns(pasteTo, colProperties, payload) {
-                const workbook = self._currentUniverSheet.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
+                const workbook = self._instanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
                 const unitId = workbook.getUnitId();
                 const subUnitId = workbook.getActiveSheet()?.getSheetId();
 
@@ -817,7 +825,7 @@ export class SheetClipboardController extends RxDisposable {
                 label: 'specialPaste.besidesBorder',
             },
             onPasteCells: (pasteFrom, pasteTo, matrix, payload) => {
-                const workbook = self._currentUniverSheet.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
+                const workbook = self._instanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
                 const redoMutationsInfo: IMutationInfo[] = [];
                 const undoMutationsInfo: IMutationInfo[] = [];
                 const { range, unitId, subUnitId } = pasteTo;
@@ -878,7 +886,7 @@ export class SheetClipboardController extends RxDisposable {
     }
 
     private _getWorksheet(unitId: string, subUnitId: string): Worksheet {
-        const worksheet = this._currentUniverSheet.getUniverSheetInstance(unitId)?.getSheetBySheetId(subUnitId);
+        const worksheet = this._instanceService.getUniverSheetInstance(unitId)?.getSheetBySheetId(subUnitId);
 
         if (!worksheet) {
             throw new Error(

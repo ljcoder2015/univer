@@ -20,6 +20,7 @@ import type { IOpenFilterPanelOperationParams } from '../../commands/operations/
 import type { IFilterConditionFormParams } from '../../models/conditions';
 import type { IFilterByValueWithTreeItem } from '../sheets-filter-panel.service';
 import { CommandType, ICommandService, Inject, Injector, LocaleService, Plugin, Univer, UniverInstanceType } from '@univerjs/core';
+import { ActiveDirtyManagerService, IActiveDirtyManagerService } from '@univerjs/engine-formula';
 import { RefRangeService, SheetInterceptorService, SheetsSelectionsService } from '@univerjs/sheets';
 import { CustomFilterOperator, SheetsFilterService, UniverSheetsFilterPlugin } from '@univerjs/sheets-filter';
 import { SetSheetsFilterCriteriaCommand } from '@univerjs/sheets-filter/commands/commands/sheets-filter.command.js';
@@ -94,6 +95,7 @@ function createSheetsFilterPanelServiceTestBed(workbookData: IWorkbookData) {
                 [SheetsSelectionsService],
                 [SheetInterceptorService],
                 [SheetsFilterPanelService],
+                [IActiveDirtyManagerService, { useClass: ActiveDirtyManagerService }],
             ] as Dependency[]).forEach((d) => this._injector.add(d));
         }
     }
@@ -174,8 +176,10 @@ describe('test "SheetsFilterPanelService"', () => {
                 expect(filterByModel.conditionItem.operator).toBe(FilterConditionItems.BETWEEN.operator);
                 expect(filterByModel.filterConditionFormParams).toEqual({
                     and: true,
-                    operator1: CustomFilterOperator.GREATER_THAN_OR_EQUAL, val1: '',
-                    operator2: CustomFilterOperator.LESS_THAN_OR_EQUAL, val2: '',
+                    operator1: CustomFilterOperator.GREATER_THAN_OR_EQUAL,
+                    val1: '',
+                    operator2: CustomFilterOperator.LESS_THAN_OR_EQUAL,
+                    val2: '',
                 } as IFilterConditionFormParams);
 
                 filterByModel.onPrimaryConditionChange(ExtendCustomFilterOperator.ENDS_WITH);
@@ -211,8 +215,10 @@ describe('test "SheetsFilterPanelService"', () => {
                 expect(filterByModel.conditionItem.operator).toBe(FilterConditionItems.CUSTOM.operator);
                 expect(filterByModel.filterConditionFormParams).toEqual({
                     and: true,
-                    operator1: ExtendCustomFilterOperator.ENDS_WITH, val1: '',
-                    operator2: CustomFilterOperator.LESS_THAN_OR_EQUAL, val2: '',
+                    operator1: ExtendCustomFilterOperator.ENDS_WITH,
+                    val1: '',
+                    operator2: CustomFilterOperator.LESS_THAN_OR_EQUAL,
+                    val2: '',
                 } as IFilterConditionFormParams);
             });
         });

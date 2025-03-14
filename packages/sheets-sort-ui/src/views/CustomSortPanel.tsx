@@ -17,11 +17,11 @@
 import type { IRange, Nullable } from '@univerjs/core';
 import type { IOrderRule } from '@univerjs/sheets-sort';
 import { LocaleService, LocaleType, throttle } from '@univerjs/core';
-import { Button, Checkbox, DraggableList, DropdownLegacy, Radio, RadioGroup } from '@univerjs/design';
+import { Button, Checkbox, clsx, DraggableList, Dropdown, Radio, RadioGroup } from '@univerjs/design';
 import { CheckMarkSingle, DeleteEmptySingle, IncreaseSingle, MoreDownSingle, SequenceSingle } from '@univerjs/icons';
 import { SheetsSortService, SortType } from '@univerjs/sheets-sort';
 import { useDependency } from '@univerjs/ui';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SheetsSortUIService } from '../services/sheets-sort-ui.service';
 
 import styles from './index.module.less';
@@ -71,7 +71,9 @@ export function CustomSortPanel() {
                 newList.push({ type: SortType.ASC, colIndex: nextColIndex });
                 setList(newList);
             }
-        }, 200), [list, range]);
+        }, 200),
+        [list, range]
+    );
 
     const apply = useCallback((orderRules: IOrderRule[], hasTitle: boolean) => {
         sheetsSortService.applySort({ range, orderRules, hasTitle });
@@ -206,13 +208,10 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                     <SequenceSingle />
                 </div>
                 <div className={styles.customSortPanelItemColumn}>
-                    <DropdownLegacy
-                        placement="bottomLeft"
-                        trigger={['click']}
-                        visible={visible}
-                        onVisibleChange={onVisibleChange}
+                    <Dropdown
+                        align="start"
                         overlay={(
-                            <ul className={styles.customSortColMenu}>
+                            <ul className={clsx(styles.customSortColMenu, 'univer-theme')}>
                                 {availableMenu.map((menuItem) => (
                                     <li
                                         key={menuItem.index}
@@ -231,12 +230,14 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                                 ))}
                             </ul>
                         )}
+                        open={visible}
+                        onOpenChange={onVisibleChange}
                     >
                         <div className={styles.customSortPanelItemColumnInput}>
                             <span className={styles.customSortPanelItemColumnInputText}>{itemLabel}</span>
                             <MoreDownSingle className={styles.customSortPanelItemColumnInputDropdown} />
                         </div>
-                    </DropdownLegacy>
+                    </Dropdown>
                 </div>
             </div>
             <div className={styles.customSortPanelItemOrder}>

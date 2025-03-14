@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import type { IShortcutItem } from '@univerjs/ui';
 import { BreakLineCommand, DeleteLeftCommand } from '@univerjs/docs-ui';
+
 import { DeviceInputEventType } from '@univerjs/engine-render';
 import { KeyCode, MetaKeys } from '@univerjs/ui';
-
-import type { IShortcutItem } from '@univerjs/ui';
 import {
     SetCellEditVisibleArrowOperation,
     SetCellEditVisibleOperation,
@@ -142,8 +142,7 @@ export const EditorDeleteLeftShortcutInActive: IShortcutItem = {
     id: SetCellEditVisibleOperation.id,
     description: 'shortcut.sheet.delete-and-start-editing',
     group: '4_sheet-edit',
-    preconditions: (contextService) =>
-        whenSheetEditorFocused(contextService) && !whenFormulaEditorFocused(contextService),
+    preconditions: (contextService) => whenSheetEditorFocused(contextService) && !whenFormulaEditorFocused(contextService),
     binding: KeyCode.BACKSPACE,
     staticParameters: {
         visible: true,

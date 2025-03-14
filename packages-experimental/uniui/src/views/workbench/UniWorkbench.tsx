@@ -25,13 +25,14 @@ import type {
 } from '@xyflow/react';
 import type { IFloatingToolbarRef } from '../uni-toolbar/UniFloatToolbar';
 import { debounce, ICommandService, IContextService, IUniverInstanceService, LocaleService, ThemeService } from '@univerjs/core';
-import { ConfigContext, ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
+import { clsx, ConfigContext, ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { MenuSingle } from '@univerjs/icons';
-import { builtInGlobalComponents,
+import {
     BuiltInUIPart,
     ComponentContainer,
     ContextMenu,
+    GlobalZone,
     UNI_DISABLE_CHANGING_FOCUS_KEY,
     useComponentsOfPart,
     useDependency,
@@ -44,8 +45,6 @@ import {
     ReactFlowProvider,
     useNodesState,
 } from '@xyflow/react';
-import clsx from 'clsx';
-
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { UniFocusUnitOperation } from '../../commands/operations/uni-focus-unit.operation';
@@ -265,7 +264,7 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
                     </div>
                 </div>
                 <ComponentContainer key="global" components={globalComponents} />
-                <ComponentContainer key="built-in-global" components={builtInGlobalComponents} />
+                <GlobalZone />
                 {contextMenu && <ContextMenu />}
                 <FloatingContainer />
             </ReactFlowProvider>

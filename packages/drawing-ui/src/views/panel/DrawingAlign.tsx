@@ -16,10 +16,9 @@
 
 import type { IDrawingParam } from '@univerjs/core';
 import { ICommandService, LocaleService } from '@univerjs/core';
-import { Select } from '@univerjs/design';
+import { clsx, Select } from '@univerjs/design';
 import { useDependency } from '@univerjs/ui';
-import clsx from 'clsx';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AlignType, SetDrawingAlignOperation } from '../../commands/operations/drawing-align.operation';
 import styles from './index.module.less';
 
@@ -46,10 +45,12 @@ export const DrawingAlign = (props: IDrawingAlignProps) => {
                 {
                     label: localeService.t('image-panel.align.left'),
                     value: AlignType.left,
-                }, {
+                },
+                {
                     label: localeService.t('image-panel.align.center'),
                     value: AlignType.center,
-                }, {
+                },
+                {
                     label: localeService.t('image-panel.align.right'),
                     value: AlignType.right,
                 },
@@ -60,20 +61,24 @@ export const DrawingAlign = (props: IDrawingAlignProps) => {
                 {
                     label: localeService.t('image-panel.align.top'),
                     value: AlignType.top,
-                }, {
+                },
+                {
                     label: localeService.t('image-panel.align.middle'),
                     value: AlignType.middle,
-                }, {
+                },
+                {
                     label: localeService.t('image-panel.align.bottom'),
                     value: AlignType.bottom,
                 },
             ],
-        }, {
+        },
+        {
             options: [
                 {
                     label: localeService.t('image-panel.align.horizon'),
                     value: AlignType.horizon,
-                }, {
+                },
+                {
                     label: localeService.t('image-panel.align.vertical'),
                     value: AlignType.vertical,
                 },

@@ -248,6 +248,7 @@ export class HoverManagerService extends Disposable {
         return { currentRender, workbook, worksheet, skeletonParam };
     }
 
+    // eslint-disable-next-line complexity
     private _calcActiveCell(currentRender: IRender, workbook: Workbook, worksheet: Worksheet, skeletonParam: ISheetSkeletonManagerParam, offsetX: number, offsetY: number) {
         const hoverPosition = getHoverCellPosition(currentRender, workbook, worksheet, skeletonParam, offsetX, offsetY);
         const skeleton = skeletonParam.skeleton;
@@ -274,7 +275,7 @@ export class HoverManagerService extends Disposable {
         const cell = skeleton.getCellWithCoordByIndex(overflowLocation.row, overflowLocation.col);
         const cellData = worksheet.getCell(overflowLocation.row, overflowLocation.col);
         const { topOffset = 0, leftOffset = 0 } = cellData?.fontRenderExtension ?? {};
-        if (font) {
+        if (font?.documentSkeleton) {
             const { paddingLeft, paddingTop } = calcPadding(cell, font, (cellData?.v !== null && cellData?.v !== undefined) ? !Number.isNaN(+cellData.v) : false);
             const rects = calculateDocSkeletonRects(font.documentSkeleton, paddingLeft, paddingTop);
 
@@ -352,7 +353,10 @@ export class HoverManagerService extends Disposable {
         if (activeCell && activeCell.location) {
             const { unitId, subUnitId, row, col } = getLocationBase(activeCell.location);
             this._currentPointerDownCell$.next({
-                unitId, subUnitId, row, col,
+                unitId,
+                subUnitId,
+                row,
+                col,
                 event,
             });
         }

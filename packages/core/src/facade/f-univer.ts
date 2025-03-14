@@ -232,13 +232,11 @@ export class FUniver extends Disposable {
             this.Event.DocDisposed,
             () => univerInstanceService.unitDisposed$.subscribe((unit) => {
                 if (unit.type === UniverInstanceType.UNIVER_DOC) {
-                    this.fireEvent(this.Event.DocDisposed,
-                        {
-                            unitId: unit.getUnitId(),
-                            unitType: unit.type,
-                            snapshot: unit.getSnapshot() as IDocumentData,
-                        }
-                    );
+                    this.fireEvent(this.Event.DocDisposed, {
+                        unitId: unit.getUnitId(),
+                        unitType: unit.type,
+                        snapshot: unit.getSnapshot() as IDocumentData,
+                    });
                 }
             })
         );
@@ -249,14 +247,12 @@ export class FUniver extends Disposable {
                 if (unit.type === UniverInstanceType.UNIVER_DOC) {
                     const doc = unit as DocumentDataModel;
                     const docUnit = injector.createInstance(FDoc, doc);
-                    this.fireEvent(this.Event.DocCreated,
-                        {
-                            unitId: unit.getUnitId(),
-                            type: unit.type,
-                            doc: docUnit,
-                            unit: docUnit,
-                        }
-                    );
+                    this.fireEvent(this.Event.DocCreated, {
+                        unitId: unit.getUnitId(),
+                        type: unit.type,
+                        doc: docUnit,
+                        unit: docUnit,
+                    });
                 }
             })
         );
@@ -302,7 +298,7 @@ export class FUniver extends Disposable {
      *
      * @example
      * ```ts
-     * univerAPI.undo();
+     * await univerAPI.undo();
      * ```
      */
     undo(): Promise<boolean> {
@@ -315,7 +311,7 @@ export class FUniver extends Disposable {
      *
      * @example
      * ```ts
-     * univerAPI.redo();
+     * await univerAPI.redo();
      * ```
      */
     redo(): Promise<boolean> {
@@ -420,10 +416,13 @@ export class FUniver extends Disposable {
      * @returns {Disposable} The Disposable instance, for remove the listener
      * @example
      * ```ts
-     * univerAPI.addEvent(univerAPI.Event.LifeCycleChanged, (params) => {
+     * // Add life cycle changed event listener
+     * const disposable = univerAPI.addEvent(univerAPI.Event.LifeCycleChanged, (params) => {
      *   const { stage } = params;
      *   console.log('life cycle changed', params);
      * });
+     *
+     * // Remove the event listener, use `disposable.dispose()`
      * ```
      */
     addEvent<T extends keyof IEventParamConfig>(event: T, callback: (params: IEventParamConfig[T]) => void): IDisposable {

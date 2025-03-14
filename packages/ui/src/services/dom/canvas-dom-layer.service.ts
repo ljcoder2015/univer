@@ -15,7 +15,8 @@
  */
 
 import type { IPosition, Serializable } from '@univerjs/core';
-import { BehaviorSubject, type Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 export interface IFloatDomLayout extends IPosition {
     rotate: number;
@@ -25,6 +26,7 @@ export interface IFloatDomLayout extends IPosition {
         left: boolean;
         top: boolean;
     };
+    opacity?: number;
 }
 
 export interface IFloatDom {

@@ -192,7 +192,14 @@ export class DocSelectionRenderService extends RxDisposable implements IRenderMo
 
         const generalAddRange = (startOffset: number, endOffset: number) => {
             const rangeList = getRangeListFromCharIndex(
-                startOffset, endOffset, scene, document, docSkeleton, style, segmentId, segmentPage
+                startOffset,
+                endOffset,
+                scene,
+                document,
+                docSkeleton,
+                style,
+                segmentId,
+                segmentPage
             );
 
             if (rangeList == null) {
@@ -260,7 +267,7 @@ export class DocSelectionRenderService extends RxDisposable implements IRenderMo
                     if (textRange) {
                         this._addTextRange(textRange);
                     }
-                // eslint-disable-next-line unused-imports/no-unused-vars
+                    // eslint-disable-next-line unused-imports/no-unused-vars
                 } catch (_e) {
                     generalAddRange(startOffset, endOffset);
                 }
@@ -279,6 +286,7 @@ export class DocSelectionRenderService extends RxDisposable implements IRenderMo
             options,
         });
 
+        if (!ranges.length || options?.shouldFocus === false) return;
         this._updateInputPosition(options?.forceFocus);
     }
 
@@ -1232,7 +1240,11 @@ export class DocSelectionRenderService extends RxDisposable implements IRenderMo
         } = document.getOffsetConfig();
 
         const nodeInfo = skeleton.findNodeByCoord(
-            coord, pageLayoutType, pageMarginLeft, pageMarginTop, restrictions
+            coord,
+            pageLayoutType,
+            pageMarginLeft,
+            pageMarginTop,
+            restrictions
         );
 
         return nodeInfo;
