@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/sheets-crosshair-highlight",
-    "version": "0.6.5",
+    "version": "0.6.6",
     "private": false,
     "description": "",
     "author": "DreamNum <developer@univer.ai>",
@@ -75,7 +75,7 @@
         "@univerjs/core": "workspace:*",
         "@univerjs/design": "workspace:*",
         "@univerjs/engine-render": "workspace:*",
-        "@univerjs/icons": "^0.2.21",
+        "@univerjs/icons": "^0.2.22",
         "@univerjs/sheets": "workspace:*",
         "@univerjs/sheets-ui": "workspace:*",
         "@univerjs/ui": "workspace:*"
