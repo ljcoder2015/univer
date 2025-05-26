@@ -26,36 +26,32 @@ import { Subscription } from 'rxjs';
 import { Transform } from '../basics/transform';
 import { Rect } from './rect';
 
-/**
- * Sadly, the props name here is not the same as the members in Scrollbar.
- */
 export interface IScrollBarProps {
     mainScene?: Scene;
+    /** Margin between the track to the edge of the scrollable area. Default is 2px. */
     thumbMargin?: number;
     thumbLengthRatio?: number;
+    /** Background color of the thumb. */
     thumbBackgroundColor?: string;
+    /** Background color of the thumb on hover. */
     thumbHoverBackgroundColor?: string;
+    /** Background color of the thumb when active. */
     thumbActiveBackgroundColor?: string;
-    /**
-     * The thickness of a scrolling track(not scrolling thumb).
-     */
+    /** Background color of the track. */
+    trackBackgroundColor?: string;
+    /** Background color of the track border. */
+    trackBorderColor?: string;
+    /** The thickness of a scrolling track (not scrolling thumb). */
     barSize?: number;
-    /**
-     * The thickness of track border.
-     */
+    /** The thickness of track border. */
     barBorder?: number;
-
+    /** Enable the horizontal scroll bar. True by default. */
     enableHorizontal?: boolean;
+    /** Enable the vertical scroll bar. True by default. */
     enableVertical?: boolean;
-
-    /**
-     * The min width of horizon thumb
-     */
+    /** The min width of horizon thumb. Default is 17 px. */
     minThumbSizeH?: number;
-
-    /**
-     * The min height of vertical thumb
-     */
+    /** The min height of vertical thumb. Default is 17 px. */
     minThumbSizeV?: number;
 }
 
@@ -84,15 +80,12 @@ export class ScrollBar extends Disposable {
     placeholderBarRect: Nullable<Rect>;
 
     protected _viewport!: Viewport;
-
     private _mainScene: Nullable<Scene>;
 
     private _lastX: number = -1;
-
     private _lastY: number = -1;
 
     private _isHorizonMove = false;
-
     private _isVerticalMove = false;
 
     private _horizonPointerMoveSub: Nullable<Subscription>;
@@ -165,6 +158,10 @@ export class ScrollBar extends Disposable {
                 (this as IKeyValue)[`_${key}`] = props[key as keyof IScrollBarProps];
             }
         });
+
+        if (Tools.isDefine(props.thumbBackgroundColor)) {
+            this._thumbDefaultBackgroundColor = props.thumbBackgroundColor;
+        }
 
         if (Tools.isDefine(props.barSize)) {
             this._trackThickness = props.barSize;
@@ -687,7 +684,7 @@ export class ScrollBar extends Disposable {
             thumb.setProps({
                 fill: color,
             });
-            this._trackThickness = HOVER_TRACK_SIZE;
+            // this._trackThickness = HOVER_TRACK_SIZE;
             this._resizeHorizontal();
             this.makeViewDirty(true);
         };

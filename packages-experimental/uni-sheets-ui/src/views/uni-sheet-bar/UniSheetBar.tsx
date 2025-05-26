@@ -17,28 +17,19 @@
 import type { ICommandInfo } from '@univerjs/core';
 import type { IBaseSheetBarProps } from '@univerjs/sheets-ui';
 import { ICommandService } from '@univerjs/core';
-import { Tooltip } from '@univerjs/design';
+import { clsx, scrollbarClassName, Tooltip } from '@univerjs/design';
 import { IncreaseSingle } from '@univerjs/icons';
 import { InsertSheetCommand, InsertSheetMutation, RemoveSheetMutation, SetTabColorMutation, SetWorksheetActiveOperation, SetWorksheetHideMutation, SetWorksheetNameMutation, SetWorksheetOrderMutation } from '@univerjs/sheets';
 import { useActiveWorkbook } from '@univerjs/sheets-ui';
 import { useDependency } from '@univerjs/ui';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import styles from './index.module.less';
 
 export function UniSheetBar() {
     const [sheetList, setSheetList] = useState<IBaseSheetBarProps[]>([]);
     const [activeKey, setActiveKey] = useState('');
-    const [barHeight, setBarHeight] = useState(0);
     const workbook = useActiveWorkbook()!;
     const commandService = useDependency(ICommandService);
     const sheetBarRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const sheetBar = sheetBarRef.current;
-        if (sheetBar) {
-            setBarHeight(sheetBar.clientHeight - 38);
-        }
-    }, []);
 
     const updateSheetItems = useCallback(() => {
         const currentSubUnitId = workbook.getActiveSheet()?.getSheetId() || '';
@@ -102,16 +93,18 @@ export function UniSheetBar() {
         });
 
     return (
-        <div className={styles.uniSheetBar} ref={sheetBarRef}>
-            <div className={styles.sheetTab} style={{ height: `${barHeight}px` }}>
-                <div className={styles.sheetItems}>
+        <div className="univer-flex univer-h-full univer-select-none univer-flex-col univer-justify-between" ref={sheetBarRef}>
+            <div className={clsx('univer-overflow-y-auto', scrollbarClassName)}>
+                <div className="univer-flex univer-flex-col univer-gap-1 univer-text-sm univer-font-medium">
                     {sheetList.map((item, index) => (
                         <div
                             key={index}
-                            className={`
-                              ${styles.sheetItem}
-                              ${activeKey === item.sheetId ? styles.active : ''}
-                            `}
+                            className={clsx(`
+                              univer-flex univer-h-8 univer-cursor-pointer univer-items-center univer-rounded-lg
+                              univer-px-1 univer-py-0
+                              dark:hover:!univer-bg-gray-700
+                              hover:univer-bg-gray-100
+                            `, activeKey === item.sheetId ? 'univer-text-primary-500' : '')}
                             onClick={() => handleSheetActiveChange(item.sheetId)}
                         >
                             <Tooltip showIfEllipsis title={item.label} placement="right">
@@ -126,8 +119,20 @@ export function UniSheetBar() {
                 </div>
             </div>
 
-            <button className={styles.newSheetButton} onClick={handleSheetAdd}>
-                <IncreaseSingle className={styles.newSheetButtonIcon} />
+            <button
+                type="button"
+                className={`
+                  univer-relative univer-mt-4 univer-flex univer-h-8 univer-items-center univer-justify-center
+                  univer-rounded-lg univer-border-0 univer-bg-transparent univer-text-primary-600
+                  before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-gray-100
+                  before:content-['']
+                  dark:hover:!univer-bg-gray-700
+                  hover:univer-cursor-pointer hover:univer-bg-gray-100
+                `}
+
+                onClick={handleSheetAdd}
+            >
+                <IncreaseSingle className="univer-mr-1 univer-size-4" />
                 <span>New sheet</span>
             </button>
         </div>

@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import { ThemeService } from '@univerjs/core';
-import { Tooltip } from '@univerjs/design';
+import { clsx, Tooltip } from '@univerjs/design';
 import { CloseSingle } from '@univerjs/icons';
-import React, { useEffect, useRef } from 'react';
-import { useDependency } from '../../utils/di';
-import styles from './index.module.less';
+import { useEffect, useRef, useState } from 'react';
 
 export interface IProgressBarProps {
     progress: { done: number; count: number; label?: string };
@@ -32,28 +29,21 @@ export function ProgressBar(props: IProgressBarProps) {
     const { barColor, progress, onTerminate, onClearProgress } = props;
     const { count, done, label = '' } = progress;
 
-    const themeService = useDependency(ThemeService);
-    const color = barColor ?? themeService.getCurrentTheme().primaryColor; ;
-
-    const progressBarInnerRef = useRef<HTMLDivElement>(null);
-    const progressBarContainerRef = useRef<HTMLDivElement>(null);
+    const progressBarInnerRef = useRef<HTMLDivElement>(null!);
+    const [visible, setVisible] = useState(false);
 
     useEffect(() => {
         const progressBarInner = progressBarInnerRef.current;
-        const progressBarContainer = progressBarContainerRef.current;
-
-        if (!progressBarInner || !progressBarContainer) return;
 
         // Hide immediately if both count and done are zero
         if (count === 0 && done === 0) {
-            progressBarContainer.style.display = 'none';
+            setVisible(false);
             progressBarInner.style.width = '0%';
             return;
         }
         // Update the width of the progress bar
         else if (count > 0) {
-            progressBarContainer.style.display = 'flex';
-
+            setVisible(true);
             const width = Math.floor((done / count) * 100);
 
             // Trigger the animation to prevent the progress bar from not being closed due to reaching 100% too quickly without animation
@@ -74,8 +64,7 @@ export function ProgressBar(props: IProgressBarProps) {
         const handleTransitionEnd = () => {
             if (done === count) {
                 // Hide the progress bar after the animation finishes
-                progressBarContainer.style.display = 'none';
-                progressBarInner.style.width = '0%';
+                setVisible(false);
 
                 // Notify the parent component to reset the progress after the animation ends
                 // After the progress bar is completed 100%, the upper props data source may not be reset, resulting in count and done still being the previous values (displaying 100%) when the progress bar is triggered next time, so a message is reported here to trigger clearing.
@@ -92,25 +81,41 @@ export function ProgressBar(props: IProgressBarProps) {
     }, [count, done]);
 
     return (
-        <div ref={progressBarContainerRef} className={styles.progressBarContainer} style={{ display: 'none' }}>
-
+        <div
+            className={clsx('univer-mx-2 univer-flex univer-items-center univer-gap-2', {
+                'univer-flex': visible,
+                'univer-hidden univer-w-0': !visible,
+            })}
+        >
             <Tooltip showIfEllipsis title={label}>
-                <span className={styles.progressBarLabel}>{label}</span>
+                <span className="univer-w-24 univer-truncate univer-text-right univer-text-xs">{label}</span>
             </Tooltip>
 
-            <div className={styles.progressBar}>
+            <div className="univer-h-1 univer-w-40 univer-overflow-hidden univer-rounded-lg univer-bg-gray-200">
                 <div
                     ref={progressBarInnerRef}
-                    className={styles.progressBarInner}
+                    className="univer-h-full univer-bg-primary-600 univer-transition-[width]"
                     style={{
-                        backgroundColor: color,
+                        backgroundColor: barColor,
                     }}
                 />
             </div>
-            <div className={styles.progressBarCloseButton} onClick={onTerminate}>
-                {' '}
-                <CloseSingle />
-            </div>
+            <button
+                className={`
+                  univer-flex univer-size-4 univer-cursor-pointer univer-items-center univer-justify-center
+                  univer-border-none univer-bg-transparent univer-p-0
+                  hover:univer-opacity-50
+                `}
+                type="button"
+                onClick={onTerminate}
+            >
+                <CloseSingle
+                    className={`
+                      univer-size-3.5
+                      dark:!univer-text-white
+                    `}
+                />
+            </button>
         </div>
     );
 };

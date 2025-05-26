@@ -16,14 +16,13 @@
 
 import type { DocumentDataModel } from '@univerjs/core';
 import { BuildTextUtils, getBodySlice, ICommandService, IUniverInstanceService, LocaleService, Tools, UniverInstanceType } from '@univerjs/core';
-import { Button, FormLayout, Input } from '@univerjs/design';
+import { borderClassName, Button, clsx, FormLayout, Input } from '@univerjs/design';
 import { DocSelectionManagerService } from '@univerjs/docs';
 import { KeyCode, useDependency, useObservable } from '@univerjs/ui';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddDocHyperLinkCommand } from '../../commands/commands/add-link.command';
 import { UpdateDocHyperLinkCommand } from '../../commands/commands/update-link.command';
 import { DocHyperLinkPopupService } from '../../services/hyper-link-popup.service';
-import styles from './index.module.less';
 
 function hasProtocol(urlString: string) {
     const pattern = /^[a-zA-Z]+:\/\//;
@@ -115,7 +114,12 @@ export const DocHyperLinkEdit = () => {
     }
 
     return (
-        <div className={styles.docsLinkEdit}>
+        <div
+            className={clsx(`
+              univer-box-border univer-w-[328px] univer-rounded-xl univer-bg-white univer-px-6 univer-py-5 univer-shadow
+              dark:!univer-bg-gray-900
+            `, borderClassName)}
+        >
             <div>
                 {editing
                     ? (
@@ -152,17 +156,13 @@ export const DocHyperLinkEdit = () => {
                     />
                 </FormLayout>
             </div>
-            <div className={styles.docsLinkEditButtons}>
-                <Button
-                    className={styles.docsLinkEditButton}
-                    onClick={handleCancel}
-                >
+            <div className="univer-flex univer-justify-end univer-gap-3">
+                <Button onClick={handleCancel}>
                     {localeService.t('docLink.edit.cancel')}
                 </Button>
                 <Button
+                    variant="primary"
                     disabled={!link}
-                    className={styles.docsLinkEditButton}
-                    type="primary"
                     onClick={handleConfirm}
                 >
                     {localeService.t('docLink.edit.confirm')}

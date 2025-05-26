@@ -80,7 +80,7 @@ export interface IFWorkbookSheetsUIMixin {
      *     title: (
      *       <>
      *         <Button onClick={() => { console.log('Cancel clicked') }}>Cancel</Button>
-     *         <Button type="primary" onClick={() => { console.log('Confirm clicked') }} style={{marginLeft: '10px'}}>Confirm</Button>
+     *         <Button variant="primary" onClick={() => { console.log('Confirm clicked') }} style={{marginLeft: '10px'}}>Confirm</Button>
      *       </>
      *     )
      *   },
@@ -155,6 +155,18 @@ export interface IFWorkbookSheetsUIMixin {
      * ```
      */
     endEditingAsync(save?: boolean): Promise<boolean>;
+
+    /**
+     * @async
+     * End the editing process of the current active cell
+     * @returns {Promise<boolean>} Whether the editing process is ended successfully
+     * @example
+     * ```ts
+     * const fWorkbook = univerAPI.getActiveWorkbook();
+     * await fWorkbook.endEditingAsync(false);
+     * ```
+     */
+    abortEditingAsync(): Promise<boolean>;
 
     /**
      * Get scroll state of specified sheet.
@@ -351,6 +363,10 @@ export class FWorkbookSheetsUIMixin extends FWorkbook implements IFWorkbookSheet
 
     override endEditingAsync(save = true): Promise<boolean> {
         return this.endEditing(save);
+    }
+
+    override abortEditingAsync(): Promise<boolean> {
+        return this.endEditingAsync(false);
     }
 
     /**

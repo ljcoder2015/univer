@@ -23,7 +23,7 @@ import type {
     IValueOption,
     MenuItemDefaultValueType,
 } from '../../../services/menu/menu';
-import { isRealNum } from '@univerjs/core';
+import { isRealNum, LocaleService } from '@univerjs/core';
 import {
     clsx,
     Menu as DesignMenu,
@@ -37,12 +37,14 @@ import { combineLatest, isObservable, of } from 'rxjs';
 import { ILayoutService } from '../../../services/layout/layout.service';
 import { MenuItemType } from '../../../services/menu/menu';
 import { IMenuManagerService } from '../../../services/menu/menu-manager.service';
+import { ContextMenuGroup } from '../../../services/menu/types';
 import { useDependency, useObservable } from '../../../utils/di';
 import { CustomLabel } from '../../custom-label/CustomLabel';
 import { useScrollYOverContainer } from '../../hooks/layout';
-import styles from './index.module.less';
+import { UITinyMenuGroup } from './TinyMenuGroup';
 
-// TODO: @jikkai disabled and hidden are not working
+const contentClassName = 'univer-inline-flex univer-gap-2 univer-items-center';
+const moreIconClassName = 'univer-size-3.5 univer-text-gray-900 dark:!univer-text-white';
 
 /** @deprecated */
 export interface IBaseMenuProps {
@@ -57,18 +59,18 @@ export interface IBaseMenuProps {
      */
     overViewport?: 'scroll';
     onOptionSelect?: (option: IValueOption) => void;
+    style?: React.CSSProperties;
 }
 
 /** @deprecated */
 function MenuWrapper(props: IBaseMenuProps) {
     const { menuType, onOptionSelect } = props;
-
+    const localeService = useDependency(LocaleService);
     const menuManagerService = useDependency(IMenuManagerService);
 
     const menuItems = useMemo(() => menuType ? menuManagerService.getMenuByPositionKey(menuType) : [], [menuType, menuManagerService]);
 
     const [hiddenStates, setHiddenStates] = useState<Record<string, boolean>>({});
-
     const filteredMenuItems = useMemo(() => {
         return menuItems.filter((item) => {
             if (!item.children) return item;
@@ -114,21 +116,23 @@ function MenuWrapper(props: IBaseMenuProps) {
             />
         )
         : item.children?.length
-            ? (
-                <DesignMenuItemGroup key={item.key} eventKey={item.key}>
-                    {item.children.map((child) => (
-                        child.item && (
-                            <MenuItem
-                                key={child.key}
-                                menuItem={child.item}
-                                onClick={(object: Partial<IValueOption>) => {
-                                    onOptionSelect?.({ value: '', label: child.key, ...object });
-                                }}
-                            />
-                        )
-                    ))}
-                </DesignMenuItemGroup>
-            )
+            ? item.key === ContextMenuGroup.QUICK
+                ? <UITinyMenuGroup key={item.key} item={item} onOptionSelect={onOptionSelect} />
+                : (
+                    <DesignMenuItemGroup key={item.key} eventKey={item.key} title={item.title ? localeService.t(item.title) : undefined}>
+                        {item.children.map((child) => (
+                            child.item && (
+                                <MenuItem
+                                    key={child.key}
+                                    menuItem={child.item}
+                                    onClick={(object: Partial<IValueOption>) => {
+                                        onOptionSelect?.({ value: '', label: child.key, ...object });
+                                    }}
+                                />
+                            )
+                        ))}
+                    </DesignMenuItemGroup>
+                )
             : null);
 }
 
@@ -152,21 +156,21 @@ function MenuOptionsWrapper(props: IBaseMenuProps) {
         };
 
         const _className = clsx({
-            [styles.menuItemNoHover]: typeof option.label !== 'string' && !option.label?.hoverable,
+            'univer-bg-none': typeof option.label !== 'string' && !option.label?.hoverable,
         });
 
         return (
             <DesignMenuItem disabled={option.disabled} key={key} eventKey={key} className={_className} onClick={handleClick}>
                 <span
-                    className={clsx(styles.menuItemContent, {
-                        [styles.menuItemSelectable]: !(
+                    className={clsx(contentClassName, {
+                        'univer-relative univer-pl-5': !(
                             typeof option.label !== 'string' && !option.label?.hoverable
                         ),
                     })}
                 >
                     {typeof value !== 'undefined' && String(value) === String(option.value) && (
-                        <span className={styles.menuItemSelectableIcon}>
-                            <CheckMarkSingle style={{ color: 'rgb(var(--success-color))' }} />
+                        <span className="univer-absolute univer-left-0 univer-inline-flex univer-items-center">
+                            <CheckMarkSingle className="univer-text-primary-600" />
                         </span>
                     )}
                     <CustomLabel
@@ -184,7 +188,7 @@ function MenuOptionsWrapper(props: IBaseMenuProps) {
 
 /** @deprecated */
 export const Menu = (props: IBaseMenuProps) => {
-    const { overViewport, ...restProps } = props;
+    const { overViewport, style, ...restProps } = props;
     const [menuEl, setMenuEl] = useState<HTMLDListElement>();
     const layoutService = useDependency(ILayoutService);
 
@@ -195,9 +199,9 @@ export const Menu = (props: IBaseMenuProps) => {
             setMenuEl(ref.list);
         }
     }
-
     return (
         <DesignMenu
+            style={style}
             ref={handleSetMenuEl}
             selectable={false}
         >
@@ -250,13 +254,13 @@ function MenuItem({ menuItem, onClick }: IMenuItemProps) {
                 eventKey={item.id}
                 disabled={disabled}
                 className={clsx({
-                    [styles.menuItemActivated]: activated,
+                    'univer-bg-gray-200': activated,
                 })}
                 onClick={() => {
                     onClick({ commandId: item.commandId, value: inputValue, id: item.id });
                 }}
             >
-                <span className={styles.menuItemContent}>
+                <span className={contentClassName}>
                     <CustomLabel
                         value={value}
                         title={title}
@@ -279,7 +283,7 @@ function MenuItem({ menuItem, onClick }: IMenuItemProps) {
                     eventKey={item.id}
                     popupOffset={[18, 0]}
                     title={(
-                        <span className={styles.menuItemContent}>
+                        <span className={contentClassName}>
                             <CustomLabel
                                 title={item.title}
                                 value={inputValue}
@@ -290,25 +294,27 @@ function MenuItem({ menuItem, onClick }: IMenuItemProps) {
                             {item.shortcut && ` (${item.shortcut})`}
                         </span>
                     )}
-                    expandIcon={<MoreSingle className={styles.menuItemMoreIcon} />}
+                    expandIcon={<MoreSingle className={moreIconClassName} />}
                 >
-                    {selections.length > 0 && (
-                        <MenuOptionsWrapper
-                            parentKey={item.id}
-                            menuType={item.id}
-                            options={selections}
-                            onOptionSelect={(v) => {
-                                onClick({ value: v.value, id: item.id, commandId: v.commandId });
-                            }}
-                        />
-                    )}
+                    <DesignMenuItemGroup>
+                        {selections.length > 0 && (
+                            <MenuOptionsWrapper
+                                parentKey={item.id}
+                                menuType={item.id}
+                                options={selections}
+                                onOptionSelect={(v) => {
+                                    onClick({ value: v.value, id: item.id, commandId: v.commandId });
+                                }}
+                            />
+                        )}
+                    </DesignMenuItemGroup>
                 </DesignSubMenu>
             );
         }
 
         return (
             <DesignMenuItem key={item.id} eventKey={item.id}>
-                <span className={styles.menuItemContent}>
+                <span className={contentClassName}>
                     <CustomLabel
                         title={item.title}
                         value={inputValue}
@@ -333,13 +339,15 @@ function MenuItem({ menuItem, onClick }: IMenuItemProps) {
                 eventKey={item.id}
                 popupOffset={[18, 0]}
                 title={(
-                    <span className={styles.menuItemContent}>
+                    <span className={contentClassName}>
                         <CustomLabel title={item.title} icon={item.icon} label={item.label} onChange={onChange} />
                     </span>
                 )}
-                expandIcon={<MoreSingle className={styles.menuItemMoreIcon} />}
+                expandIcon={<MoreSingle className={moreIconClassName} />}
             >
-                {subMenuItems.length && <MenuWrapper menuType={item.id} parentKey={item.id} onOptionSelect={onClick} />}
+                <DesignMenuItemGroup>
+                    {subMenuItems.length && <MenuWrapper menuType={item.id} parentKey={item.id} onOptionSelect={onClick} />}
+                </DesignMenuItemGroup>
             </DesignSubMenu>
         );
     };

@@ -17,12 +17,11 @@
 import type { Nullable } from '@univerjs/core';
 import type { Image, Rect, RichText } from '@univerjs/engine-render';
 import { ICommandService, LocaleService } from '@univerjs/core';
-import { Button, clsx } from '@univerjs/design';
+import { Button } from '@univerjs/design';
 import { BottomSingle, MoveDownSingle, MoveUpSingle, TopmostSingle } from '@univerjs/icons';
 import { useDependency } from '@univerjs/ui';
 import { UpdateSlideElementOperation } from '../../commands/operations/update-element.operation';
 import { CanvasView } from '../../controllers/canvas-view';
-import styles from './index.module.less';
 
 enum ArrangeTypeEnum {
     forward,
@@ -90,25 +89,30 @@ export default function ArrangePanel(props: IProps) {
     };
 
     return (
-        <div className={styles.imageCommonPanelGrid}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
+        <div className="univer-relative univer-w-full">
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div
+                    className={`
+                      univer-w-full univer-text-left univer-text-gray-600
+                      dark:!univer-text-gray-200
+                    `}
+                >
                     <div>{localeService.t('image-panel.arrange.title')}</div>
                 </div>
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <Button size="small" onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.forward); }}>
-                        <span className={styles.imageCommonPanelInline}>
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div className="univer-w-1/2">
+                    <Button onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.forward); }}>
+                        <span className="univer-flex univer-items-center univer-gap-1">
                             <MoveUpSingle />
                             {localeService.t('image-panel.arrange.forward')}
                         </span>
 
                     </Button>
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <Button size="small" onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.backward); }}>
-                        <span className={styles.imageCommonPanelInline}>
+                <div className="univer-w-1/2">
+                    <Button onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.backward); }}>
+                        <span className="univer-flex univer-items-center univer-gap-1">
                             <MoveDownSingle />
                             {localeService.t('image-panel.arrange.backward')}
                         </span>
@@ -116,19 +120,19 @@ export default function ArrangePanel(props: IProps) {
                     </Button>
                 </div>
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <Button size="small" onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.front); }}>
-                        <span className={styles.imageCommonPanelInline}>
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div className="univer-w-1/2">
+                    <Button onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.front); }}>
+                        <span className="univer-flex univer-items-center univer-gap-1">
                             <TopmostSingle />
                             {localeService.t('image-panel.arrange.front')}
                         </span>
 
                     </Button>
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <Button size="small" onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.back); }}>
-                        <span className={styles.imageCommonPanelInline}>
+                <div className="univer-w-1/2">
+                    <Button onClick={() => { onArrangeBtnClick(ArrangeTypeEnum.back); }}>
+                        <span className="univer-flex univer-items-center univer-gap-1">
                             <BottomSingle />
                             {localeService.t('image-panel.arrange.back')}
                         </span>

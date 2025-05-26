@@ -38,10 +38,17 @@ export interface IMessageProps {
 
 const iconMap = {
     [MessageType.Success]: <SuccessSingle className="univer-text-green-500" />,
-    [MessageType.Info]: <InfoSingle className="univer-text-indigo-600 dark:univer-text-primary-500" />,
+    [MessageType.Info]: (
+        <InfoSingle
+            className={`
+              univer-text-indigo-600
+              dark:!univer-text-primary-500
+            `}
+        />
+    ),
     [MessageType.Warning]: <WarningSingle className="univer-text-yellow-400" />,
     [MessageType.Error]: <ErrorSingle className="univer-text-red-500" />,
-    [MessageType.Loading]: <Loading className="univer-text-yellow-400 univer-animate-spin" />,
+    [MessageType.Loading]: <Loading className="univer-animate-spin univer-text-yellow-400" />,
 };
 
 const Message = ({ content, type = MessageType.Info }: IMessageProps) => {
@@ -54,18 +61,18 @@ const Message = ({ content, type = MessageType.Info }: IMessageProps) => {
                   univer-min-w-[320px] univer-max-w-[480px] univer-rounded-xl univer-border univer-border-solid
                   univer-border-gray-200 univer-bg-white univer-p-4 univer-font-sans univer-shadow-md
                   univer-transition-all univer-duration-300 univer-animate-in univer-fade-in univer-slide-in-from-top-4
-                  dark:univer-border-gray-700 dark:univer-bg-gray-700
+                  dark:!univer-border-gray-600 dark:!univer-bg-gray-700
                 `
             )}
         >
-            <div className="univer-flex univer-items-start univer-gap-2">
+            <div className="univer-flex univer-gap-2">
                 <span className="[&>svg]:univer-relative [&>svg]:univer-top-0.5 [&>svg]:univer-block">
                     {icon}
                 </span>
                 <p
                     className={`
                       univer-m-0 univer-text-sm univer-text-gray-500 univer-opacity-90
-                      dark:univer-text-gray-400
+                      dark:!univer-text-gray-400
                     `}
                 >
                     {content}
@@ -103,6 +110,7 @@ const createMessage = (() => {
         };
 
         useEffect(() => {
+            const timers: number[] = [];
             addMessage = (message) => {
                 const id = String(messageCount++);
                 setState((prev) => ({
@@ -110,12 +118,19 @@ const createMessage = (() => {
                 }));
 
                 if (message.duration !== Infinity) {
-                    setTimeout(() => {
+                    const timer = window.setTimeout(() => {
                         setState((prev) => ({
                             messages: prev.messages.filter((t) => t.id !== id),
                         }));
                     }, message.duration || 3000);
+                    timers.push(timer);
                 }
+            };
+
+            return () => {
+                timers.forEach((timer) => {
+                    window.clearTimeout(timer);
+                });
             };
         }, []);
 

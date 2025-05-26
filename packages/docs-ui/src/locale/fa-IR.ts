@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     toolbar: {
         undo: 'بازگرداندن',
         redo: 'تکرار',
@@ -53,6 +53,7 @@ const locale: typeof zhCN = {
         alignJustify: 'توجیه',
         horizontalLine: 'Horizontal line',
         headerFooter: 'هدر و فوتر',
+        pageSetup: 'تنظیمات صفحه',
     },
     table: {
         insert: 'درج',
@@ -97,6 +98,44 @@ const locale: typeof zhCN = {
             multiSpace: 'فاصله چندگانه',
             fixedValue: 'مقدار ثابت(px)',
         },
+    },
+    rightClick: {
+        copy: 'کپی',
+        cut: 'برش',
+        paste: 'چسباندن',
+        delete: 'حذف',
+        bulletList: 'لیست بدون شماره',
+        orderList: 'لیست شماره‌دار',
+        checkList: 'لیست وظیفه',
+        insertBellow: 'درج در پایین',
+    },
+    'page-settings': {
+        'document-setting': 'تنظیمات سند',
+        'page-size': {
+            main: 'اندازه کاغذ',
+            a4: 'A4',
+            a3: 'A3',
+            a5: 'A5',
+            b4: 'B4',
+            b5: 'B5',
+            letter: 'نامه آمریکایی',
+            legal: 'نامه حقوقی',
+            tabloid: 'روزنامه',
+            statement: 'کاغذ اظهارنامه',
+            executive: 'کاغذ اجرایی',
+            folio: 'کاغذ فولیو',
+        },
+        'paper-size': 'اندازه کاغذ',
+        orientation: 'جهت',
+        portrait: 'عمودی',
+        landscape: 'افقی',
+        'custom-paper-size': 'اندازه کاغذ سفارشی',
+        top: 'بالا',
+        bottom: 'پایین',
+        left: 'چپ',
+        right: 'راست',
+        cancel: 'لغو',
+        confirm: 'تایید',
     },
 };
 

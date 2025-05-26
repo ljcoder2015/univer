@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import type { IUniverSheetsUIConfig } from './config.schema';
 import { Disposable, ICommandService, IConfigService, Inject, Injector, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
 import { DocSelectionRenderService } from '@univerjs/docs-ui';
 import { getCurrentTypeOfRenderer, IRenderManagerService } from '@univerjs/engine-render';
@@ -93,31 +92,26 @@ import { SetZoomRatioOperation } from '../commands/operations/set-zoom-ratio.ope
 import { SheetPermissionOpenDialogOperation } from '../commands/operations/sheet-permission-open-dialog.operation';
 import { SheetPermissionOpenPanelOperation } from '../commands/operations/sheet-permission-open-panel.operation';
 import { SidebarDefinedNameOperation } from '../commands/operations/sidebar-defined-name.operation';
-
 import { BorderPanel } from '../components/border-panel/BorderPanel';
 import { BORDER_PANEL_COMPONENT } from '../components/border-panel/interface';
-import { COLOR_PICKER_COMPONENT, ColorPicker } from '../components/color-picker';
-import {
-    FONT_FAMILY_COMPONENT,
-    FONT_FAMILY_ITEM_COMPONENT,
-    FontFamily,
-    FontFamilyItem,
-} from '../components/font-family';
-import { FONT_SIZE_COMPONENT, FontSize } from '../components/font-size';
 import { MENU_ITEM_INPUT_COMPONENT, MenuItemInput } from '../components/menu-item-input';
+import { CellPopup } from '../views/cell-popup';
+import { CELL_POPUP_COMPONENT_KEY } from '../views/cell-popup/config';
 import { DEFINED_NAME_CONTAINER } from '../views/defined-name/component-name';
 import { DefinedNameContainer } from '../views/defined-name/DefinedNameContainer';
 import { RenderSheetContent, RenderSheetFooter, RenderSheetHeader } from '../views/sheet-container/SheetContainer';
-import { SHEETS_UI_PLUGIN_CONFIG_KEY } from './config.schema';
 import { menuSchema } from './menu.schema';
 import {
     EditorBreakLineShortcut,
+    EditorCursorCtrlEnterShortcut,
     EditorCursorEnterShortcut,
     EditorCursorEscShortcut,
     EditorCursorTabShortcut,
     EditorDeleteLeftShortcut,
     EditorDeleteLeftShortcutInActive,
+    EditorDeleteRightShortcut,
     generateArrowSelectionShortCutItem,
+    ShiftEditorDeleteLeftShortcut,
     StartEditWithF2Shortcut,
 } from './shortcuts/editor.shortcut';
 import { SetColHiddenShortcutItem, SetRowHiddenShortcutItem } from './shortcuts/operation.shortcut';
@@ -151,7 +145,7 @@ import {
     SetStrikeThroughShortcutItem,
     SetUnderlineShortcutItem,
 } from './shortcuts/style.shortcut';
-import { ClearSelectionValueShortcutItem, ClearSelectionValueShortcutItemMac } from './shortcuts/value.shortcut';
+import { ClearSelectionValueShortcutItem, ClearSelectionValueShortcutItemMac, ShiftClearSelectionValueShortcutItem, ShiftDeleteSelectionValueShortcutItem } from './shortcuts/value.shortcut';
 import {
     PreventDefaultResetZoomShortcutItem,
     PreventDefaultZoomInShortcutItem,
@@ -192,11 +186,8 @@ export class SheetUIController extends Disposable {
         // init custom components
         this.disposeWithMe(componentManager.register(MENU_ITEM_INPUT_COMPONENT, MenuItemInput));
         this.disposeWithMe(componentManager.register(BORDER_PANEL_COMPONENT, BorderPanel));
-        this.disposeWithMe(componentManager.register(COLOR_PICKER_COMPONENT, ColorPicker));
-        this.disposeWithMe(componentManager.register(FONT_FAMILY_COMPONENT, FontFamily));
-        this.disposeWithMe(componentManager.register(FONT_FAMILY_ITEM_COMPONENT, FontFamilyItem));
-        this.disposeWithMe(componentManager.register(FONT_SIZE_COMPONENT, FontSize));
         this.disposeWithMe(componentManager.register(DEFINED_NAME_CONTAINER, DefinedNameContainer));
+        this.disposeWithMe(componentManager.register(CELL_POPUP_COMPONENT_KEY, CellPopup));
 
         // init icons
         this.disposeWithMe(componentManager.register('HideGridlines', HideGridlines));
@@ -330,14 +321,19 @@ export class SheetUIController extends Disposable {
             // cell content editing shortcuts
             ClearSelectionValueShortcutItem,
             ClearSelectionValueShortcutItemMac,
+            ShiftClearSelectionValueShortcutItem,
+            ShiftDeleteSelectionValueShortcutItem,
             ...generateArrowSelectionShortCutItem(),
             EditorCursorEnterShortcut,
             StartEditWithF2Shortcut,
             EditorCursorTabShortcut,
             EditorBreakLineShortcut,
             EditorDeleteLeftShortcut,
+            EditorDeleteRightShortcut,
             EditorDeleteLeftShortcutInActive,
             EditorCursorEscShortcut,
+            EditorCursorCtrlEnterShortcut,
+            ShiftEditorDeleteLeftShortcut,
 
             // operation shortcuts
             SetRowHiddenShortcutItem,
@@ -351,10 +347,7 @@ export class SheetUIController extends Disposable {
         const uiController = this._uiPartsService;
         const injector = this._injector;
 
-        const config = this._configService.getConfig<IUniverSheetsUIConfig>(SHEETS_UI_PLUGIN_CONFIG_KEY);
-        if (config?.formulaBar !== false) {
-            this.disposeWithMe(uiController.registerComponent(BuiltInUIPart.HEADER, () => connectInjector(RenderSheetHeader, injector)));
-        }
+        this.disposeWithMe(uiController.registerComponent(BuiltInUIPart.HEADER, () => connectInjector(RenderSheetHeader, injector)));
         this.disposeWithMe(uiController.registerComponent(BuiltInUIPart.FOOTER, () => connectInjector(RenderSheetFooter, injector)));
         this.disposeWithMe(uiController.registerComponent(BuiltInUIPart.CONTENT, () => connectInjector(RenderSheetContent, injector)));
     }

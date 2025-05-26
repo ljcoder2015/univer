@@ -24,12 +24,14 @@ import {
     LocaleType,
     LogLevel,
     Plugin,
+    set,
     ThemeService,
     Univer,
     UniverInstanceType,
 } from '@univerjs/core';
 import { FUniver } from '@univerjs/core/facade';
-import { ActiveDirtyManagerService, DefinedNamesService, FormulaDataModel, FunctionService, IActiveDirtyManagerService, IDefinedNamesService, IFunctionService, LexerTreeBuilder } from '@univerjs/engine-formula';
+import { ActiveDirtyManagerService, DefinedNamesService, FormulaDataModel, FunctionService, IActiveDirtyManagerService, IDefinedNamesService, IFunctionService, ISheetRowFilteredService, LexerTreeBuilder } from '@univerjs/engine-formula';
+import { SheetRowFilteredService } from '@univerjs/engine-formula/services/sheet-row-filtered.service.js';
 import {
     RefRangeService,
     SheetInterceptorService,
@@ -38,8 +40,8 @@ import {
 } from '@univerjs/sheets';
 import { UniverSheetsFilterPlugin } from '@univerjs/sheets-filter';
 import enUS from '@univerjs/sheets/locale/en-US';
-import zhCN from '@univerjs/sheets/locale/zh-CN';
 
+import zhCN from '@univerjs/sheets/locale/zh-CN';
 import '@univerjs/sheets/facade';
 import '@univerjs/sheets-filter/facade';
 
@@ -121,6 +123,7 @@ export function createWorksheetTestBed(workbookData?: IWorkbookData, dependencie
             // register feature modules
             ([
                 [IActiveDirtyManagerService, { useClass: ActiveDirtyManagerService }],
+                [ISheetRowFilteredService, { useClass: SheetRowFilteredService }],
             ] as Dependency[]).forEach((d) => {
                 injector.add(d);
             });
@@ -138,7 +141,9 @@ export function createWorksheetTestBed(workbookData?: IWorkbookData, dependencie
 
     // load theme service
     const themeService = injector.get(ThemeService);
-    themeService.setTheme({ colorBlack: '#35322b' });
+    const theme = themeService.getCurrentTheme();
+    const newTheme = set(theme, 'black', '#35322b');
+    themeService.setTheme(newTheme);
 
     // register builtin plugins
     // note that UI plugins are not registered here, because the unit test environment does not have a UI

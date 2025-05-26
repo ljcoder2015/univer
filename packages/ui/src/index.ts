@@ -20,11 +20,17 @@ export * from './common';
 export { getHeaderFooterMenuHiddenObservable, getMenuHiddenObservable } from './common/menu-hidden-observable';
 export { mergeMenuConfigs } from './common/menu-merge-configs';
 export * from './components';
+export { COLOR_PICKER_COMPONENT } from './components/color-picker/interface';
+export { FontSize } from './components/font-size/FontSize';
+export { FontFamily } from './components/font-family/FontFamily';
+export { FontFamilyItem } from './components/font-family/FontFamilyItem';
+export { FONT_SIZE_COMPONENT, FONT_SIZE_LIST, HEADING_LIST } from './components/font-size/interface';
+export { FONT_FAMILY_COMPONENT, FONT_FAMILY_ITEM_COMPONENT, FONT_FAMILY_LIST, type IFontFamilyItemProps, type IFontFamilyProps } from './components/font-family/interface';
 export { t } from './components/hooks/locale';
 export * from './components/hooks';
-export { RectPopup } from './views/components/popup/RectPopup';
+export { RectPopup, type RectPopupDirection } from './views/components/popup/RectPopup';
 export { Menu as UIMenu } from './components/menu/desktop/Menu';
-export { type INotificationOptions, type NotificationType } from './components/notification/Notification';
+export { type INotificationOptions } from './components/notification/Notification';
 export { ProgressBar } from './components/progress-bar/ProgressBar';
 export { UNI_DISABLE_CHANGING_FOCUS_KEY } from './const';
 export { type IUniverUIConfig, UI_PLUGIN_CONFIG_KEY } from './controllers/config.schema';
@@ -37,11 +43,12 @@ export {
     SharedController,
     UndoShortcutItem,
 } from './controllers/shared-shortcut.controller';
+export type { IConfirmChildrenProps } from './views/components/confirm-part/interface';
 export { ShortcutPanelController } from './controllers/shortcut-display/shortcut-panel.controller';
 export { IUIController, type IWorkbenchOptions } from './controllers/ui/ui.controller';
 export { DesktopUIController } from './controllers/ui/ui-desktop.controller';
 export { SingleUnitUIController } from './controllers/ui/ui-shared.controller';
-export { UniverMobileUIPlugin } from './mobile-ui-plugin';
+export { UniverMobileUIPlugin } from './mobile-plugin';
 export { DesktopBeforeCloseService, IBeforeCloseService } from './services/before-close/before-close.service';
 export { CopyCommand, CutCommand, PasteCommand, SheetPasteShortKeyCommandName } from './services/clipboard/clipboard.command';
 export { supportClipboardAPI } from './services/clipboard/clipboard-utils';
@@ -57,15 +64,13 @@ export {
     imageMimeTypeSet,
     PLAIN_TEXT_CLIPBOARD_MIME_TYPE,
 } from './services/clipboard/clipboard-interface.service';
-export { IConfirmService } from './services/confirm/confirm.service';
+export { IConfirmService, TestConfirmService } from './services/confirm/confirm.service';
 export { DesktopConfirmService } from './services/confirm/desktop-confirm.service';
-export {
-    ContextMenuService,
-    type IContextMenuHandler,
-    IContextMenuService,
-} from './services/contextmenu/contextmenu.service';
+export { ContextMenuService, type IContextMenuHandler, IContextMenuService } from './services/contextmenu/contextmenu.service';
 export { DesktopDialogService } from './services/dialog/desktop-dialog.service';
 export { IDialogService } from './services/dialog/dialog.service';
+export { IGalleryService } from './services/gallery/gallery.service';
+export { DesktopGalleryService } from './services/gallery/desktop-gallery.service';
 export { CanvasFloatDomService, type IFloatDom, type IFloatDomLayout } from './services/dom/canvas-dom-layer.service';
 export { DesktopGlobalZoneService } from './services/global-zone/desktop-global-zone.service';
 export { IGlobalZoneService } from './services/global-zone/global-zone.service';
@@ -114,13 +119,14 @@ export { useSidebarClick } from './services/sidebar/hooks/use-sidebar-click';
 export { ILeftSidebarService, ISidebarService } from './services/sidebar/sidebar.service';
 export { DesktopZenZoneService } from './services/zen-zone/desktop-zen-zone.service';
 export { IZenZoneService } from './services/zen-zone/zen-zone.service';
-
-export { DISABLE_AUTO_FOCUS_KEY, UniverUIPlugin } from './ui-plugin';
-
-export { UNIVER_UI_PLUGIN_NAME } from './ui-plugin';
+export { FloatDomSingle } from './views/components/dom/FloatDom';
+export { PrintFloatDomSingle } from './views/components/dom/print';
+export { DISABLE_AUTO_FOCUS_KEY, UNIVER_UI_PLUGIN_NAME, UniverUIPlugin } from './plugin';
 export * from './utils';
 export { ComponentContainer, type IComponentContainerProps, useComponentsOfPart } from './views/components/ComponentContainer';
 export { ZenZone } from './views/components/zen-zone/ZenZone';
+export { Menu as DesktopMenu } from './components/menu/desktop/Menu';
+export { ThemeSwitcherService } from './services/theme-switcher/theme-switcher.service';
 
 // #region - workbench components
 
@@ -130,8 +136,8 @@ export { MobileContextMenu } from './views/components/context-menu/MobileContext
 export { type IDialogPartMethodOptions } from './views/components/dialog-part/interface';
 export { FloatDom } from './views/components/dom/FloatDom';
 export { GlobalZone } from './views/components/global-zone/GlobalZone';
-export { CanvasPopup } from './views/components/popup/CanvasPopup';
-export { ToolbarButton } from './views/components/ribbon/Button/ToolbarButton';
+export { CanvasPopup, SingleCanvasPopup } from './views/components/popup/CanvasPopup';
+export { ToolbarButton } from './views/components/ribbon/ToolbarButton';
 export { useToolbarItemStatus } from './views/components/ribbon/hook';
 export { Ribbon } from './views/components/ribbon/Ribbon';
 export { ToolbarItem } from './views/components/ribbon/ToolbarItem';
@@ -142,4 +148,8 @@ export { type ISidebarMethodOptions, Sidebar } from './views/components/sidebar/
 
 export { ToggleShortcutPanelOperation } from './commands/operations/toggle-shortcut-panel.operation';
 
+// #endregion
+
+// #region testing
+export { MockMessageService } from './services/message/__testing__/mock-message.service.ts';
 // #endregion

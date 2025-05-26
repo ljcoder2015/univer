@@ -17,11 +17,9 @@
 import type { IDisposable, Nullable } from '@univerjs/core';
 import { ICommandService, IContextService, Inject, Injector, LocaleService } from '@univerjs/core';
 import { MessageType } from '@univerjs/design';
-
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { FilterSingle } from '@univerjs/icons';
 import { ClearSheetsFilterCriteriaCommand, ReCalcSheetsFilterCommand, RemoveSheetFilterCommand, SetSheetFilterRangeCommand, SetSheetsFilterCriteriaCommand, SheetsFilterService, SmartToggleSheetsFilterCommand } from '@univerjs/sheets-filter';
-
 import { SheetCanvasPopManagerService, SheetsRenderService } from '@univerjs/sheets-ui';
 import { ComponentManager, IMenuManagerService, IMessageService, IShortcutService } from '@univerjs/ui';
 import { distinctUntilChanged } from 'rxjs';
@@ -96,8 +94,15 @@ export class SheetsFilterUIDesktopController extends SheetsFilterUIMobileControl
     }
 
     private _initUI(): void {
-        this.disposeWithMe(this._componentManager.register(FILTER_PANEL_POPUP_KEY, FilterPanel));
-        this.disposeWithMe(this._componentManager.register('FilterSingle', FilterSingle));
+        ([
+            [FILTER_PANEL_POPUP_KEY, FilterPanel],
+            ['FilterSingle', FilterSingle],
+        ] as [string, React.FC][]).forEach(([id, component]) => {
+            this.disposeWithMe(
+                this._componentManager.register(id, component)
+            );
+        });
+
         this.disposeWithMe(this._contextService.subscribeContextValue$(FILTER_PANEL_OPENED_KEY)
             .pipe(distinctUntilChanged())
             .subscribe((open) => {

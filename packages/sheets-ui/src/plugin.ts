@@ -20,8 +20,9 @@ import type { IUniverSheetsUIConfig } from './controllers/config.schema';
 import { DependentOn, IConfigService, Inject, Injector, IUniverInstanceService, merge, mergeOverrideWithDependencies, Plugin, registerDependencies, touchDependencies, UniverInstanceType } from '@univerjs/core';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { IRefSelectionsService, RefSelectionsService, UniverSheetsPlugin } from '@univerjs/sheets';
-import { UI_PLUGIN_CONFIG_KEY } from '@univerjs/ui';
+import { ComponentManager, UI_PLUGIN_CONFIG_KEY } from '@univerjs/ui';
 import { filter } from 'rxjs/operators';
+import { UNIVER_SHEET_PERMISSION_BACKGROUND, UNIVER_SHEET_PERMISSION_USER_PART } from './consts/permission';
 import { ActiveWorksheetController } from './controllers/active-worksheet/active-worksheet.controller';
 import { AutoFillController } from './controllers/auto-fill.controller';
 import { AutoHeightController } from './controllers/auto-height.controller';
@@ -66,6 +67,8 @@ import { StatusBarController } from './controllers/status-bar.controller';
 import { AutoFillService, IAutoFillService } from './services/auto-fill/auto-fill.service';
 import { SheetCanvasPopManagerService } from './services/canvas-pop-manager.service';
 import { CellAlertManagerService } from './services/cell-alert-manager.service';
+import { ISheetCellDropdownManagerService, SheetCellDropdownManagerService } from './services/cell-dropdown-manager.service';
+import { CellPopupManagerService } from './services/cell-popup-manager.service';
 import { ISheetClipboardService, SheetClipboardService } from './services/clipboard/clipboard.service';
 import { DragManagerService } from './services/drag-manager.service';
 import { EditorBridgeService, IEditorBridgeService } from './services/editor-bridge.service';
@@ -102,7 +105,8 @@ export class UniverSheetsUIPlugin extends Plugin {
         @Inject(Injector) override readonly _injector: Injector,
         @IRenderManagerService private readonly _renderManagerService: IRenderManagerService,
         @IConfigService private readonly _configService: IConfigService,
-        @IUniverInstanceService private readonly _univerInstanceService: IUniverInstanceService
+        @IUniverInstanceService private readonly _univerInstanceService: IUniverInstanceService,
+        @Inject(ComponentManager) private readonly _componentManager: ComponentManager
     ) {
         super();
 
@@ -113,11 +117,30 @@ export class UniverSheetsUIPlugin extends Plugin {
             this._config
         );
 
+        const { customComponents = new Set() } = rest;
+        if (rest.protectedRangeShadow === false) {
+            customComponents.add(UNIVER_SHEET_PERMISSION_BACKGROUND);
+        }
+
+        if (rest.protectedRangeUserSelector) {
+            customComponents.add(UNIVER_SHEET_PERMISSION_USER_PART);
+
+            this.disposeWithMe(
+                this._componentManager.register(
+                    UNIVER_SHEET_PERMISSION_USER_PART,
+                    rest.protectedRangeUserSelector.component,
+                    {
+                        framework: rest.protectedRangeUserSelector.framework,
+                    }
+                )
+            );
+        }
+
         if (menu) {
             this._configService.setConfig('menu', menu, { merge: true });
         }
 
-        this._configService.setConfig(SHEETS_UI_PLUGIN_CONFIG_KEY, rest);
+        this._configService.setConfig(SHEETS_UI_PLUGIN_CONFIG_KEY, { ...rest, customComponents });
     }
 
     override onStarting(): void {
@@ -137,8 +160,11 @@ export class UniverSheetsUIPlugin extends Plugin {
             [HoverManagerService],
             [DragManagerService],
             [SheetCanvasPopManagerService],
+            [CellPopupManagerService],
             [CellAlertManagerService],
             [SelectAllService],
+            [ISheetCellDropdownManagerService, { useClass: SheetCellDropdownManagerService }],
+            [SheetCellEditorResizeService],
 
             // controllers
             [ActiveWorksheetController],
@@ -153,6 +179,7 @@ export class UniverSheetsUIPlugin extends Plugin {
             [SheetsDefinedNameController],
             [EditorDataSyncController],
             [SheetCheckboxController],
+            [EditingRenderController],
 
             // permission
             [SheetPermissionPanelModel],
@@ -198,6 +225,7 @@ export class UniverSheetsUIPlugin extends Plugin {
             [AutoWidthController],
             [EditorDataSyncController],
             [SheetCheckboxController],
+            [EditingRenderController],
         ]);
     }
 
@@ -232,7 +260,6 @@ export class UniverSheetsUIPlugin extends Plugin {
             [SheetsScrollRenderController],
             [HeaderFreezeRenderController],
             [SheetsZoomRenderController],
-            [SheetCellEditorResizeService],
 
             [FormatPainterRenderController],
             [ClipboardRenderController],
@@ -248,7 +275,6 @@ export class UniverSheetsUIPlugin extends Plugin {
 
             // editor
             [EditorBridgeRenderController],
-            [EditingRenderController],
 
             // permission
             [SheetPermissionInterceptorCanvasRenderController],

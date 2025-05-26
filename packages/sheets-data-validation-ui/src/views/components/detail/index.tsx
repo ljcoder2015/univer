@@ -25,11 +25,9 @@ import { SheetsSelectionsService } from '@univerjs/sheets';
 import { RemoveSheetDataValidationCommand, UpdateSheetDataValidationOptionsCommand, UpdateSheetDataValidationRangeCommand, UpdateSheetDataValidationSettingCommand } from '@univerjs/sheets-data-validation';
 import { RangeSelector } from '@univerjs/sheets-formula-ui';
 import { ComponentManager, useDependency, useEvent, useObservable } from '@univerjs/ui';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DataValidationPanelService } from '../../../services/data-validation-panel.service';
 import { DataValidationOptions } from '../options';
-
-import styles from './index.module.less';
 
 // debounce execute commands, for better redo-undo experience
 const debounceExecuteFactory = (commandService: ICommandService) => debounce(
@@ -45,6 +43,7 @@ function getSheetIdByName(univerInstanceService: IUniverInstanceService, unitId:
     }
     return univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)?.getSheetBySheetName(name)?.getSheetId() || '';
 }
+
 export function DataValidationDetail() {
     const [key, setKey] = useState(0);
     const dataValidationPanelService = useDependency(DataValidationPanelService);
@@ -107,6 +106,7 @@ export function DataValidationDetail() {
         if (!localRule.ranges.length || isRangeError) {
             return;
         }
+
         if (validator.validatorFormula(localRule, unitId, subUnitId).success) {
             dataValidationPanelService.setActiveRule(null);
         } else {
@@ -245,8 +245,10 @@ export function DataValidationDetail() {
         );
     };
 
+    const shouldHideFormula = operators.length && !localRule.operator;
+
     return (
-        <div className={styles.dataValidationDetail}>
+        <div data-u-comp="data-validation-detail" className="univer-py-2">
             <FormLayout
                 label={localeService.t('dataValidation.panel.range')}
                 error={(!localRule.ranges.length || isRangeError) ? localeService.t('dataValidation.panel.rangeError') : ''}
@@ -272,58 +274,62 @@ export function DataValidationDetail() {
             </FormLayout>
             <FormLayout label={localeService.t('dataValidation.panel.type')}>
                 <Select
-                    options={validators?.map((validator) => ({
+                    className="univer-w-full"
+                    value={localRule.type}
+                    options={validators?.sort((a, b) => a.order - b.order)?.map((validator) => ({
                         label: localeService.t(validator.title),
                         value: validator.id,
                     }))}
-                    value={localRule.type}
                     onChange={handleChangeType}
-                    className={styles.dataValidationDetailFormItem}
                 />
             </FormLayout>
             {operators?.length
                 ? (
                     <FormLayout label={localeService.t('dataValidation.panel.operator')}>
                         <Select
-                            options={operators.map((op, i) => ({
-                                value: `${op}`,
-                                label: operatorNames[i],
-                            }))}
+                            className="univer-w-full"
                             value={`${localRule.operator}`}
+                            options={[
+                                {
+                                    value: '',
+                                    label: localeService.t('dataValidation.operators.legal'),
+                                },
+                                ...operators.map((op, i) => ({
+                                    value: `${op}`,
+                                    label: operatorNames[i],
+                                })),
+                            ]}
                             onChange={(operator) => {
                                 handleUpdateRuleSetting({
                                     ...baseRule,
                                     operator: operator as DataValidationOperator,
                                 });
                             }}
-                            className={styles.dataValidationDetailFormItem}
                         />
                     </FormLayout>
                 )
                 : null}
-            {FormulaInput
+            {FormulaInput && !shouldHideFormula
                 ? (
-                    <FormLayout>
-                        <FormulaInput
-                            key={key + localRule.type}
-                            isTwoFormula={isTwoFormula}
-                            value={{
-                                formula1: localRule.formula1,
-                                formula2: localRule.formula2,
-                            }}
-                            onChange={(value: any) => {
-                                handleUpdateRuleSetting({
-                                    ...baseRule,
-                                    ...value,
-                                });
-                            }}
-                            showError={showError}
-                            validResult={validator.validatorFormula(localRule, unitId, subUnitId)}
-                            unitId={unitId}
-                            subUnitId={subUnitId}
-                            ruleId={ruleId}
-                        />
-                    </FormLayout>
+                    <FormulaInput
+                        key={key + localRule.type}
+                        isTwoFormula={isTwoFormula}
+                        value={{
+                            formula1: localRule.formula1,
+                            formula2: localRule.formula2,
+                        }}
+                        onChange={(value: any) => {
+                            handleUpdateRuleSetting({
+                                ...baseRule,
+                                ...value,
+                            });
+                        }}
+                        showError={showError}
+                        validResult={validator.validatorFormula(localRule, unitId, subUnitId)}
+                        unitId={unitId}
+                        subUnitId={subUnitId}
+                        ruleId={ruleId}
+                    />
                 )
                 : null}
             <FormLayout>
@@ -338,11 +344,11 @@ export function DataValidationDetail() {
                 </Checkbox>
             </FormLayout>
             <DataValidationOptions value={options} onChange={handleUpdateRuleOptions} extraComponent={validator.optionsInput} />
-            <div className={styles.dataValidationDetailButtons}>
-                <Button className={styles.dataValidationDetailButton} onClick={handleDelete}>
+            <div className="univer-mt-5 univer-flex univer-flex-row univer-justify-end">
+                <Button className="univer-ml-3" onClick={handleDelete}>
                     {localeService.t('dataValidation.panel.removeRule')}
                 </Button>
-                <Button className={styles.dataValidationDetailButton} type="primary" onClick={handleOk}>
+                <Button className="univer-ml-3" variant="primary" onClick={handleOk}>
                     {localeService.t('dataValidation.panel.done')}
                 </Button>
             </div>

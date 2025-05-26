@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IDropdownProps, ITooltipProps } from '@univerjs/design';
+import type { IDropdownMenuProps, IDropdownProps, ITooltipProps } from '@univerjs/design';
 import type { ReactNode } from 'react';
 import type { IMenuItem, IValueOption } from '../../../services/menu/menu';
 import { clsx, Dropdown, DropdownMenu, Tooltip } from '@univerjs/design';
@@ -66,9 +66,9 @@ export const TooltipWrapper = forwardRef<ITooltipWrapperRef, ITooltipProps>((pro
 
     return (
         <Tooltip
-            {...tooltipProps}
             visible={tooltipVisible}
             onVisibleChange={handleChangeTooltipVisible}
+            {...tooltipProps}
         >
             <span ref={spanRef}>
                 <TooltipWrapperContext.Provider value={contextValue}>
@@ -81,7 +81,7 @@ export const TooltipWrapper = forwardRef<ITooltipWrapperRef, ITooltipProps>((pro
 
 export function DropdownWrapper(props: Omit<Partial<IDropdownProps>, 'overlay'> & { overlay: ReactNode; align?: 'start' | 'end' | 'center' }) {
     const { children, overlay, disabled, align = 'start' } = props;
-    const { setDropdownVisible } = useContext(TooltipWrapperContext);
+    const { dropdownVisible, setDropdownVisible } = useContext(TooltipWrapperContext);
 
     function handleVisibleChange(visible: boolean) {
         setDropdownVisible(visible);
@@ -91,11 +91,12 @@ export function DropdownWrapper(props: Omit<Partial<IDropdownProps>, 'overlay'> 
         <Dropdown
             align={align}
             overlay={(
-                <div className="univer-grid univer-gap-2 univer-theme">
+                <div className="univer-grid univer-gap-2">
                     {overlay}
                 </div>
             )}
             disabled={disabled}
+            open={dropdownVisible}
             onOpenChange={handleVisibleChange}
         >
             <div className="univer-h-full" onClick={(e) => e.stopPropagation()}>
@@ -129,6 +130,7 @@ function Label({ icon, value, option, onOptionSelect }: {
                 />
             )}
             <CustomLabel
+                className="univer-text-sm"
                 icon={icon}
                 value$={option.value$}
                 value={option.value}
@@ -156,7 +158,7 @@ export function DropdownMenuWrapper({
     disabled?: boolean;
     onOptionSelect: (option: IValueOption) => void;
 }) {
-    const { setDropdownVisible } = useContext(TooltipWrapperContext);
+    const { dropdownVisible, setDropdownVisible } = useContext(TooltipWrapperContext);
 
     const menuManagerService = useDependency(IMenuManagerService);
     const [hiddenStates, setHiddenStates] = useState<Record<string, boolean>>({});
@@ -219,7 +221,7 @@ export function DropdownMenuWrapper({
 
     // options menu
     if (options?.length) {
-        const items: IDropdownProps['items'] = options.map((option) => ({
+        const items: IDropdownMenuProps['items'] = options.map((option) => ({
             type: 'item',
             className: clsx({
                 'focus:univer-bg-white': typeof option.label !== 'string' && option.label?.hoverable === false,
@@ -279,13 +281,14 @@ export function DropdownMenuWrapper({
                 align="start"
                 items={items}
                 disabled={disabled}
+                open={dropdownVisible}
                 onOpenChange={handleVisibleChange}
             >
                 {children}
             </DropdownMenu>
         );
     } else {
-        const items: IDropdownProps['items'] = [];
+        const items: IDropdownMenuProps['items'] = [];
 
         for (const menuItem of filteredMenuItems) {
             if (menuItem.item) {
@@ -326,6 +329,7 @@ export function DropdownMenuWrapper({
                 align="start"
                 items={items}
                 disabled={disabled}
+                open={dropdownVisible}
                 onOpenChange={handleVisibleChange}
             >
                 {children}

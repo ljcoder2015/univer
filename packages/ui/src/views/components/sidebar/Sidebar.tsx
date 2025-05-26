@@ -16,7 +16,7 @@
 
 import type { CSSProperties } from 'react';
 import type { ICustomLabelProps } from '../../../components/custom-label/CustomLabel';
-import { clsx } from '@univerjs/design';
+import { borderLeftBottomClassName, clsx, scrollbarClassName } from '@univerjs/design';
 import { CloseSingle } from '@univerjs/icons';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { CustomLabel } from '../../../components/custom-label/CustomLabel';
@@ -77,6 +77,7 @@ export function Sidebar() {
             sidebarService.setContainer(undefined);
         };
     }, [sidebarService]);
+
     useEffect(() => {
         const handleScroll = (e: Event) => {
             sidebarService.scrollEvent$.next(e);
@@ -113,30 +114,40 @@ export function Sidebar() {
     }
     return (
         <section
-            className={clsx('univer-relative univer-h-full univer-text-gray-800', {
+            data-u-comp="sidebar"
+            className={clsx(`
+              univer-relative univer-h-full univer-bg-white univer-text-gray-900
+              dark:!univer-bg-gray-900 dark:!univer-text-white
+            `, {
                 'univer-w-96 univer-translate-x-0': options?.visible,
                 'univer-w-0 univer-translate-x-full': !options?.visible,
             })}
             style={{ width }}
         >
             <section
-                className={`
-                  univer-box-border univer-grid univer-h-0 univer-min-h-full univer-grid-rows-[auto_1fr_auto]
-                  univer-overflow-y-auto univer-border-0 univer-border-b univer-border-l univer-border-solid
-                  univer-border-gray-200 univer-bg-white univer-scrollbar-thin univer-scrollbar-track-gray-50
-                  univer-scrollbar-thumb-gray-300
-                `}
                 ref={scrollRef}
+                className={clsx(`
+                  univer-box-border univer-grid univer-h-0 univer-min-h-full univer-grid-rows-[auto_1fr_auto]
+                  univer-overflow-y-auto
+                `, borderLeftBottomClassName, scrollbarClassName)}
             >
                 <header
                     className={`
                       univer-sticky univer-top-0 univer-z-10 univer-box-border univer-flex univer-items-center
                       univer-justify-between univer-bg-white univer-p-4 univer-pb-2 univer-text-base univer-font-medium
+                      univer-text-gray-800
+                      dark:!univer-bg-gray-900 dark:!univer-text-white
                     `}
                 >
                     {options?.header}
 
-                    <a className="univer-cursor-pointer univer-text-gray-500" onClick={handleClose}>
+                    <a
+                        className={`
+                          univer-cursor-pointer univer-text-gray-500
+                          dark:!univer-text-gray-300
+                        `}
+                        onClick={handleClose}
+                    >
                         <CloseSingle />
                     </a>
                 </header>
@@ -147,7 +158,10 @@ export function Sidebar() {
 
                 {options?.footer && (
                     <footer
-                        className="univer-sticky univer-bottom-0 univer-box-border univer-bg-white univer-p-4"
+                        className={`
+                          univer-sticky univer-bottom-0 univer-box-border univer-bg-white univer-p-4
+                          dark:!univer-bg-gray-900
+                        `}
                     >
                         {options.footer}
                     </footer>

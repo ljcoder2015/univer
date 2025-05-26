@@ -17,7 +17,7 @@
 import type { Workbook } from '@univerjs/core';
 import type { IEditorBridgeServiceVisibleParam } from '../../services/editor-bridge.service';
 import { DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY, FOCUSING_FX_BAR_EDITOR, ICommandService, IContextService, IPermissionService, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
-import { clsx } from '@univerjs/design';
+import { borderBottomClassName, borderRightClassName, clsx } from '@univerjs/design';
 import { IEditorService } from '@univerjs/docs-ui';
 import { DeviceInputEventType } from '@univerjs/engine-render';
 import { CheckMarkSingle, CloseSingle, DropdownSingle, FxSingle } from '@univerjs/icons';
@@ -27,13 +27,11 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { EMPTY, merge, of, switchMap } from 'rxjs';
 import { SetCellEditVisibleOperation } from '../../commands/operations/cell-edit.operation';
 import { EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY } from '../../common/keys';
-import { useActiveWorkbook } from '../../components/hook';
 import { SheetsUIPart } from '../../consts/ui-name';
 import { IEditorBridgeService } from '../../services/editor-bridge.service';
 import { IFormulaEditorManagerService } from '../../services/editor/formula-editor-manager.service';
 import { DefinedName } from '../defined-name/DefinedName';
 import { useKeyEventConfig } from '../editor-container/hooks';
-import styles from './index.module.less';
 
 enum ArrowDirection {
     Down,
@@ -42,14 +40,13 @@ enum ArrowDirection {
 
 interface IProps {
     className?: string;
+    disableDefinedName?: boolean;
 }
 
 export function FormulaBar(props: IProps) {
-    const { className } = props;
-
-    const [iconStyle, setIconStyle] = useState<string>(styles.formulaGrey);
+    const { className, disableDefinedName } = props;
+    const [iconActivated, setIconActivated] = useState<boolean>(false);
     const [arrowDirection, setArrowDirection] = useState<ArrowDirection>(ArrowDirection.Down);
-
     const formulaEditorManagerService = useDependency(IFormulaEditorManagerService);
     const editorBridgeService = useDependency(IEditorBridgeService);
     const worksheetProtectionRuleModel = useDependency(WorksheetProtectionRuleModel);
@@ -64,7 +61,6 @@ export function FormulaBar(props: IProps) {
         viewDisable: false,
     });
     const [imageDisable, setImageDisable] = useState<boolean>(false);
-    const currentWorkbook = useActiveWorkbook();
     const componentManager = useDependency(ComponentManager);
     const workbook = useObservable(() => univerInstanceService.getCurrentTypeOfUnit$<Workbook>(UniverInstanceType.UNIVER_SHEET), undefined, undefined, [])!;
     const isRefSelecting = useRef<0 | 1 | 2>(0);
@@ -141,7 +137,7 @@ export function FormulaBar(props: IProps) {
 
     useEffect(() => {
         const subscription = editorBridgeService.visible$.subscribe((visibleInfo) => {
-            setIconStyle(visibleInfo.visible ? styles.formulaActive : styles.formulaGrey);
+            setIconActivated(visibleInfo.visible);
         });
 
         return () => subscription.unsubscribe();
@@ -193,7 +189,7 @@ export function FormulaBar(props: IProps) {
                 visible: false,
                 eventType: DeviceInputEventType.Keyboard,
                 keycode: KeyCode.ESC,
-                unitId: currentWorkbook?.getUnitId() ?? '',
+                unitId: editState!.unitId,
             });
         }
     }
@@ -205,7 +201,7 @@ export function FormulaBar(props: IProps) {
             commandService.executeCommand(SetCellEditVisibleOperation.id, {
                 visible: false,
                 eventType: DeviceInputEventType.PointerDown,
-                unitId: currentWorkbook?.getUnitId() ?? '',
+                unitId: editState!.unitId,
             });
         }
     }
@@ -229,7 +225,7 @@ export function FormulaBar(props: IProps) {
                     {
                         visible: true,
                         eventType: DeviceInputEventType.PointerDown,
-                        unitId: currentWorkbook?.getUnitId() ?? '',
+                        unitId: editState!.unitId,
                     } as IEditorBridgeServiceVisibleParam
                 );
                 // undoRedoService.clearUndoRedo(DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY);
@@ -257,63 +253,95 @@ export function FormulaBar(props: IProps) {
 
     return (
         <div
-            className={clsx(styles.formulaBox, className)}
-            style={{
-                height: ArrowDirection.Down === arrowDirection ? '28px' : '82px',
-                pointerEvents: editDisable ? 'none' : 'auto',
-            }}
+            data-u-comp="formula-bar"
+            className={clsx(`
+              univer-box-border univer-flex univer-bg-white univer-transition-[height] univer-ease-linear
+              dark:!univer-bg-gray-900
+            `, borderBottomClassName, className, {
+                'univer-h-7': arrowDirection === ArrowDirection.Down,
+                'univer-h-20': arrowDirection === ArrowDirection.Up,
+                'univer-pointer-events-none': editDisable,
+            })}
         >
-            <div className={styles.nameRanges}>
-                <DefinedName disable={editDisable} />
+            <div className="univer-relative univer-box-border univer-h-full univer-w-[100px]">
+                <DefinedName disable={disableDefinedName ?? editDisable} />
             </div>
 
-            <div className={styles.formulaBar}>
-                <div className={clsx(styles.formulaIcon, { [styles.formulaIconDisable]: disabled })}>
-                    <div className={styles.formulaIconWrapper}>
+            <div className="univer-flex univer-h-full univer-w-full">
+                <div className={clsx('univer-py-1.5', { 'univer-cursor-not-allowed univer-text-gray-200': disabled })}>
+                    <div
+                        className={clsx(`
+                          univer-relative univer-box-border univer-flex univer-h-full univer-w-20 univer-items-center
+                          univer-justify-center univer-text-xs
+                        `, borderRightClassName)}
+                    >
+                        {/* TODO: use buttons to replace these re-implementation of buttons. */}
                         <span
-                            className={clsx(styles.iconContainer, styles.iconContainerError, iconStyle)}
+                            className={clsx(`
+                              univer-flex univer-items-center univer-justify-center univer-rounded univer-p-1
+                              univer-text-base
+                              dark:!univer-text-white
+                            `, {
+                                'univer-cursor-pointer univer-text-green-600 dark:!univer-text-green-400 dark:hover:!univer-bg-gray-700 hover:univer-bg-gray-100': iconActivated,
+                            })}
                             onClick={handleCloseBtnClick}
                         >
                             <CloseSingle />
                         </span>
-
                         <span
-                            className={clsx(styles.iconContainer, styles.iconContainerSuccess, iconStyle)}
+                            className={clsx(`
+                              univer-flex univer-items-center univer-justify-center univer-rounded univer-p-1
+                              univer-text-base
+                              dark:!univer-text-white
+                            `, {
+                                'univer-cursor-pointer univer-text-red-600 dark:!univer-text-red-400 dark:hover:!univer-bg-gray-700 hover:univer-bg-gray-100': iconActivated,
+                            })}
                             onClick={handleConfirmBtnClick}
                         >
                             <CheckMarkSingle />
                         </span>
-
-                        <span className={clsx(styles.iconContainer, styles.iconContainerFx)} onClick={handlerFxBtnClick}>
+                        <span
+                            className={`
+                              univer-flex univer-cursor-pointer univer-items-center univer-justify-center univer-rounded
+                              univer-p-1 univer-text-base
+                              dark:!univer-text-white dark:hover:!univer-bg-gray-700
+                              hover:univer-bg-gray-100
+                            `}
+                            onClick={handlerFxBtnClick}
+                        >
                             <FxSingle />
                         </span>
                     </div>
                 </div>
 
-                <div className={styles.formulaContainer}>
+                <div className="univer-flex univer-w-full univer-flex-1 univer-overflow-hidden univer-pl-3">
                     <div
-                        className={styles.formulaInput}
+                        ref={ref}
+                        className="univer-relative univer-flex-1"
                         onPointerDown={handlePointerDown}
                         onPointerUp={handlePointerUp}
-                        ref={ref}
                         style={{ pointerEvents: hideEditor ? 'none' : 'auto' }}
                     >
                         {FormulaEditor && (
                             <FormulaEditor
+                                className={`
+                                  univer-relative univer-h-full univer-w-full univer-break-words univer-outline-none
+                                  [&>div]:univer-ring-transparent
+                                `}
                                 disableSelectionOnClick
                                 editorId={DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY}
                                 initValue=""
                                 onChange={() => { }}
                                 isFocus={isFocusFxBar}
-                                className={styles.formulaContent}
                                 unitId={editState?.unitId}
                                 subUnitId={editState?.sheetId}
                                 isSupportAcrossSheet
                                 resetSelectionOnBlur={false}
                                 isSingle={false}
-                                keyboradEventConfig={keyCodeConfig}
-                                onFormulaSelectingChange={(isSelecting: 0 | 1 | 2) => {
+                                keyboardEventConfig={keyCodeConfig}
+                                onFormulaSelectingChange={(isSelecting: 0 | 1 | 2, isFocusing: boolean) => {
                                     isRefSelecting.current = isSelecting;
+                                    if (!isFocusing) return;
                                     if (isSelecting) {
                                         editorBridgeService.enableForceKeepVisible();
                                     } else {
@@ -324,16 +352,30 @@ export function FormulaBar(props: IProps) {
                                 disableContextMenu={false}
                             />
                         )}
-                        {hideEditor ? <div className={styles.formulaInputMask} /> : null}
+                        {/* When the editor is hidden, we just cover a div on the editor because re-instantiate
+                        the formula editor will be expensive. */}
+                        {hideEditor && (
+                            <div
+                                className={`
+                                  univer-pointer-events-none univer-relative univer-left-0 univer-top-0 univer-z-[100]
+                                  univer-h-full univer-w-full univer-cursor-not-allowed univer-bg-white
+                                `}
+                            />
+                        )}
                     </div>
-                    <div className={clsx(styles.arrowContainer, { [styles.arrowContainerDisable]: editDisable })} onClick={handleArrowClick}>
-                        {arrowDirection === ArrowDirection.Down
-                            ? (
-                                <DropdownSingle />
-                            )
-                            : (
-                                <DropdownSingle style={{ transform: 'rotateZ(180deg)' }} />
-                            )}
+                    <div
+                        className={clsx(`
+                          univer-flex univer-h-full univer-w-5 univer-cursor-pointer univer-items-center
+                          univer-justify-center univer-text-xs univer-text-gray-700
+                          dark:!univer-text-gray-200
+                        `, { 'univer-cursor-not-allowed univer-text-gray-200 dark:!univer-text-gray-700': editDisable })}
+                        onClick={handleArrowClick}
+                    >
+                        <DropdownSingle
+                            className={clsx({
+                                'univer-rotate-180': arrowDirection === ArrowDirection.Up,
+                            })}
+                        />
                     </div>
                 </div>
             </div>

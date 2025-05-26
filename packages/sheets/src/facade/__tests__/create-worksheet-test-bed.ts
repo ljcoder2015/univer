@@ -25,12 +25,13 @@ import {
     LocaleType,
     LogLevel,
     Plugin,
+    set,
     ThemeService,
     Univer,
     UniverInstanceType,
 } from '@univerjs/core';
 import { FUniver } from '@univerjs/core/facade';
-import { ActiveDirtyManagerService, DefinedNamesService, FormulaDataModel, FunctionService, IActiveDirtyManagerService, IDefinedNamesService, IFunctionService, LexerTreeBuilder } from '@univerjs/engine-formula';
+import { ActiveDirtyManagerService, DefinedNamesService, FormulaDataModel, FunctionService, IActiveDirtyManagerService, IDefinedNamesService, IFunctionService, ISheetRowFilteredService, LexerTreeBuilder, SheetRowFilteredService } from '@univerjs/engine-formula';
 import { Engine, IRenderingEngine, IRenderManagerService, RenderManagerService } from '@univerjs/engine-render';
 import { ISocketService, WebSocketService } from '@univerjs/network';
 import {
@@ -100,7 +101,7 @@ export interface ITestBed {
 
 class RenderManagerServiceTestBed extends RenderManagerService {
     override createRender(unitId: string): IRender {
-        const renderer = this._createRender(unitId, new Engine(100, 100));
+        const renderer = this._createRender(unitId, new Engine('', { elementHeight: 100, elementWidth: 100 }));
         return renderer;
     }
 }
@@ -143,6 +144,7 @@ export function createWorksheetTestBed(workbookData?: IWorkbookData, dependencie
             // register feature modules
             ([
                 [IActiveDirtyManagerService, { useClass: ActiveDirtyManagerService }],
+                [ISheetRowFilteredService, { useClass: SheetRowFilteredService }],
             ] as Dependency[]).forEach((d) => {
                 injector.add(d);
             });
@@ -160,7 +162,9 @@ export function createWorksheetTestBed(workbookData?: IWorkbookData, dependencie
 
     // load theme service
     const themeService = injector.get(ThemeService);
-    themeService.setTheme({ colorBlack: '#35322b' });
+    const theme = themeService.getCurrentTheme();
+    const newTheme = set(theme, 'black', '#35322b');
+    themeService.setTheme(newTheme);
 
     // register builtin plugins
     // note that UI plugins are not registered here, because the unit test environment does not have a UI

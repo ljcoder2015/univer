@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+import type { Theme } from '@univerjs/themes';
 import type { Dependency, IDisposable } from './common/di';
 import type { UnitModel, UnitType } from './common/unit';
 import type { LogLevel } from './services/log/log.service';
 import type { DependencyOverride } from './services/plugin/plugin-override';
 import type { Plugin, PluginCtor } from './services/plugin/plugin.service';
-import type { IStyleSheet } from './services/theme/theme.service';
 import type { ILocales } from './shared';
 import type { IWorkbookData } from './sheets/typedef';
 import type { LocaleType } from './types/enum/locale-type';
@@ -56,11 +56,35 @@ import { Workbook } from './sheets/workbook';
 import { SlideDataModel } from './slides/slide-model';
 
 export interface IUniverConfig {
-    theme: IStyleSheet;
-    locale: LocaleType;
-    locales: ILocales;
-    logLevel: LogLevel;
+    /**
+     * The theme of the Univer instance, default using the default theme.
+     */
+    theme?: Theme;
 
+    /**
+     * Whether to use dark mode.
+     * @default false
+     */
+    darkMode?: boolean;
+
+    /**
+     * The locale of the Univer instance.
+     */
+    locale?: LocaleType;
+
+    /**
+     * The locales to be used
+     */
+    locales?: ILocales;
+
+    /**
+     * The log level of the Univer instance.
+     */
+    logLevel?: LogLevel;
+
+    /**
+     * The override dependencies of the Univer instance.
+     */
     override?: DependencyOverride;
 }
 
@@ -89,8 +113,9 @@ export class Univer implements IDisposable {
     constructor(config: Partial<IUniverConfig> = {}, parentInjector?: Injector) {
         const injector = this._injector = createUniverInjector(parentInjector, config?.override);
 
-        const { theme, locale, locales, logLevel } = config;
+        const { theme, darkMode, locale, locales, logLevel } = config;
         if (theme) this._injector.get(ThemeService).setTheme(theme);
+        if (darkMode) this._injector.get(ThemeService).setDarkMode(darkMode);
         if (locales) this._injector.get(LocaleService).load(locales);
         if (locale) this._injector.get(LocaleService).setLocale(locale);
         if (logLevel) this._injector.get(ILogService).setLogLevel(logLevel);

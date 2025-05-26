@@ -15,44 +15,48 @@
  */
 
 import type { Workbook } from '@univerjs/core';
+import type { IUniverSheetsUIConfig } from '../../controllers/config.schema';
 import { IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
-import { ContextMenuPosition, IMenuManagerService, ToolbarItem, useDependency, useObservable } from '@univerjs/ui';
+import { ContextMenuPosition, IMenuManagerService, ToolbarItem, useConfigValue, useDependency, useObservable } from '@univerjs/ui';
 import { useMemo } from 'react';
 import { useActiveWorkbook } from '../../components/hook';
+import { SHEETS_UI_PLUGIN_CONFIG_KEY } from '../../controllers/config.schema';
 import { AutoFillPopupMenu } from '../auto-fill-popup-menu/AutoFillPopupMenu';
-import { CountBar } from '../count-bar/CountBar';
 import { EditorContainer } from '../editor-container/EditorContainer';
 import { FormulaBar } from '../formula-bar/FormulaBar';
 import { SheetBar } from '../sheet-bar/SheetBar';
+import { SheetZoomSlider } from '../sheet-slider/CountBar';
 import { StatusBar } from '../status-bar/StatusBar';
 
 export const SHEET_FOOTER_BAR_HEIGHT = 36;
 
 export function RenderSheetFooter() {
+    const config = useConfigValue<IUniverSheetsUIConfig>(SHEETS_UI_PLUGIN_CONFIG_KEY);
     const menuManagerService = useDependency(IMenuManagerService);
-
+    const showFooter = config?.footer ?? true;
     const workbook = useActiveWorkbook();
-    if (!workbook) return null;
+    if (!workbook || !showFooter) return null;
 
     const footerMenus = menuManagerService.getMenuByPositionKey(ContextMenuPosition.FOOTER_MENU);
+    const { sheetBar = true, statisticBar = true, menus = true, zoomSlider = true } = config?.footer || {};
+    if (!sheetBar && !statisticBar && !menus && !zoomSlider) return null;
 
     return (
         <section
             className={`
-              univer-box-border univer-flex univer-items-center univer-justify-between univer-bg-white univer-px-5
-              univer-text-gray-900
-              dark:univer-bg-gray-900 dark:univer-text-gray-200
+              univer-box-border univer-grid univer-w-full univer-grid-flow-col univer-grid-cols-[1fr,auto,auto,auto]
+              univer-items-center univer-justify-between univer-bg-white univer-px-5 univer-text-gray-900
+              dark:!univer-bg-gray-900 dark:!univer-text-gray-200
             `}
             style={{
                 height: SHEET_FOOTER_BAR_HEIGHT,
             }}
             data-range-selector
         >
-            <SheetBar />
-            <StatusBar />
-
-            {footerMenus.length && (
-                <div className="univer-mr-2 univer-flex univer-gap-2">
+            {sheetBar && <SheetBar />}
+            {statisticBar && <StatusBar />}
+            {menus && footerMenus.length > 0 && (
+                <div className="univer-box-border univer-flex univer-gap-2 univer-px-2">
                     {footerMenus.map((item) => item.children?.map((child) => (
                         child?.item && (
                             <ToolbarItem
@@ -63,19 +67,21 @@ export function RenderSheetFooter() {
                     )))}
                 </div>
             )}
-
-            <CountBar />
+            {zoomSlider && <SheetZoomSlider />}
         </section>
     );
 }
 
 export function RenderSheetHeader() {
+    const config = useConfigValue<IUniverSheetsUIConfig>(SHEETS_UI_PLUGIN_CONFIG_KEY);
     const hasWorkbook = useHasWorkbook();
     if (!hasWorkbook) return null;
 
-    return (
-        <FormulaBar />
-    );
+    if (config?.formulaBar !== false) {
+        return <FormulaBar />;
+    }
+
+    return null;
 }
 
 /**

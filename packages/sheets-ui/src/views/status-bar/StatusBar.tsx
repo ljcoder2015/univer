@@ -15,24 +15,23 @@
  */
 
 import type { Nullable } from '@univerjs/core';
+import type { ComponentType } from 'react';
 import type { IUniverSheetsUIConfig } from '../../controllers/config.schema';
 import type { IStatusBarServiceStatus, StatusBarService } from '../../services/status-bar.service';
 import type { IStatisticItem } from './CopyableStatisticItem';
-import { debounce, IConfigService } from '@univerjs/core';
+import { debounce } from '@univerjs/core';
 import { clsx } from '@univerjs/design';
-import { useDependency } from '@univerjs/ui';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useConfigValue, useDependency } from '@univerjs/ui';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SHEETS_UI_PLUGIN_CONFIG_KEY } from '../../controllers/config.schema';
 import { IStatusBarService } from '../../services/status-bar.service';
 import { CopyableStatisticItem } from './CopyableStatisticItem';
-import styles from './index.module.less';
 
 const SINGLE_MODE_WIDTH = 800;
 const ROW_COUNT_THRESHOLD = 3;
 
 export const StatusBar = () => {
-    const configService = useDependency(IConfigService);
-    const showStatistic = configService.getConfig<IUniverSheetsUIConfig>(SHEETS_UI_PLUGIN_CONFIG_KEY)?.statusBarStatistic ?? true;
+    const showStatistic = useConfigValue<IUniverSheetsUIConfig>(SHEETS_UI_PLUGIN_CONFIG_KEY)?.statusBarStatistic ?? true;
 
     const [isSingle, setIsSingle] = useState(window.innerWidth < SINGLE_MODE_WIDTH);
 
@@ -121,10 +120,10 @@ export const StatusBar = () => {
     const useStatisticLayout = (
         showList: IStatisticItem[],
         rowCountThreshold: number,
-        CopyableStatisticItem: React.ComponentType<IStatisticItem>
+        CopyableStatisticItem: ComponentType<IStatisticItem>
     ) => {
         if (!showStatistic) return null;
-        const renderContent = React.useMemo(() => {
+        const renderContent = useMemo(() => {
             if (showList.length > rowCountThreshold) {
                 const doubleLineList = showList.reduce<IStatisticItem[][]>((acc, _, index) => {
                     if (index % 2 === 0) {
@@ -136,10 +135,7 @@ export const StatusBar = () => {
                 return (
                     <>
                         {doubleLineList.map((item, index) => (
-                            <div
-                                key={`stat-col-${index}`}
-                                className={styles.statisticListColumn}
-                            >
+                            <div key={`stat-col-${index}`}>
                                 {item[0] && (
                                     <CopyableStatisticItem
                                         key={item[0].name}
@@ -178,12 +174,16 @@ export const StatusBar = () => {
     return (
         show && (
             <div
-                className={clsx(styles.statusBar, {
-                    [styles.singleMode]: isSingle,
+                className={clsx(`
+                  univer-relative univer-box-border univer-flex univer-items-center univer-px-2
+                  after:univer-absolute after:univer-right-0 after:univer-top-1/2 after:univer-block after:univer-h-4
+                  after:univer-w-px after:-univer-translate-y-1/2 after:univer-bg-gray-200 after:univer-content-[""]
+                `, {
+                    'univer-max-w-32': isSingle,
+                    'univer-max-w-80': !isSingle,
                 })}
             >
-                <div className="univer-flex">{renderContent}</div>
-                <div className={styles.statusBarDiv} />
+                <div className="univer-flex univer-gap-x-2">{renderContent}</div>
             </div>
         )
     );

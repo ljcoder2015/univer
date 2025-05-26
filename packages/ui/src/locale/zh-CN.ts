@@ -14,14 +14,36 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
+    toolbar: {
+        heading: {
+            normal: '正文',
+            title: '标题',
+            subTitle: '副标题',
+            1: '标题1',
+            2: '标题2',
+            3: '标题3',
+            4: '标题4',
+            5: '标题5',
+            6: '标题6',
+            tooltip: '设置标题',
+        },
+    },
     ribbon: {
         start: '开始',
+        startDesc: '初始化工作表并设置基本参数。',
         insert: '插入',
+        insertDesc: '插入行、列、图表和各种其他元素。',
         formulas: '公式',
+        formulasDesc: '使用函数和公式进行数据计算。',
         data: '数据',
+        dataDesc: '管理数据，包括导入、排序和筛选。',
         view: '视图',
+        viewDesc: '切换视图模式并调整显示效果。',
         others: '其他',
+        othersDesc: '其他功能和设置。',
         more: '更多',
     },
     fontFamily: {

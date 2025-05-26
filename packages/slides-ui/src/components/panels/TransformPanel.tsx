@@ -17,12 +17,11 @@
 import type { Nullable } from '@univerjs/core';
 import type { BaseObject, IChangeObserverConfig, Image, Rect, RichText } from '@univerjs/engine-render';
 import { ICommandService, LocaleService } from '@univerjs/core';
-import { clsx, InputNumber } from '@univerjs/design';
+import { borderTopClassName, clsx, InputNumber } from '@univerjs/design';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
 import { UpdateSlideElementOperation } from '../../commands/operations/update-element.operation';
 import { CanvasView } from '../../controllers/canvas-view';
-import styles from './index.module.less';
 
 interface IProps {
     pageId: string;
@@ -85,52 +84,6 @@ export default function TransformPanel(props: IProps) {
         setXPosition(originX);
         setYPosition(originY);
         setRotation(originRotation);
-
-        // const params = getUpdateParams(objects, drawingManagerService);
-
-        // if (params.length !== 1) {
-        //     return;
-        // }
-
-        // const drawingParam = params[0];
-
-        // if (drawingParam == null) {
-        //     return;
-        // }
-
-        // const { transform } = drawingParam;
-
-        // if (transform == null) {
-        //     return;
-        // }
-
-        // const {
-        //     width: originWidth,
-        //     height: originHeight,
-        //     left: originX,
-        //     top: originY,
-        //     angle: originRotation,
-        // } = transform;
-
-        // if (originWidth != null) {
-        //     setWidth(originWidth);
-        // }
-
-        // if (originHeight != null) {
-        //     setHeight(originHeight);
-        // }
-
-        // if (originX != null) {
-        //     setXPosition(originX);
-        // }
-
-        // if (originY != null) {
-        //     setYPosition(originY);
-        // }
-
-        // if (originRotation != null) {
-        //     setRotation(originRotation);
-        // }
     };
 
     useEffect(() => {
@@ -141,52 +94,6 @@ export default function TransformPanel(props: IProps) {
         const changingSub = transformer.changing$.subscribe((state) => {
             changeObs(state);
         });
-
-        // const focusSub = drawingManagerService.focus$.subscribe((drawings) => {
-        //     if (drawings.length !== 1) {
-        //         return;
-        //     }
-
-        //     const drawingParam = drawingManagerService.getDrawingByParam(drawings[0]);
-
-        //     if (drawingParam == null) {
-        //         return;
-        //     }
-
-        //     const transform = drawingParam.transform;
-
-        //     if (transform == null) {
-        //         return;
-        //     }
-
-        //     const {
-        //         width: originWidth,
-        //         height: originHeight,
-        //         left: originX,
-        //         top: originY,
-        //         angle: originRotation,
-        //     } = transform;
-
-        //     if (originWidth != null) {
-        //         setWidth(originWidth);
-        //     }
-
-        //     if (originHeight != null) {
-        //         setHeight(originHeight);
-        //     }
-
-        //     if (originX != null) {
-        //         setXPosition(originX);
-        //     }
-
-        //     if (originY != null) {
-        //         setYPosition(originY);
-        //     }
-
-        //     if (originRotation != null) {
-        //         setRotation(originRotation);
-        //     }
-        // });
 
         return () => {
             changingSub.unsubscribe();
@@ -274,25 +181,30 @@ export default function TransformPanel(props: IProps) {
 
     return (
         <div
-            className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)}
+            className={clsx('univer-relative univer-bottom-0 univer-mt-5 univer-w-full', borderTopClassName)}
         >
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div
+                    className={`
+                      univer-w-full univer-text-left univer-text-gray-600
+                      dark:!univer-text-gray-200
+                    `}
+                >
                     <div>{localeService.t('image-panel.transform.title')}</div>
                 </div>
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div className="univer-w-1/3">
                     <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 {localeService.t('image-panel.transform.width')}
                             </div>
                         </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 <InputNumber
-                                    className={styles.imageCommonPanelInput}
+                                    className="univer-w-11/12"
                                     min={1}
                                     value={width}
                                     onChange={(val) => { handleWidthChange(val); }}
@@ -301,17 +213,17 @@ export default function TransformPanel(props: IProps) {
                         </div>
                     </label>
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
+                <div className="univer-w-1/3">
                     <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 {localeService.t('image-panel.transform.height')}
                             </div>
                         </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 <InputNumber
-                                    className={styles.imageCommonPanelInput}
+                                    className="univer-w-11/12"
                                     min={1}
                                     value={height}
                                     onChange={(val) => { handleHeightChange(val); }}
@@ -320,33 +232,19 @@ export default function TransformPanel(props: IProps) {
                         </div>
                     </label>
                 </div>
-                {/* <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.lock')}
-                            </div>
-                        </div>
-                        <div className={clsx(styles.imageCommonPanelRow, styles.imageCommonPanelRowVertical)}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <Checkbox checked={lockRatio} onChange={handleLockRatioChange}></Checkbox>
-                            </div>
-                        </div>
-                    </label>
-                </div> */}
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div className="univer-w-1/3">
                     <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 {localeService.t('image-panel.transform.x')}
                             </div>
                         </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 <InputNumber
-                                    className={styles.imageCommonPanelInput}
+                                    className="univer-w-11/12"
                                     precision={1}
                                     min={0}
                                     value={xPosition}
@@ -356,17 +254,17 @@ export default function TransformPanel(props: IProps) {
                         </div>
                     </label>
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
+                <div className="univer-w-1/3">
                     <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 {localeService.t('image-panel.transform.y')}
                             </div>
                         </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 <InputNumber
-                                    className={styles.imageCommonPanelInput}
+                                    className="univer-w-11/12"
                                     precision={1}
                                     min={0}
                                     value={yPosition}
@@ -376,17 +274,17 @@ export default function TransformPanel(props: IProps) {
                         </div>
                     </label>
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
+                <div className="univer-w-1/3">
                     <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 {localeService.t('image-panel.transform.rotate')}
                             </div>
                         </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
+                        <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                            <div className="univer-w-full">
                                 <InputNumber
-                                    className={styles.imageCommonPanelInput}
+                                    className="univer-w-11/12"
                                     precision={1}
                                     value={rotation}
                                     onChange={handleChangeRotation}

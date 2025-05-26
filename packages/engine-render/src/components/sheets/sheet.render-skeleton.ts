@@ -1310,8 +1310,8 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
 
         const cell = this.worksheet.getCell(row, col) || this.worksheet.getCellRaw(row, col);
         const cellStyle = this._styles.getStyleByCell(cell);
-        const columnStyle = this.worksheet.getColumnStyle(col) as IStyleData;
-        const rowStyle = this.worksheet.getRowStyle(row) as IStyleData;
+        const columnStyle = this.worksheet.getColumnStyle(col);
+        const rowStyle = this.worksheet.getRowStyle(row);
         const defaultStyle = this.worksheet.getDefaultCellStyleInternal();
 
         const style = this._isRowStylePrecedeColumnStyle
@@ -1372,13 +1372,15 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 break;
             }
 
+            const themeStyleBackground = cell.themeStyle?.bd;
+
             const style = this._styles.getStyleByCell(cell);
-            if (!style) {
+            if (!style && !themeStyleBackground) {
                 isAddBorders = false;
                 break;
             }
 
-            const props: Nullable<IBorderStyleData> = style.bd?.[type];
+            const props: Nullable<IBorderStyleData> = style?.bd?.[type] ?? themeStyleBackground?.[type];
             if (props) {
                 const rgb = getColorStyle(props.cl) || COLOR_BLACK_RGB;
                 borders.push({

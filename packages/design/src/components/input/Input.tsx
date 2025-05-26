@@ -14,112 +14,171 @@
  * limitations under the License.
  */
 
+import type { VariantProps } from 'class-variance-authority';
 import { CloseSingle } from '@univerjs/icons';
-import React from 'react';
+import { cva } from 'class-variance-authority';
+import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { borderClassName } from '../../helper/class-utilities';
 import { clsx } from '../../helper/clsx';
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
-export interface IInputProps extends Pick<InputProps, 'onFocus' | 'onBlur'> {
+export const inputVariants = cva(
+    `
+      univer-box-border univer-w-full univer-rounded-md univer-bg-white univer-transition-colors univer-duration-200
+      dark:!univer-bg-gray-700 dark:!univer-text-white dark:focus:!univer-ring-primary-900
+      focus:univer-border-primary-600 focus:univer-outline-none focus:univer-ring-2 focus:univer-ring-primary-50
+      placeholder:univer-text-gray-400
+    `,
+    {
+        variants: {
+            size: {
+                mini: 'univer-h-7 univer-px-1.5 univer-text-sm',
+                small: 'univer-h-8 univer-px-2 univer-text-sm',
+                middle: 'univer-h-10 univer-px-3 univer-text-base',
+                large: 'univer-h-12 univer-px-4 univer-text-lg',
+            },
+        },
+        defaultVariants: {
+            size: 'small',
+        },
+    }
+);
+
+export interface IInputProps extends Pick<InputProps, 'onFocus' | 'onBlur'>,
+    VariantProps<typeof inputVariants> {
     autoFocus?: boolean;
     className?: string;
-    affixWrapperStyle?: React.CSSProperties;
-    type?: 'text' | 'password';
+    style?: React.CSSProperties;
+    type?: HTMLInputElement['type'];
     placeholder?: string;
     value?: string;
-    size?: 'small' | 'middle' | 'large';
     allowClear?: boolean;
     disabled?: boolean;
     onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     onChange?: (value: string) => void;
-    style?: React.CSSProperties;
+    inputClass?: string;
+    inputStyle?: React.CSSProperties;
+    slot?: React.ReactNode;
 }
 
-export const Input = ({
-    autoFocus = false,
-    className,
-    affixWrapperStyle,
-    type = 'text',
-    placeholder,
-    value,
-    size = 'small',
-    allowClear = false,
-    disabled = false,
-    onClick,
-    onKeyDown,
-    onChange,
-    onFocus,
-    onBlur,
-    ...props
-}: IInputProps) => {
-    const sizeClasses = {
-        small: 'univer-h-8 univer-text-sm univer-px-2',
-        middle: 'univer-h-10 univer-text-base univer-px-3',
-        large: 'univer-h-12 univer-text-lg univer-px-4',
-    };
+export const Input = forwardRef<HTMLInputElement, IInputProps>(
+    ({
+        autoFocus = false,
+        className,
+        style,
+        type = 'text',
+        placeholder,
+        value,
+        size = 'small',
+        allowClear = false,
+        disabled = false,
+        onClick,
+        onKeyDown,
+        onChange,
+        onFocus,
+        onBlur,
+        slot,
+        inputClass,
+        inputStyle,
+        ...props
+    }, ref) => {
+        const handleClear = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onChange?.('');
+        };
 
-    const handleClear = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onChange?.('');
-    };
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange?.(e.target.value);
+        };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(e.target.value);
-    };
+        const hasSlotContent = useMemo(() => {
+            return (allowClear && value && !disabled) || slot;
+        }, [allowClear, disabled, slot, value]);
 
-    return (
-        <div
-            className={clsx(
-                'univer-relative univer-inline-flex univer-w-full univer-items-center univer-rounded-md',
-                disabled && 'univer-cursor-not-allowed univer-opacity-50',
-                className
-            )}
-            style={affixWrapperStyle}
-        >
-            <input
-                type={type}
+        const [paddingRight, setPaddingRight] = useState(0);
+        const slotRef = useRef<HTMLDivElement>(null);
+
+        useEffect(() => {
+            let observer: MutationObserver | null = null;
+            if (slot && slotRef.current) {
+                observer = new MutationObserver(() => {
+                    if (slotRef.current) {
+                        setPaddingRight(slotRef.current.offsetWidth + 4 * 2);
+                    }
+                });
+
+                observer.observe(slotRef.current, { childList: true, subtree: true });
+                // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+                setPaddingRight(slotRef.current.offsetWidth + 4 * 2);
+            }
+
+            return () => observer?.disconnect();
+        }, [slotRef.current]);
+
+        return (
+            <div
+                data-u-comp="input"
                 className={clsx(
-                    `
-                      univer-box-border univer-w-full univer-rounded-md univer-border univer-border-solid
-                      univer-border-gray-300 univer-bg-white
-                    `,
-                    'univer-transition-colors univer-duration-200',
-                    'placeholder:univer-text-gray-400',
-                    `
-                      focus:univer-border-blue-500 focus:univer-outline-none focus:univer-ring-2
-                      focus:univer-ring-blue-500/20
-                    `,
-                    disabled && 'univer-cursor-not-allowed univer-bg-gray-50',
-                    allowClear && 'univer-pr-8',
-                    sizeClasses[size]
+                    'univer-relative univer-inline-flex univer-w-full univer-items-center univer-rounded-md',
+                    disabled && 'univer-cursor-not-allowed',
+                    className
                 )}
-                placeholder={placeholder}
-                value={value}
-                disabled={disabled}
-                autoFocus={autoFocus}
-                onClick={onClick}
-                onKeyDown={onKeyDown}
-                onChange={handleChange}
-                onFocus={onFocus}
-                onBlur={onBlur}
-                {...props}
-            />
-            {allowClear && value && !disabled && (
-                <button
-                    type="button"
-                    onClick={handleClear}
-                    className={`
-                      univer-absolute univer-right-2 univer-flex univer-items-center univer-rounded-full
-                      univer-border-none univer-bg-transparent univer-p-1 univer-text-gray-400 univer-transition-colors
-                      univer-duration-200
-                      focus:univer-outline-none
-                      hover:univer-text-gray-500
-                    `}
-                >
-                    <CloseSingle className="univer-size-4" />
-                </button>
-            )}
-        </div>
-    );
-};
+                style={style}
+            >
+                <input
+                    ref={ref}
+                    type={type}
+                    className={clsx(
+                        inputVariants({ size }),
+                        borderClassName,
+                        disabled && `
+                          univer-cursor-not-allowed univer-bg-gray-50 univer-text-gray-400
+                          dark:!univer-text-gray-500
+                        `,
+                        (allowClear && !slot) && 'univer-pr-8',
+                        inputClass
+                    )}
+                    placeholder={placeholder}
+                    value={value}
+                    disabled={disabled}
+                    autoFocus={autoFocus}
+                    onClick={onClick}
+                    onKeyDown={onKeyDown}
+                    onChange={handleChange}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                    style={{ ...inputStyle, paddingRight }}
+                    {...props}
+                />
+                {hasSlotContent && (
+                    <div
+                        className={`
+                          univer-absolute univer-right-2 univer-flex univer-items-center univer-gap-1
+                          univer-rounded-full
+                        `}
+                        ref={slotRef}
+                    >
+                        {slot}
+                        {allowClear && value && !disabled && (
+                            <button
+                                type="button"
+                                onClick={handleClear}
+                                className={`
+                                  univer-flex univer-size-4 univer-cursor-pointer univer-items-center
+                                  univer-rounded-full univer-border-none univer-bg-transparent univer-p-1
+                                  univer-text-gray-400 univer-transition-colors univer-duration-200
+                                  focus:univer-outline-none
+                                  hover:univer-text-gray-500
+                                `}
+                            >
+                                <CloseSingle className="univer-size-3" />
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    }
+);

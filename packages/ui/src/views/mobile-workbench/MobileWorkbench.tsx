@@ -17,8 +17,8 @@
 import type { ILocale } from '@univerjs/design';
 import type { IWorkbenchOptions } from '../../controllers/ui/ui.controller';
 import { LocaleService, ThemeService } from '@univerjs/core';
-import { ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { borderBottomClassName, clsx, ConfigProvider } from '@univerjs/design';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BuiltInUIPart } from '../../services/parts/parts.service';
 import { useDependency } from '../../utils/di';
 import { ComponentContainer, useComponentsOfPart } from '../components/ComponentContainer';
@@ -26,7 +26,6 @@ import { MobileContextMenu } from '../components/context-menu/MobileContextMenu'
 import { GlobalZone } from '../components/global-zone/GlobalZone';
 import { Sidebar } from '../components/sidebar/Sidebar';
 import { ZenZone } from '../components/zen-zone/ZenZone';
-import styles from './mobile-workbench.module.less';
 
 export interface IUniverAppProps extends IWorkbenchOptions {
     mountContainer: HTMLElement;
@@ -53,11 +52,15 @@ export function MobileWorkbench(props: IUniverAppProps) {
     const leftSidebarComponents = useComponentsOfPart(BuiltInUIPart.LEFT_SIDEBAR);
     const globalComponents = useComponentsOfPart(BuiltInUIPart.GLOBAL);
 
+    const [darkMode, setDarkMode] = useState<boolean>(false);
     useEffect(() => {
-        if (!themeService.getCurrentTheme()) {
-            themeService.setTheme(defaultTheme);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const sub = themeService.darkMode$.subscribe((darkMode) => {
+            setDarkMode(darkMode);
+        });
+
+        return () => {
+            sub.unsubscribe();
+        };
     }, []);
 
     useEffect(() => {
@@ -78,10 +81,6 @@ export function MobileWorkbench(props: IUniverAppProps) {
             localeService.localeChanged$.subscribe(() => {
                 setLocale(localeService.getLocales() as unknown as ILocale);
             }),
-            themeService.currentTheme$.subscribe((theme) => {
-                themeInstance.setTheme(mountContainer, theme);
-                portalContainer && themeInstance.setTheme(portalContainer, theme);
-            }),
         ];
 
         return () => {
@@ -100,27 +99,47 @@ export function MobileWorkbench(props: IUniverAppProps) {
               * all focusin event merged from its descendants. The DesktopLayoutService would listen to focusin events
               * bubbled to this element and refocus the input element.
               */}
-            <div className={styles.appLayout} tabIndex={-1} onBlur={(e) => e.stopPropagation()}>
+            <div
+                data-u-comp="app-layout"
+                className={clsx(`
+                  univer-relative univer-flex univer-h-full univer-min-h-0 univer-flex-col univer-bg-white
+                  dark:!univer-bg-gray-800
+                `, {
+                    'univer-dark': darkMode,
+                })}
+                tabIndex={-1}
+                onBlur={(e) => e.stopPropagation()}
+            >
                 {/* header */}
                 {header && (
-                    <header className={styles.appContainerHeader} />
+                    <header className="univer-relative univer-z-10 univer-w-full" />
                 )}
 
                 {/* content */}
-                <section className={styles.appContainer}>
-                    <div className={styles.appContainerWrapper}>
-                        <aside className={styles.appContainerLeftSidebar}>
+                <section className="univer-relative univer-flex univer-min-h-0 univer-flex-1 univer-flex-col">
+                    <div
+                        className={`
+                          univer-grid univer-h-full univer-grid-cols-[auto_1fr_auto] univer-grid-rows-[100%]
+                          univer-overflow-hidden
+                        `}
+                    >
+                        <aside className="univer-h-full">
                             <ComponentContainer key="left-sidebar" components={leftSidebarComponents} />
                         </aside>
 
-                        <section className={styles.appContainerContent}>
-                            <header className={styles.appHeader}>
+                        <section
+                            className={clsx(`
+                              univer-relative univer-grid univer-flex-1 univer-grid-rows-[auto_1fr]
+                              univer-overflow-hidden univer-bg-white
+                            `, borderBottomClassName)}
+                        >
+                            <header className="univer-w-screen">
                                 {header && <ComponentContainer key="header" components={headerComponents} />}
                             </header>
 
                             <section
-                                className={styles.appContainerCanvas}
                                 ref={contentRef}
+                                className="univer-relative univer-overflow-hidden"
                                 data-range-selector
                                 onContextMenu={(e) => e.preventDefault()}
                             >
@@ -128,14 +147,14 @@ export function MobileWorkbench(props: IUniverAppProps) {
                             </section>
                         </section>
 
-                        <aside className={styles.appContainerSidebar}>
+                        <aside className="univer-h-full">
                             <Sidebar />
                         </aside>
                     </div>
 
                     {/* footer */}
                     {footer && (
-                        <footer className={styles.appFooter}>
+                        <footer>
                             <ComponentContainer key="footer" components={footerComponents} />
                         </footer>
                     )}

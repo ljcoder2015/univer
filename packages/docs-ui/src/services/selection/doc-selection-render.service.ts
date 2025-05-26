@@ -618,7 +618,7 @@ export class DocSelectionRenderService extends RxDisposable implements IRenderMo
 
         // Only set selection use highlight color.
         const style: ITextSelectionStyle = {
-            strokeWidth: 1.5,
+            strokeWidth: 1,
             stroke: 'rgba(0, 0, 0, 0)',
             strokeActive: 'rgba(0, 0, 0, 1)',
             fill: `rgba(${r}, ${g}, ${b}, ${a ?? 0.3})`,
@@ -712,7 +712,8 @@ export class DocSelectionRenderService extends RxDisposable implements IRenderMo
 
         this._input.contentEditable = 'true';
 
-        this._input.classList.add('univer-editor');
+        // TODO: to be removed
+        this._input.dataset.uComp = 'editor';
         this._input.id = `__editor_${this._context.unitId}`;
         this._input.style.cssText = `
             position: absolute;

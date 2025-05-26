@@ -19,7 +19,7 @@ import type { Dependency } from '@univerjs/core';
 import type { ISheetNumfmtPanelProps } from '../index';
 import { LocaleService, LocaleType } from '@univerjs/core';
 import { RediContext } from '@univerjs/ui';
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { UserHabitController } from '../../../controllers/user-habit.controller';
 import enUS from '../../../locale/en-US';
 import ruRU from '../../../locale/ru-RU';
@@ -35,8 +35,7 @@ const meta: Meta = {
 
 export default meta;
 
-export const Test: StoryObj<ISheetNumfmtPanelProps> = {
-
+export const NumfmtPanel: StoryObj<ISheetNumfmtPanelProps> = {
     render() {
         const { injector } = useContext(RediContext);
 
@@ -58,12 +57,14 @@ export const Test: StoryObj<ISheetNumfmtPanelProps> = {
 
         return (
             <RediContext.Provider value={{ injector: inject }}>
-                <SheetNumfmtPanel
-                    value={{ defaultPattern: '', defaultValue: 123123, row: 2, col: 3 }}
-                    onChange={(_pattern) => {
+                <div className="univer-w-[340px]">
+                    <SheetNumfmtPanel
+                        value={{ defaultPattern: '', defaultValue: 123123, row: 2, col: 3 }}
+                        onChange={(_pattern) => {
                         // empty
-                    }}
-                />
+                        }}
+                    />
+                </div>
             </RediContext.Provider>
         );
     },

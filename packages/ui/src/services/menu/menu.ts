@@ -61,6 +61,7 @@ interface IMenuItemBase<V> {
 
     hidden$?: Observable<boolean>;
     disabled$?: Observable<boolean>;
+    params?: any;
     /** On observable value that should emit the value of the corresponding selection component. */
     value$?: Observable<V>;
 }
@@ -129,10 +130,10 @@ export type IDisplayMenuItem<T extends IMenuItem> = T & {
     shortcut?: string;
 };
 
-export type MenuItemConfig<T extends MenuItemDefaultValueType = MenuItemDefaultValueType> = Partial<Omit<IMenuItem, 'id' | 'subId' | 'value$' | 'hidden$' | 'disabled$' | 'activated$' | 'icon$'> & {
+export type MenuItemConfig = Partial<Omit<IMenuItem, 'id' | 'subId' | 'value$' | 'hidden$' | 'disabled$' | 'activated$' | 'icon$'> & {
     hidden?: boolean;
     disabled?: boolean;
     activated?: boolean;
 }>;
-export type MenuConfig<T extends MenuItemDefaultValueType = MenuItemDefaultValueType> = Record<string, MenuItemConfig<T>>;
-export type IMenuItemFactory = (accessor: IAccessor, menuConfig?: MenuConfig<MenuItemDefaultValueType>) => IMenuItem;
+export type MenuConfig = Record<string, MenuItemConfig>;
+export type IMenuItemFactory = (accessor: IAccessor, menuConfig?: MenuConfig) => IMenuItem;

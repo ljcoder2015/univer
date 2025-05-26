@@ -137,8 +137,13 @@ Univer has a rich ecosystem that includes a wide range of tools and resources to
 
 ## 🔗 Links
 
+- [Latest Preview of the `dev` Branch](https://univer-preview.vercel.app/)
 - [Official Site](https://univer.ai)
 - [Presets Repository](https://github.com/dream-num/univer-presets)
+
+## 🔒 Security
+
+Univer is committed to maintaining a secure codebase. We follow best practices for security and regularly update our dependencies. For more information, please refer to our [Security Policy](./SECURITY.md).
 
 ## 💬 Community
 

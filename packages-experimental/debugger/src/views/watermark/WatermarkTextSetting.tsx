@@ -15,10 +15,8 @@
  */
 
 import type { ITextWatermarkConfig } from '@univerjs/engine-render';
-import { LocaleService } from '@univerjs/core';
 import { Checkbox, clsx, ColorPicker, Dropdown, Input, InputNumber, Select } from '@univerjs/design';
 import { BoldSingle, FontColor, ItalicSingle } from '@univerjs/icons';
-import { useDependency } from '@univerjs/ui';
 
 interface IWatermarkTextSettingProps {
     config?: ITextWatermarkConfig;
@@ -27,29 +25,27 @@ interface IWatermarkTextSettingProps {
 
 export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
     const { config, onChange } = props;
-    const localeService = useDependency(LocaleService);
 
     if (!config) return null;
 
     return (
         <div className="univer-grid univer-gap-2">
-            <div className="univer-text-gray-400">{localeService.t('univer-watermark.style')}</div>
+            <div className="univer-text-gray-400">Style Settings</div>
 
             <div className="univer-mb-4 univer-grid univer-gap-1">
-                <div>{localeService.t('univer-watermark.content')}</div>
+                <div>Content</div>
                 <Input
                     value={config.content}
                     onChange={(val) => onChange({ ...config, content: val })}
-                    placeholder={localeService.t('univer-watermark.textPlaceholder')}
+                    placeholder="Enter text"
                 />
             </div>
 
             <div className="univer-grid univer-gap-4">
                 <div className="univer-flex univer-gap-2">
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.fontSize')}</div>
+                        <div>Font Size</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             value={config.fontSize}
                             max={72}
                             min={12}
@@ -62,22 +58,20 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
                     </div>
 
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.direction')}</div>
+                        <div>Direction</div>
                         <Select
-                            className="univer-box-border univer-h-7"
                             value={config.direction}
                             options={[
-                                { label: localeService.t('univer-watermark.ltr'), value: 'ltr' },
-                                { label: localeService.t('univer-watermark.rtl'), value: 'rtl' },
+                                { label: 'Left to Right', value: 'ltr' },
+                                { label: 'Right to Left', value: 'rtl' },
                             ]}
                             onChange={(v) => onChange({ ...config, direction: v as 'ltr' | 'rtl' })}
                         />
                     </div>
 
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.opacity')}</div>
+                        <div>Opacity</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             max={1}
                             min={0}
                             step={0.05}
@@ -105,21 +99,32 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
                             </div>
                         )}
                     >
-                        <a className="hover:univer-bg-gray-100">
+                        <a
+                            className={`
+                              dark:hover:!univer-bg-gray-700
+                              hover:univer-bg-gray-100
+                            `}
+                        >
                             <FontColor extend={{ colorChannel1: config.color ?? '#2c53f1' }} />
                         </a>
                     </Dropdown>
                     <a
-                        className={clsx('hover:univer-bg-gray-100', {
-                            'univer-bg-gray-200': config.bold,
+                        className={clsx(`
+                          dark:hover:!univer-bg-gray-700
+                          hover:univer-bg-gray-100
+                        `, {
+                            'univer-bg-gray-200 dark:!univer-bg-gray-600': config.bold,
                         })}
                         onClick={() => { onChange({ ...config, bold: !config.bold }); }}
                     >
                         <BoldSingle />
                     </a>
                     <a
-                        className={clsx('hover:univer-bg-gray-100', {
-                            'univer-bg-gray-200': config.italic,
+                        className={clsx(`
+                          dark:hover:!univer-bg-gray-700
+                          hover:univer-bg-gray-100
+                        `, {
+                            'univer-bg-gray-200 dark:!univer-bg-gray-600': config.italic,
                         })}
                         onClick={() => { onChange({ ...config, italic: !config.italic }); }}
                     >
@@ -129,14 +134,13 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
             </div>
 
             {/* Layout */}
-            <div className="univer-text-gray-400">{localeService.t('univer-watermark.layout')}</div>
+            <div className="univer-text-gray-400">Layout Settings</div>
 
             <div className="univer-grid univer-gap-2 univer-text-center">
                 <div className="univer-flex univer-gap-2">
                     <div className="univer-grid univer-flex-1 univer-gap-1">
-                        <div>{localeService.t('univer-watermark.rotate')}</div>
+                        <div>Rotate</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             value={config.rotate}
                             max={360}
                             min={-360}
@@ -148,7 +152,7 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
                         />
                     </div>
                     <div className="univer-grid univer-flex-1 univer-gap-1">
-                        <div>{localeService.t('univer-watermark.repeat')}</div>
+                        <div>Repeat</div>
                         <Checkbox
                             className="univer-justify-center univer-self-baseline"
                             checked={config.repeat}
@@ -158,9 +162,8 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
                 </div>
                 <div className="univer-flex univer-gap-2">
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.spacingX')}</div>
+                        <div>Horizontal Spacing</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             value={config.spacingX}
                             min={0}
                             onChange={(val) => {
@@ -172,9 +175,8 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
                     </div>
 
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.spacingY')}</div>
+                        <div>Vertical Spacing</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             value={config.spacingY}
                             min={0}
                             onChange={(val) => {
@@ -188,9 +190,8 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
 
                 <div className="univer-flex univer-gap-2">
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.startX')}</div>
+                        <div>Horizontal Start Position</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             value={config.x}
                             min={0}
                             onChange={(val) => {
@@ -202,9 +203,8 @@ export function WatermarkTextSetting(props: IWatermarkTextSettingProps) {
                     </div>
 
                     <div className="univer-grid univer-gap-1">
-                        <div>{localeService.t('univer-watermark.startY')}</div>
+                        <div>Vertical Start Position</div>
                         <InputNumber
-                            className="univer-box-border univer-h-7"
                             value={config.y}
                             min={0}
                             onChange={(val) => {

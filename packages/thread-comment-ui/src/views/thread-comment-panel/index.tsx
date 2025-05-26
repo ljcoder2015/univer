@@ -23,11 +23,10 @@ import { Button, Select } from '@univerjs/design';
 import { IncreaseSingle } from '@univerjs/icons';
 import { ThreadCommentModel } from '@univerjs/thread-comment';
 import { useDependency, useObservable } from '@univerjs/ui';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SetActiveCommentOperation } from '../../commands/operations/comment.operations';
 import { ThreadCommentPanelService } from '../../services/thread-comment-panel.service';
 import { ThreadCommentTree } from '../thread-comment-tree';
-import styles from './index.module.less';
 
 export interface IThreadCommentPanelProps {
     unitId: string;
@@ -161,6 +160,7 @@ export const ThreadCommentPanel = (props: IThreadCommentPanelProps) => {
 
     const renderComment = (comment: IThreadComment) => (
         <ThreadCommentTree
+            full
             prefix={prefix}
             getSubUnitName={getSubUnitName}
             key={comment.id}
@@ -196,14 +196,13 @@ export const ThreadCommentPanel = (props: IThreadCommentPanelProps) => {
     );
 
     return (
-        <div className={styles.threadCommentPanel}>
-            <div className={styles.threadCommentPanelForms}>
+        <div className="univer-flex univer-min-h-full univer-flex-col univer-pb-3">
+            <div className="univer-mt-3 univer-flex univer-flex-row univer-justify-between">
                 {type === UniverInstanceType.UNIVER_SHEET
                     ? (
                         <Select
                             borderless
                             value={unit}
-                            onChange={(e) => setUnit(e)}
                             options={[
                                 {
                                     value: 'current',
@@ -214,13 +213,13 @@ export const ThreadCommentPanel = (props: IThreadCommentPanelProps) => {
                                     label: localeService.t('threadCommentUI.filter.sheet.all'),
                                 },
                             ]}
+                            onChange={setUnit}
                         />
                     )
                     : null}
                 <Select
                     borderless
                     value={status}
-                    onChange={(e) => setStatus(e)}
                     options={[
                         {
                             value: 'all',
@@ -239,39 +238,48 @@ export const ThreadCommentPanel = (props: IThreadCommentPanelProps) => {
                             label: localeService.t('threadCommentUI.filter.status.concernMe'),
                         },
                     ]}
+                    onChange={setStatus}
                 />
             </div>
-            {unSolvedComments.map(renderComment)}
-            {solvedComments.length ? <div className={styles.threadCommentPanelSolved}>已解决</div> : null}
-            {solvedComments.map(renderComment)}
-            {renderComments.length
-                ? null
-                : (
-                    <div className={styles.threadCommentPanelEmpty}>
-                        {isFiltering ?
-                            localeService.t('threadCommentUI.panel.filterEmpty')
-                            : localeService.t('threadCommentUI.panel.empty')}
+            {renderComments.length === 0
+                ? (
+                    <div
+                        className={`
+                          univer-flex univer-flex-1 univer-flex-col univer-items-center univer-justify-center
+                          univer-text-sm univer-text-gray-600
+                          dark:!univer-text-gray-200
+                        `}
+                    >
+                        {localeService.t('threadCommentUI.panel.empty')}
                         {isFiltering
                             ? (
-                                <Button
-                                    onClick={onReset}
-                                    type="link"
-                                >
-                                    {localeService.t('threadCommentUI.panel.reset')}
-                                </Button>
+                                <div className="univer-mt-2 univer-flex univer-flex-row">
+                                    <Button onClick={onReset}>
+                                        {localeService.t('threadCommentUI.panel.reset')}
+                                    </Button>
+                                </div>
                             )
-                            : (
-                                <Button
-                                    id="thread-comment-add"
-                                    className={styles.threadCommentPanelAdd}
-                                    type="primary"
-                                    onClick={onAdd}
-                                    disabled={disableAdd}
-                                >
-                                    <IncreaseSingle />
-                                    {localeService.t('threadCommentUI.panel.addComment')}
-                                </Button>
-                            )}
+                            : !disableAdd
+                                ? (
+                                    <div className="univer-mt-2 univer-flex univer-flex-row">
+                                        <Button onClick={onAdd}>
+                                            <IncreaseSingle className="univer-mr-1.5" />
+                                            {localeService.t('threadCommentUI.panel.add')}
+                                        </Button>
+                                    </div>
+                                )
+                                : null}
+                    </div>
+                )
+                : (
+                    <div className="univer-mt-3 univer-flex univer-flex-col univer-gap-3">
+                        {unSolvedComments.map(renderComment)}
+                        {solvedComments.length > 0 && (
+                            <div className="univer-text-xs">
+                                {localeService.t('threadCommentUI.panel.solved')}
+                            </div>
+                        )}
+                        {solvedComments.map(renderComment)}
                     </div>
                 )}
         </div>

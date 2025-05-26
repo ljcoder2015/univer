@@ -14,16 +14,36 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
+    toolbar: {
+        heading: {
+            normal: 'متن عادی',
+            title: 'عنوان',
+            subTitle: 'زیر عنوان',
+            1: 'عنوان 1',
+            2: 'عنوان 2',
+            3: 'عنوان 3',
+            4: 'عنوان 4',
+            5: 'عنوان 5',
+            6: 'عنوان 6',
+            tooltip: 'تنظیم عنوان',
+        },
+    },
     ribbon: {
         start: 'شروع',
+        startDesc: 'ایجاد کاربرگ و تنظیم پارامترهای اولیه.',
         insert: 'درج',
+        insertDesc: 'درج ردیف‌ها، ستون‌ها، نمودارها و عناصر مختلف دیگر.',
         formulas: 'فرمول‌ها',
+        formulasDesc: 'استفاده از توابع و فرمول‌ها برای محاسبات داده‌ها.',
         data: 'داده‌ها',
+        dataDesc: 'ادغام و تجزیه داده‌ها.',
         view: 'نمایش',
+        viewDesc: 'تغییر حالت نمایش و تنظیم اثرات نمایشی.',
         others: 'دیگر',
+        othersDesc: 'سایر عملکردها و تنظیمات.',
         more: 'بیشتر',
     },
     fontFamily: {

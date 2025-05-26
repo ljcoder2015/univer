@@ -20,13 +20,12 @@ import { IEditorService } from '@univerjs/docs-ui';
 import { DeviceInputEventType } from '@univerjs/engine-render';
 import { ComponentManager, DISABLE_AUTO_FOCUS_KEY, MetaKeys, useDependency, useEvent, useObservable, useSidebarClick } from '@univerjs/ui';
 import React, { useEffect, useRef, useState } from 'react';
-import { SetCellEditVisibleArrowOperation, SetCellEditVisibleOperation } from '../../commands/operations/cell-edit.operation';
 
+import { SetCellEditVisibleArrowOperation, SetCellEditVisibleOperation } from '../../commands/operations/cell-edit.operation';
 import { EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY } from '../../common/keys';
 import { IEditorBridgeService } from '../../services/editor-bridge.service';
 import { ICellEditorManagerService } from '../../services/editor/cell-editor-manager.service';
 import { useKeyEventConfig } from './hooks';
-import styles from './index.module.less';
 
 interface ICellIEditorProps { }
 
@@ -104,14 +103,12 @@ export const EditorContainer: React.FC<ICellIEditorProps> = () => {
         return () => {
             sub.unsubscribe();
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Empty dependency array means this effect runs once on mount and clean up on unmount
 
     useEffect(() => {
         if (!disableAutoFocus) {
             cellEditorManagerService.setFocus(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [disableAutoFocus, state]);
 
     const handleClickSideBar = useEvent(() => {
@@ -140,7 +137,7 @@ export const EditorContainer: React.FC<ICellIEditorProps> = () => {
 
     return (
         <div
-            className={styles.editorContainer}
+            className="univer-absolute univer-z-10 univer-flex"
             style={{
                 left: state.left,
                 top: state.top,
@@ -151,20 +148,24 @@ export const EditorContainer: React.FC<ICellIEditorProps> = () => {
             {FormulaEditor && (
                 <FormulaEditor
                     editorId={DOCS_NORMAL_EDITOR_UNIT_ID_KEY}
-                    className={styles.editorInput}
+                    className={`
+                      univer-relative univer-flex univer-h-full univer-w-full
+                      [&_canvas]:univer-absolute
+                    `}
                     initValue=""
                     onChange={() => {}}
                     isFocus={visible?.visible}
                     unitId={editState?.unitId}
                     subUnitId={editState?.sheetId}
-                    keyboradEventConfig={keyCodeConfig}
+                    keyboardEventConfig={keyCodeConfig}
                     onMoveInEditor={onMoveInEditor}
                     isSupportAcrossSheet
                     resetSelectionOnBlur={false}
                     isSingle={false}
                     autoScrollbar={false}
-                    onFormulaSelectingChange={(isSelecting: 0 | 1 | 2) => {
+                    onFormulaSelectingChange={(isSelecting: 0 | 1 | 2, isFocusing: boolean) => {
                         isRefSelecting.current = isSelecting;
+                        if (!isFocusing) return;
                         if (isSelecting) {
                             editorBridgeService.enableForceKeepVisible();
                         } else {

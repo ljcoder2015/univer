@@ -18,6 +18,7 @@ import type { ICommand, IMutationInfo, IParagraphStyle } from '@univerjs/core';
 import type { IRichTextEditingMutationParams } from '@univerjs/docs';
 
 import {
+    BuildTextUtils,
     CommandType,
     HorizontalAlign,
     ICommandService,
@@ -30,7 +31,6 @@ import {
 } from '@univerjs/core';
 import { DocSelectionManagerService, RichTextEditingMutation } from '@univerjs/docs';
 import { getRichTextEditPath } from '../util';
-import { getParagraphsInRanges } from './list.command';
 
 interface IAlignOperationCommandParams {
     alignType: HorizontalAlign;
@@ -60,14 +60,15 @@ export const AlignOperationCommand: ICommand<IAlignOperationCommandParams> = {
         }
 
         const segmentId = allRanges[0].segmentId;
-
-        const paragraphs = docDataModel.getSelfOrHeaderFooterModel(segmentId).getBody()?.paragraphs;
+        const segment = docDataModel.getSelfOrHeaderFooterModel(segmentId);
+        const paragraphs = segment.getBody()?.paragraphs ?? [];
+        const dataStream = segment.getBody()?.dataStream ?? '';
 
         if (paragraphs == null) {
             return false;
         }
 
-        const currentParagraphs = getParagraphsInRanges(allRanges, paragraphs);
+        const currentParagraphs = BuildTextUtils.range.getParagraphsInRanges(allRanges, paragraphs, dataStream);
 
         const unitId = docDataModel.getUnitId();
         const isAlreadyAligned = currentParagraphs.every((paragraph) => paragraph.paragraphStyle?.horizontalAlign === alignType);

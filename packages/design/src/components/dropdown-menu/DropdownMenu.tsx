@@ -14,46 +14,81 @@
  * limitations under the License.
  */
 
-import type { Content } from '@radix-ui/react-popover';
 import type { ComponentProps, ReactNode } from 'react';
 import { useState } from 'react';
 import {
+    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuPortal,
     DropdownMenuPrimitive,
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
     DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from './DropdownMenuPrimitive';
-// import { DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuPrimitive, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from './DropdownMenuPrimitive';
 
-type DropdownMenu = {
+interface IDropdownMenuNormalItem {
     type: 'item';
     className?: string;
     children: ReactNode;
     disabled?: boolean;
-    onSelect?: (item: DropdownMenu) => void;
-} | {
-    type?: 'separator';
+    onSelect?: (item: DropdownMenuType) => void;
+}
+
+interface IDropdownMenuNormalSubItem {
+    type: 'subItem';
     className?: string;
-} | {
-    type?: 'radio';
+    children: ReactNode;
+    options?: DropdownMenuType[];
+    disabled?: boolean;
+    onSelect?: (item: DropdownMenuType) => void;
+}
+
+interface IDropdownMenuSeparatorItem {
+    type: 'separator';
+    className?: string;
+}
+
+interface IDropdownMenuOption {
+    label?: ReactNode;
+    value?: string;
+    disabled?: boolean;
+}
+
+interface IDropdownMenuRadioItem {
+    type: 'radio';
     className?: string;
     value: string;
-    options: { value: string; label: ReactNode; disabled?: boolean }[];
+    hideIndicator?: boolean;
+    options: (IDropdownMenuOption | IDropdownMenuSeparatorItem)[];
     onSelect?: (item: string) => void;
-};
+}
 
-export interface IDropdownProps {
+interface IDropdownMenuCheckItem {
+    type: 'checkbox';
+    className?: string;
+    label?: ReactNode;
+    value: string;
+    disabled?: boolean;
+    checked?: boolean;
+    onSelect?: (item: string) => void;
+}
+
+type DropdownMenuType = IDropdownMenuNormalItem | IDropdownMenuNormalSubItem | IDropdownMenuSeparatorItem | IDropdownMenuRadioItem | IDropdownMenuCheckItem;
+
+export interface IDropdownMenuProps extends ComponentProps<typeof DropdownMenuContent> {
     children: ReactNode;
-    items: DropdownMenu[];
+    items: DropdownMenuType[];
     disabled?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
 }
 
-export function DropdownMenu(props: IDropdownProps & ComponentProps<typeof Content>) {
+export function DropdownMenu(props: IDropdownMenuProps) {
     const {
         children,
         items,
@@ -78,8 +113,7 @@ export function DropdownMenu(props: IDropdownProps & ComponentProps<typeof Conte
         controlledOnOpenChange?.(newOpen);
     }
 
-    function renderMenuItem(item: DropdownMenu, index: number) {
-        // const { type, children, icon, checked, hidden, onSelect } = item;
+    function renderMenuItem(item: DropdownMenuType, index: number) {
         const { className, type } = item;
 
         if (type === 'separator') {
@@ -92,16 +126,43 @@ export function DropdownMenu(props: IDropdownProps & ComponentProps<typeof Conte
                     value={item.value}
                     onValueChange={item.onSelect}
                 >
-                    {item.options.map((option) => (
-                        <DropdownMenuRadioItem
-                            key={option.value}
-                            value={option.value}
-                            disabled={option.disabled}
-                        >
-                            {option.label}
-                        </DropdownMenuRadioItem>
-                    ))}
+                    {item.options.map((option, index) => {
+                        if ('type' in option) {
+                            if (option.type === 'separator') {
+                                return <DropdownMenuSeparator key={index} className={option.className} />;
+                            }
+                        } else {
+                            if (option.value === undefined) {
+                                throw new Error('[DropdownMenu]: `value` is required');
+                            }
+                            return (
+                                <DropdownMenuRadioItem
+                                    key={option.value}
+                                    value={option.value}
+                                    disabled={option.disabled}
+                                    hideIndicator={item.hideIndicator}
+                                >
+                                    {option.label}
+                                </DropdownMenuRadioItem>
+                            );
+                        }
+                        return null;
+                    })}
                 </DropdownMenuRadioGroup>
+            );
+        } else if (type === 'checkbox') {
+            return (
+                <DropdownMenuCheckboxItem
+                    key={index}
+                    className={className}
+                    disabled={item.disabled}
+                    checked={item.checked}
+                    onSelect={() => {
+                        item.onSelect?.(item.value);
+                    }}
+                >
+                    {item.label}
+                </DropdownMenuCheckboxItem>
             );
         } else if (type === 'item') {
             return (
@@ -116,6 +177,19 @@ export function DropdownMenu(props: IDropdownProps & ComponentProps<typeof Conte
                     {item.children}
                 </DropdownMenuItem>
             );
+        } else if (type === 'subItem') {
+            return (
+                <DropdownMenuSub key={index}>
+                    <DropdownMenuSubTrigger>{item.children}</DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                        <DropdownMenuSubContent sideOffset={12}>
+                            {item.options?.map((subItem, subIndex) => (
+                                renderMenuItem(subItem, subIndex)
+                            ))}
+                        </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                </DropdownMenuSub>
+            );
         }
     }
 
@@ -124,7 +198,7 @@ export function DropdownMenu(props: IDropdownProps & ComponentProps<typeof Conte
             <DropdownMenuTrigger asChild>
                 {children}
             </DropdownMenuTrigger>
-            <DropdownMenuContent {...restProps}>
+            <DropdownMenuContent className="univer-text-sm" {...restProps} onWheel={(e) => e.stopPropagation()}>
                 {items.map((item, index) => renderMenuItem(item, index))}
             </DropdownMenuContent>
         </DropdownMenuPrimitive>

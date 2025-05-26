@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     'image-popup': {
         replace: '替换',
         delete: '删除',
@@ -66,6 +68,14 @@ const locale = {
             vertical: '垂直分布',
         },
         null: '未选中任何对象',
+    },
+    'drawing-view': '绘图',
+    shortcut: {
+        'drawing-move-down': '下移绘图',
+        'drawing-move-up': '上移绘图',
+        'drawing-move-left': '左移绘图',
+        'drawing-move-right': '右移绘图',
+        'drawing-delete': '删除绘图',
     },
 };
 

@@ -15,20 +15,22 @@
  */
 
 import type { MenuSchemaType } from '@univerjs/ui';
-import { ContextMenuGroup, ContextMenuPosition, RibbonStartGroup } from '@univerjs/ui';
-import { DocCopyCommand, DocCutCommand, DocPasteCommand } from '../commands/commands/clipboard.command';
-import { DeleteLeftCommand } from '../commands/commands/doc-delete.command';
+import { ContextMenuGroup, ContextMenuPosition, RibbonInsertGroup, RibbonStartGroup } from '@univerjs/ui';
+import { DocCopyCommand, DocCopyCurrentParagraphCommand, DocCutCommand, DocCutCurrentParagraphCommand, DocPasteCommand } from '../commands/commands/clipboard.command';
+import { DeleteCurrentParagraphCommand, DeleteLeftCommand } from '../commands/commands/doc-delete.command';
 import { OpenHeaderFooterPanelCommand } from '../commands/commands/doc-header-footer.command';
-import { HorizontalLineCommand } from '../commands/commands/doc-horizontal-line.command';
-import { ResetInlineFormatTextBackgroundColorCommand, SetInlineFormatBoldCommand, SetInlineFormatFontFamilyCommand, SetInlineFormatFontSizeCommand, SetInlineFormatItalicCommand, SetInlineFormatStrikethroughCommand, SetInlineFormatSubscriptCommand, SetInlineFormatSuperscriptCommand, SetInlineFormatTextBackgroundColorCommand, SetInlineFormatTextColorCommand, SetInlineFormatUnderlineCommand } from '../commands/commands/inline-format.command';
+import { HorizontalLineCommand, InsertHorizontalLineBellowCommand } from '../commands/commands/doc-horizontal-line.command';
 
-import { BulletListCommand, CheckListCommand, OrderListCommand } from '../commands/commands/list.command';
+import { ResetInlineFormatTextBackgroundColorCommand, SetInlineFormatBoldCommand, SetInlineFormatFontFamilyCommand, SetInlineFormatFontSizeCommand, SetInlineFormatItalicCommand, SetInlineFormatStrikethroughCommand, SetInlineFormatSubscriptCommand, SetInlineFormatSuperscriptCommand, SetInlineFormatTextBackgroundColorCommand, SetInlineFormatTextColorCommand, SetInlineFormatUnderlineCommand } from '../commands/commands/inline-format.command';
+import { BulletListCommand, CheckListCommand, InsertBulletListBellowCommand, InsertCheckListBellowCommand, InsertOrderListBellowCommand, OrderListCommand } from '../commands/commands/list.command';
 import { AlignCenterCommand, AlignJustifyCommand, AlignLeftCommand, AlignRightCommand } from '../commands/commands/paragraph-align.command';
+import { H1HeadingCommand, H2HeadingCommand, H3HeadingCommand, H4HeadingCommand, H5HeadingCommand, NormalTextHeadingCommand, SetParagraphNamedStyleCommand } from '../commands/commands/set-heading.command';
 import { SwitchDocModeCommand } from '../commands/commands/switch-doc-mode.command';
 import { DocTableDeleteColumnsCommand, DocTableDeleteRowsCommand, DocTableDeleteTableCommand } from '../commands/commands/table/doc-table-delete.command';
 import { DocTableInsertColumnLeftCommand, DocTableInsertColumnRightCommand, DocTableInsertRowAboveCommand, DocTableInsertRowBellowCommand } from '../commands/commands/table/doc-table-insert.command';
 import { DocCreateTableOperation } from '../commands/operations/doc-create-table.operation';
 import { DocParagraphSettingPanelOperation } from '../commands/operations/doc-paragraph-setting-panel.operation';
+import { DocOpenPageSettingCommand } from '../commands/operations/open-page-setting.operation';
 import {
     CopyMenuFactory,
     CutMenuFactory,
@@ -60,10 +62,12 @@ import {
     FontFamilySelectorMenuItemFactory,
     FontSizeSelectorMenuItemFactory,
     HeaderFooterMenuItemFactory,
+    HeadingSelectorMenuItemFactory,
     HorizontalLineFactory,
     InsertTableMenuFactory,
     ItalicMenuItemFactory,
     OrderListMenuItemFactory,
+    PageSettingMenuItemFactory,
     ResetBackgroundColorMenuItemFactory,
     StrikeThroughMenuItemFactory,
     SubscriptMenuItemFactory,
@@ -73,6 +77,7 @@ import {
     TextColorSelectorMenuItemFactory,
     UnderlineMenuItemFactory,
 } from './menu/menu';
+import { CopyCurrentParagraphMenuItemFactory, CutCurrentParagraphMenuItemFactory, DeleteCurrentParagraphMenuItemFactory, DocInsertBellowMenuItemFactory, H1HeadingMenuItemFactory, H2HeadingMenuItemFactory, H3HeadingMenuItemFactory, H4HeadingMenuItemFactory, H5HeadingMenuItemFactory, INSERT_BELLOW_MENU_ID, InsertBulletListBellowMenuItemFactory, InsertCheckListBellowMenuItemFactory, InsertHorizontalLineBellowMenuItemFactory, InsertOrderListBellowMenuItemFactory, NormalTextHeadingMenuItemFactory } from './menu/paragraph-menu';
 
 export const menuSchema: MenuSchemaType = {
     [RibbonStartGroup.FORMAT]: {
@@ -100,6 +105,10 @@ export const menuSchema: MenuSchemaType = {
             order: 5,
             menuItemFactory: SuperscriptMenuItemFactory,
         },
+        [SetParagraphNamedStyleCommand.id]: {
+            order: 5.5,
+            menuItemFactory: HeadingSelectorMenuItemFactory,
+        },
         [SetInlineFormatFontSizeCommand.id]: {
             order: 6,
             menuItemFactory: FontSizeSelectorMenuItemFactory,
@@ -122,14 +131,6 @@ export const menuSchema: MenuSchemaType = {
         },
     },
     [RibbonStartGroup.LAYOUT]: {
-        [TABLE_MENU_ID]: {
-            order: 1,
-            menuItemFactory: TableMenuFactory,
-            [DocCreateTableOperation.id]: {
-                order: 0,
-                menuItemFactory: InsertTableMenuFactory,
-            },
-        },
         [AlignLeftCommand.id]: {
             order: 2,
             menuItemFactory: AlignLeftMenuItemFactory,
@@ -169,6 +170,20 @@ export const menuSchema: MenuSchemaType = {
         [SwitchDocModeCommand.id]: {
             order: 11,
             menuItemFactory: DocSwitchModeMenuItemFactory,
+        },
+        [DocOpenPageSettingCommand.id]: {
+            order: 12,
+            menuItemFactory: PageSettingMenuItemFactory,
+        },
+    },
+    [RibbonInsertGroup.MEDIA]: {
+        [TABLE_MENU_ID]: {
+            order: 2,
+            menuItemFactory: TableMenuFactory,
+            [DocCreateTableOperation.id]: {
+                order: 0,
+                menuItemFactory: InsertTableMenuFactory,
+            },
         },
     },
     [ContextMenuPosition.MAIN_AREA]: {
@@ -229,6 +244,82 @@ export const menuSchema: MenuSchemaType = {
                 [DocTableDeleteTableCommand.id]: {
                     order: 3,
                     menuItemFactory: DeleteTableMenuItemFactory,
+                },
+            },
+        },
+    },
+    [ContextMenuPosition.PARAGRAPH]: {
+        [ContextMenuGroup.QUICK]: {
+            [H1HeadingCommand.id]: {
+                order: 0,
+                menuItemFactory: H1HeadingMenuItemFactory,
+            },
+            [H2HeadingCommand.id]: {
+                order: 1,
+                menuItemFactory: H2HeadingMenuItemFactory,
+            },
+            [H3HeadingCommand.id]: {
+                order: 2,
+                menuItemFactory: H3HeadingMenuItemFactory,
+            },
+            [H4HeadingCommand.id]: {
+                order: 3,
+                menuItemFactory: H4HeadingMenuItemFactory,
+            },
+            [H5HeadingCommand.id]: {
+                order: 4,
+                menuItemFactory: H5HeadingMenuItemFactory,
+            },
+            [NormalTextHeadingCommand.id]: {
+                order: 5,
+                menuItemFactory: NormalTextHeadingMenuItemFactory,
+            },
+            [OrderListCommand.id]: {
+                order: 6,
+                menuItemFactory: OrderListMenuItemFactory,
+            },
+            [BulletListCommand.id]: {
+                order: 7,
+                menuItemFactory: BulletListMenuItemFactory,
+            },
+            [CheckListCommand.id]: {
+                order: 8,
+                menuItemFactory: CheckListMenuItemFactory,
+            },
+        },
+        [ContextMenuGroup.FORMAT]: {
+            [DocCopyCurrentParagraphCommand.id]: {
+                order: 0,
+                menuItemFactory: CopyCurrentParagraphMenuItemFactory,
+            },
+            [DocCutCurrentParagraphCommand.id]: {
+                order: 1,
+                menuItemFactory: CutCurrentParagraphMenuItemFactory,
+            },
+            [DeleteCurrentParagraphCommand.id]: {
+                order: 2,
+                menuItemFactory: DeleteCurrentParagraphMenuItemFactory,
+            },
+        },
+        [ContextMenuGroup.LAYOUT]: {
+            // title: 'rightClick.insertBellow',
+            [INSERT_BELLOW_MENU_ID]: {
+                menuItemFactory: DocInsertBellowMenuItemFactory,
+                [InsertBulletListBellowCommand.id]: {
+                    order: 0,
+                    menuItemFactory: InsertBulletListBellowMenuItemFactory,
+                },
+                [InsertOrderListBellowCommand.id]: {
+                    order: 1,
+                    menuItemFactory: InsertOrderListBellowMenuItemFactory,
+                },
+                [InsertCheckListBellowCommand.id]: {
+                    order: 2,
+                    menuItemFactory: InsertCheckListBellowMenuItemFactory,
+                },
+                [InsertHorizontalLineBellowCommand.id]: {
+                    order: 3,
+                    menuItemFactory: InsertHorizontalLineBellowMenuItemFactory,
                 },
             },
         },

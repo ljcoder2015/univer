@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import { clsx, Dropdown } from '@univerjs/design';
+import { borderRightClassName, clsx, Dropdown } from '@univerjs/design';
 import { IDefinedNamesService } from '@univerjs/engine-formula';
 import { MoreDownSingle } from '@univerjs/icons';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
 import { DefinedNameOverlay } from './DefinedNameOverlay';
-import styles from './index.module.less';
 
 export function DefinedName({ disable }: { disable: boolean }) {
     const [rangeString, setRangeString] = useState('');
@@ -43,6 +42,7 @@ export function DefinedName({ disable }: { disable: boolean }) {
 
     return (
         <div
+            data-u-comp="defined-name"
             className={`
               univer-relative univer-box-border univer-flex univer-h-full univer-w-24 univer-border-r-gray-200
               univer-py-1.5 univer-transition-all
@@ -50,11 +50,12 @@ export function DefinedName({ disable }: { disable: boolean }) {
         >
             <input
                 className={clsx(`
-                  univer-box-border univer-h-full univer-w-full univer-appearance-none univer-border-0 univer-border-r
-                  univer-border-r-gray-200 univer-px-1.5
+                  univer-box-border univer-h-full univer-w-full univer-appearance-none univer-px-1.5
+                  univer-text-gray-900
+                  dark:!univer-border-r-gray-700 dark:!univer-bg-gray-900 dark:!univer-text-white
                   focus:univer-outline-none
-                `, {
-                    [styles.defineNameInputDisable]: disable,
+                `, borderRightClassName, {
+                    'univer-cursor-not-allowed': disable,
                 })}
                 type="text"
                 value={rangeString}
@@ -67,14 +68,16 @@ export function DefinedName({ disable }: { disable: boolean }) {
                         <DefinedNameOverlay />
                     </div>
                 )}
+                disabled={disable}
             >
                 <a
                     className={clsx(`
                       univer-absolute univer-right-0 univer-top-0 univer-flex univer-h-full univer-cursor-pointer
                       univer-items-center univer-justify-center univer-px-1 univer-transition-colors univer-duration-200
+                      dark:!univer-text-white dark:hover:!univer-bg-gray-800
                       hover:univer-bg-gray-100
                     `, {
-                        'univer-cursor-not-allowed univer-text-gray-300 hover:univer-bg-transparent': disable,
+                        'univer-cursor-not-allowed univer-text-gray-300 dark:!univer-text-gray-700 hover:univer-bg-transparent': disable,
                     })}
                 >
                     <MoreDownSingle />

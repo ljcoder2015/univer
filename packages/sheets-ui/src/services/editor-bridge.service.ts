@@ -16,7 +16,6 @@
 
 import type { IDisposable, IPosition, ISelectionCell, Nullable, Workbook } from '@univerjs/core';
 import type { Engine, IDocumentLayoutObject, Scene } from '@univerjs/engine-render';
-import type { SheetsSelectionsService } from '@univerjs/sheets';
 import type { KeyCode } from '@univerjs/ui';
 import type { Observable } from 'rxjs';
 import {
@@ -36,7 +35,7 @@ import {
 } from '@univerjs/core';
 import { getCanvasOffsetByEngine, IEditorService } from '@univerjs/docs-ui';
 import { convertTextRotation, convertTransformToOffsetX, convertTransformToOffsetY, DeviceInputEventType, IRenderManagerService } from '@univerjs/engine-render';
-import { BEFORE_CELL_EDIT, IRefSelectionsService, SheetInterceptorService } from '@univerjs/sheets';
+import { BEFORE_CELL_EDIT, SheetInterceptorService } from '@univerjs/sheets';
 import { BehaviorSubject, map, switchMap } from 'rxjs';
 import { ISheetSelectionRenderService } from './selection/base-selection-render.service';
 import { attachPrimaryWithCoord } from './selection/util';
@@ -106,14 +105,14 @@ export interface IEditorBridgeService {
     disableForceKeepVisible(): void;
     isForceKeepVisible(): boolean;
     getCurrentEditorId(): Nullable<string>;
+    helpFunctionVisible$: BehaviorSubject<boolean>;
 }
 
 export class EditorBridgeService extends Disposable implements IEditorBridgeService, IDisposable {
     private _editorUnitId: string = DOCS_NORMAL_EDITOR_UNIT_ID_KEY;
     private _editorIsDirty: boolean = false;
 
-    private _isDisabled: boolean = false;
-    private _visible: IEditorBridgeServiceVisibleParam = {
+    private _visibleParams: IEditorBridgeServiceVisibleParam = {
         visible: false,
         eventType: DeviceInputEventType.Dblclick,
         unitId: '',
@@ -122,6 +121,8 @@ export class EditorBridgeService extends Disposable implements IEditorBridgeServ
     private _currentEditCell: Nullable<ICurrentEditCellParam> = null;
     private _currentEditCellState: Nullable<ICellEditorState> = null;
     private _currentEditCellLayout: Nullable<ICellEditorLayout> = null;
+
+    helpFunctionVisible$ = new BehaviorSubject(true);
 
     // TODO: @weird94 this should split into to subjects, documentDataModel & position
     private readonly _currentEditCellState$ = new BehaviorSubject<Nullable<ICellEditorState>>(null);
@@ -134,11 +135,11 @@ export class EditorBridgeService extends Disposable implements IEditorBridgeServ
         switchMap((editCellState) => this._currentEditCellLayout$.pipe(map((layout) => (editCellState && layout ? { ...editCellState, ...layout } : null))))
     );
 
-    private readonly _visible$ = new BehaviorSubject<IEditorBridgeServiceVisibleParam>(this._visible);
-    readonly visible$ = this._visible$.asObservable();
+    private readonly _visibleParams$ = new BehaviorSubject<IEditorBridgeServiceVisibleParam>(this._visibleParams);
+    readonly visible$ = this._visibleParams$.asObservable();
 
-    private readonly _afterVisible$ = new BehaviorSubject<IEditorBridgeServiceVisibleParam>(this._visible);
-    readonly afterVisible$ = this._afterVisible$.asObservable();
+    private readonly _afterVisibleParams$ = new BehaviorSubject<IEditorBridgeServiceVisibleParam>(this._visibleParams);
+    readonly afterVisible$ = this._afterVisibleParams$.asObservable();
 
     private readonly _forceKeepVisible$ = new BehaviorSubject(false);
     readonly forceKeepVisible$ = this._forceKeepVisible$.asObservable();
@@ -149,7 +150,6 @@ export class EditorBridgeService extends Disposable implements IEditorBridgeServ
         @Inject(ThemeService) private readonly _themeService: ThemeService,
         @IUniverInstanceService private readonly _univerInstanceService: IUniverInstanceService,
         @IEditorService private readonly _editorService: IEditorService,
-        @IRefSelectionsService private readonly _refSelectionsService: SheetsSelectionsService,
         @IContextService private readonly _contextService: IContextService
     ) {
         super();
@@ -199,7 +199,7 @@ export class EditorBridgeService extends Disposable implements IEditorBridgeServ
         if (!skeleton) return;
         if (!this._currentEditCellState) return;
 
-        const { primary, unitId, sheetId, scene, engine } = currentEditCell;
+        const { primary, scene, engine } = currentEditCell;
         const primaryWithCoord = attachPrimaryWithCoord(skeleton, primary);
         if (primaryWithCoord == null) {
             return;
@@ -395,7 +395,7 @@ export class EditorBridgeService extends Disposable implements IEditorBridgeServ
                         ed: body.dataStream.length - 2,
                         ts: {
                             cl: {
-                                rgb: this._themeService.getCurrentTheme().textColorSecondary,
+                                rgb: this._themeService.getColorFromTheme('gray.600'),
                             },
                         },
                     },
@@ -427,20 +427,20 @@ export class EditorBridgeService extends Disposable implements IEditorBridgeServ
         return this._editorUnitId;
     }
 
-    changeVisible(param: IEditorBridgeServiceVisibleParam) {
-        this._visible = param;
+    changeVisible(params: IEditorBridgeServiceVisibleParam) {
+        this._visibleParams = params;
 
         // Reset the dirty status when the editor is visible.
-        if (param.visible) {
+        if (params.visible) {
             this._editorIsDirty = false;
         }
 
-        this._visible$.next(this._visible);
-        this._afterVisible$.next(this._visible);
+        this._visibleParams$.next(this._visibleParams);
+        this._afterVisibleParams$.next(this._visibleParams);
     }
 
     isVisible() {
-        return this._visible;
+        return this._visibleParams;
     }
 
     enableForceKeepVisible(): void {

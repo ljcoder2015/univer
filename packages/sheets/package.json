@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/sheets",
-    "version": "0.6.6",
+    "version": "0.7.0",
     "private": false,
     "description": "UniverSheet normal base-sheets",
     "author": "DreamNum <developer@univer.ai>",
@@ -53,6 +53,11 @@
                 "require": "./lib/cjs/facade.js",
                 "types": "./lib/types/facade/index.d.ts"
             },
+            "./lib/facade": {
+                "import": "./lib/es/facade.js",
+                "require": "./lib/cjs/facade.js",
+                "types": "./lib/types/facade/index.d.ts"
+            },
             "./lib/*": "./lib/*"
         }
     },
@@ -76,16 +81,16 @@
         "@univerjs/core": "workspace:*",
         "@univerjs/engine-formula": "workspace:*",
         "@univerjs/engine-numfmt": "workspace:*",
-        "@univerjs/protocol": "0.1.44",
+        "@univerjs/protocol": "0.1.46",
         "@univerjs/rpc": "workspace:*"
     },
     "devDependencies": {
         "@univerjs-infra/shared": "workspace:*",
         "@univerjs/engine-render": "workspace:*",
         "@univerjs/network": "workspace:*",
-        "rxjs": "^7.8.1",
-        "typescript": "^5.8.2",
-        "vite": "^6.2.1",
-        "vitest": "^3.0.8"
+        "rxjs": "^7.8.2",
+        "typescript": "^5.8.3",
+        "vite": "^6.3.5",
+        "vitest": "^3.1.4"
     }
 }

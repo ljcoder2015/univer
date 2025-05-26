@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     docQuickInsert: {
         menu: {
             numberedList: 'لیست شمارهدار',
             bulletedList: 'لیست نقطهدار',
             divider: 'خط تقسیم',
             text: 'متن',
+            table: 'جدول',
+            image: 'تصویر',
         },
         group: {
             basics: 'بنیادی',
         },
+        placeholder: 'هیچ نتیجهای یافت نشد',
+        keywordInputPlaceholder: 'وارد کلمات کلیدی',
     },
 };
 

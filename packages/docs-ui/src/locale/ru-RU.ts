@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     toolbar: {
         undo: 'Отменить',
         redo: 'Повторить',
@@ -49,10 +49,11 @@ const locale: typeof zhCN = {
         alignCenter: 'Выровнять по центру',
         alignRight: 'Выровнять по правому краю',
         alignJustify: 'Выровнять по ширине',
-        horizontalLine: 'Horizontal line',
-        headerFooter: 'Header & Footer',
-        checklist: 'Task list',
-        documentFlavor: 'Modern Mode',
+        horizontalLine: 'Горизонтальная линия',
+        headerFooter: 'Шапка и подвал',
+        checklist: 'Список задач',
+        documentFlavor: 'Современный режим',
+        pageSetup: 'Настройки страницы',
     },
     table: {
         insert: 'Insert',
@@ -97,6 +98,44 @@ const locale: typeof zhCN = {
             multiSpace: 'Multi Space',
             fixedValue: 'Fixed Value(px)',
         },
+    },
+    rightClick: {
+        copy: 'Копировать',
+        cut: 'Вырезать',
+        paste: 'Вставить',
+        delete: 'Удалить',
+        bulletList: 'Неупорядоченный список',
+        orderList: 'Упорядоченный список',
+        checkList: 'Список задач',
+        insertBellow: 'Вставить ниже',
+    },
+    'page-settings': {
+        'document-setting': 'Настройки документа',
+        'page-size': {
+            main: 'Размер бумаги',
+            a4: 'A4',
+            a3: 'A3',
+            a5: 'A5',
+            b4: 'B4',
+            b5: 'B5',
+            letter: 'Американский формат',
+            legal: 'Юридический формат',
+            tabloid: 'Таблоидный формат',
+            statement: 'Формат заявления',
+            executive: 'Исполнительный формат',
+            folio: 'Формат фолио',
+        },
+        'paper-size': 'Размер бумаги',
+        orientation: 'Ориентация',
+        portrait: 'Книжная',
+        landscape: 'Альбомная',
+        'custom-paper-size': 'Пользовательский размер бумаги',
+        top: 'Верх',
+        bottom: 'Низ',
+        left: 'Слева',
+        right: 'Справа',
+        cancel: 'Отмена',
+        confirm: 'Подтвердить',
     },
 };
 

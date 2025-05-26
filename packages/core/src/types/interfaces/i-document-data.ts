@@ -760,7 +760,6 @@ export enum NamedStyleType {
     HEADING_3, // Heading 3.
     HEADING_4, // Heading 4.
     HEADING_5, // Heading 5.
-    HEADING_6, // Heading 6.
 }
 
 // export enum Alignment {
@@ -971,8 +970,8 @@ export interface ITableCellMargin {
  */
 export interface ITableCellBorder {
     color: IColorStyle; // color
-    width: INumberUnit; // width
-    dashStyle: DashStyleType; // dashStyle
+    width?: INumberUnit; // width
+    dashStyle?: DashStyleType; // dashStyle
 }
 
 // 17.18.101ST_VerticalJc (Vertical Alignment Type)
@@ -1082,4 +1081,31 @@ export enum PageOrientType {
     LANDSCAPE,
 }
 
+export enum PaperType {
+    Letter = 'Letter',
+    Tabloid = 'Tabloid',
+    Legal = 'Legal',
+    Statement = 'Statement',
+    Executive = 'Executive',
+    Folio = 'Folio',
+    A3 = 'A3',
+    A4 = 'A4',
+    A5 = 'A5',
+    B4 = 'B4',
+    B5 = 'B5',
+}
+
+export const PAPER_TYPES: PaperType[] = [
+    PaperType.A3,
+    PaperType.A4,
+    PaperType.A5,
+    PaperType.B4,
+    PaperType.B5,
+    PaperType.Letter,
+    PaperType.Tabloid,
+    PaperType.Legal,
+    PaperType.Statement,
+    PaperType.Executive,
+    PaperType.Folio,
+];
 // #region - tech dept

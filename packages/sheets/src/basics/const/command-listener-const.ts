@@ -52,7 +52,9 @@ import { SetRangeValuesMutation } from '../../commands/mutations/set-range-value
 import { SetRowDataMutation } from '../../commands/mutations/set-row-data.mutation';
 import { SetRowHiddenMutation, SetRowVisibleMutation } from '../../commands/mutations/set-row-visible.mutation';
 import { SetWorksheetColWidthMutation } from '../../commands/mutations/set-worksheet-col-width.mutation';
+import { SetWorksheetColumnCountMutation } from '../../commands/mutations/set-worksheet-column-count.mutation';
 import { SetWorksheetDefaultStyleMutation } from '../../commands/mutations/set-worksheet-default-style.mutation';
+import { SetWorksheetRowCountMutation } from '../../commands/mutations/set-worksheet-row-count.mutation';
 import {
     SetWorksheetRowAutoHeightMutation,
     SetWorksheetRowHeightMutation,
@@ -79,7 +81,7 @@ export enum SheetSkeletonChangeType {
     INSERT_COL = 'sheet.mutation.insert-col',
     INSERT_ROW = 'sheet.mutation.insert-row',
     REMOVE_COL = 'sheet.mutation.remove-col',
-    REMOVE_ROW = 'sheet.mutation.remove-row',
+    REMOVE_ROW = 'sheet.mutation.remove-rows',
     TOGGLE_GRIDLINES = 'sheet.mutation.toggle-gridlines',
     SET_GRIDLINES_COLOR = 'sheet.mutation.set-gridlines-color',
 }
@@ -121,6 +123,8 @@ export const COMMAND_LISTENER_SKELETON_CHANGE = [
     RemoveRowMutation.id,
     ToggleGridlinesMutation.id,
     SetGridlinesColorMutation.id,
+    SetWorksheetRowCountMutation.id,
+    SetWorksheetColumnCountMutation.id,
 ];
 
 export const COMMAND_LISTENER_VALUE_CHANGE = [

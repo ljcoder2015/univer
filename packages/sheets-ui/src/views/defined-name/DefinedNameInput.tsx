@@ -18,7 +18,7 @@ import type { Nullable, Workbook } from '@univerjs/core';
 import type { IDefinedNamesServiceParam } from '@univerjs/engine-formula';
 import type { IRangeSelectorProps } from '../../basics/editor/range';
 import { AbsoluteRefType, IUniverInstanceService, LocaleService, Tools, UniverInstanceType } from '@univerjs/core';
-import { Button, Input, Radio, RadioGroup, Select } from '@univerjs/design';
+import { borderBottomClassName, borderClassName, Button, clsx, Input, Radio, RadioGroup, Select } from '@univerjs/design';
 import { IDefinedNamesService, IFunctionService, isReferenceStrings, isReferenceStringWithEffectiveColumn, LexerTreeBuilder, operatorToken } from '@univerjs/engine-formula';
 import { hasCJKText } from '@univerjs/engine-render';
 import { ErrorSingle } from '@univerjs/icons';
@@ -26,7 +26,6 @@ import { SCOPE_WORKBOOK_VALUE_DEFINED_NAME } from '@univerjs/sheets';
 import { ComponentManager, useDependency, useSidebarClick } from '@univerjs/ui';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY, RANGE_SELECTOR_COMPONENT_KEY } from '../../common/keys';
-import styles from './index.module.less';
 
 export interface IDefinedNameInputProps extends Omit<IDefinedNamesServiceParam, 'id'> {
     inputId: string;
@@ -36,10 +35,6 @@ export interface IDefinedNameInputProps extends Omit<IDefinedNamesServiceParam, 
     cancel?: () => void;
     id?: string;
 }
-
-const widthStyle: React.CSSProperties = {
-    width: '100%',
-};
 
 export const DefinedNameInput = (props: IDefinedNameInputProps) => {
     const {
@@ -201,18 +196,28 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
         setTypeValue(type);
     };
 
-    const formulaEditorActionsRef = useRef<any>({});
+    const formulaEditorRef = useRef<any>(null);
     const [isFocusFormulaEditor, isFocusFormulaEditorSet] = useState(false);
 
     useSidebarClick((e: MouseEvent) => {
-        const handleOutClick = formulaEditorActionsRef.current?.handleOutClick;
-        handleOutClick && handleOutClick(e, () => isFocusFormulaEditorSet(false));
+        const isOutSide = formulaEditorRef.current?.isClickOutSide(e);
+        isOutSide && isFocusFormulaEditorSet(false);
     });
 
     return (
-        <div className={styles.definedNameInput} style={{ display: state ? 'block' : 'none' }}>
+        <div
+            className={clsx('univer-grid univer-space-y-2 univer-pb-1', borderBottomClassName, {
+                'univer-hidden': !state,
+            })}
+        >
             <div>
-                <Input placeholder={localeService.t('definedName.inputNamePlaceholder')} value={nameValue} allowClear onChange={setNameValue} affixWrapperStyle={widthStyle} />
+                <Input
+                    className="univer-w-full"
+                    placeholder={localeService.t('definedName.inputNamePlaceholder')}
+                    value={nameValue}
+                    allowClear
+                    onChange={setNameValue}
+                />
             </div>
             <div>
                 <RadioGroup value={typeValue} onChange={typeValueChange}>
@@ -228,53 +233,78 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
                             subUnitId={subUnitId}
                             initialValue={formulaOrRefStringValue}
                             onChange={(_, text) => rangeSelectorChange(text)}
-
                             supportAcrossSheet
                         />
                     )
                 )
                 : (FormulaEditor && (
-                    <FormulaEditor
-                        initValue={formulaOrRefStringValue as any}
-                        unitId={unitId}
-                        subUnitId={subUnitId}
-                        isFocus={isFocusFormulaEditor}
-                        isSupportAcrossSheet
-                        onChange={(v = '') => {
-                            const formula = v || '';
-                            formulaEditorChange(formula);
-                        }}
-                        onVerify={(res: boolean) => {
-                            setValidFormulaOrRange(res);
-                        }}
-
-                        onFocus={() => isFocusFormulaEditorSet(true)}
-                        actions={formulaEditorActionsRef.current}
-                    />
+                    <div className="univer-relative univer-mt-4 univer-h-full">
+                        <div className="univer-relative univer-h-8 univer-select-none">
+                            <FormulaEditor
+                                ref={formulaEditorRef}
+                                className={clsx(`
+                                  univer-box-border univer-h-8 univer-w-full univer-cursor-pointer univer-items-center
+                                  univer-rounded-lg univer-bg-white univer-pt-2 univer-transition-colors
+                                  [&>div:first-child]:univer-px-2.5
+                                  [&>div]:univer-h-5 [&>div]:univer-ring-transparent
+                                  dark:!univer-bg-gray-700 dark:!univer-text-white
+                                  hover:univer-border-primary-600
+                                `, borderClassName)}
+                                initValue={formulaOrRefStringValue as any}
+                                unitId={unitId}
+                                subUnitId={subUnitId}
+                                isFocus={isFocusFormulaEditor}
+                                isSupportAcrossSheet
+                                onChange={(v = '') => {
+                                    const formula = v || '';
+                                    formulaEditorChange(formula);
+                                }}
+                                onVerify={(res: boolean) => {
+                                    setValidFormulaOrRange(res);
+                                }}
+                                onFocus={() => isFocusFormulaEditorSet(true)}
+                            />
+                        </div>
+                    </div>
                 ))}
             <div>
-                <Select style={widthStyle} value={localSheetIdValue} options={options} onChange={setLocalSheetIdValue} />
+                <Select
+                    className="univer-w-full"
+                    value={localSheetIdValue}
+                    options={options}
+                    onChange={setLocalSheetIdValue}
+                />
             </div>
             <div>
-                <Input affixWrapperStyle={widthStyle} placeholder={localeService.t('definedName.inputCommentPlaceholder')} value={commentValue} onChange={setCommentValue} />
+                <Input
+                    className="univer-w-full"
+                    placeholder={localeService.t('definedName.inputCommentPlaceholder')}
+                    value={commentValue}
+                    onChange={setCommentValue}
+                />
             </div>
-            <div style={{ display: validString.length === 0 ? 'none' : 'flex' }} className={styles.definedNameInputValidation}>
+            <div
+                className={clsx('univer-items-center univer-gap-1 univer-text-sm univer-text-red-500', {
+                    'univer-hidden': validString.length === 0,
+                    'univer-flex': validString.length !== 0,
+                })}
+            >
                 <span>
                     {validString}
                 </span>
                 <ErrorSingle />
             </div>
-            <div>
+
+            <div className="univer-flex univer-gap-2">
                 <Button
                     onClick={() => {
-                        cancel && cancel();
+                        cancel?.();
                     }}
                 >
                     {localeService.t('definedName.cancel')}
                 </Button>
                 <Button
-                    style={{ marginLeft: 15 }}
-                    type="primary"
+                    variant="primary"
                     onClick={confirmChange}
                 >
                     {localeService.t('definedName.confirm')}

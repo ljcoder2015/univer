@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
-
-const locale: typeof zhCN = {
+const locale = {
     toolbar: {
         undo: 'Undo',
         redo: 'Redo',
@@ -53,6 +51,7 @@ const locale: typeof zhCN = {
         alignJustify: 'Justify',
         horizontalLine: 'Horizontal line',
         headerFooter: 'Header & Footer',
+        pageSetup: 'Page Setup',
     },
     table: {
         insert: 'Insert',
@@ -97,6 +96,44 @@ const locale: typeof zhCN = {
             multiSpace: 'Multi Space',
             fixedValue: 'Fixed Value(px)',
         },
+    },
+    rightClick: {
+        copy: 'Copy',
+        cut: 'Cut',
+        paste: 'Paste',
+        delete: 'Delete',
+        bulletList: 'Bullet list',
+        orderList: 'Ordered list',
+        checkList: 'Task list',
+        insertBellow: 'Insert below',
+    },
+    'page-settings': {
+        'document-setting': 'Document Setting',
+        'paper-size': 'Paper size',
+        'page-size': {
+            main: 'Paper size',
+            a4: 'A4',
+            a3: 'A3',
+            a5: 'A5',
+            b4: 'B4',
+            b5: 'B5',
+            letter: 'Letter',
+            legal: 'Legal',
+            tabloid: 'Tabloid',
+            statement: 'Statement',
+            executive: 'Executive',
+            folio: 'Folio',
+        },
+        orientation: 'Orientation',
+        portrait: 'Portrait',
+        landscape: 'Landscape',
+        'custom-paper-size': 'Custom Paper size',
+        top: 'Top',
+        bottom: 'Bottom',
+        left: 'Left',
+        right: 'Right',
+        cancel: 'Cancel',
+        confirm: 'Confirm',
     },
 };
 

@@ -15,19 +15,13 @@
  */
 
 import type { Nullable } from '../../shared';
-import type {
-    IDocumentBody,
-    IDocumentData,
-    IDocumentRenderConfig,
-    IDocumentStyle,
-    IDrawings,
-    IListData,
-} from '../../types/interfaces/i-document-data';
+import type { IDocumentBody, IDocumentData, IDocumentRenderConfig, IDocumentStyle, IDrawings, IListData } from '../../types/interfaces/i-document-data';
 import type { IPaddingData } from '../../types/interfaces/i-style-data';
 import type { JSONXActions } from './json-x/json-x';
 import { BehaviorSubject } from 'rxjs';
 import { UnitModel, UniverInstanceType } from '../../common/unit';
 import { Tools } from '../../shared/tools';
+
 import { getEmptySnapshot } from './empty-snapshot';
 import { JSONX } from './json-x/json-x';
 import { PRESET_LIST_TYPE } from './preset-list-type';
@@ -138,6 +132,10 @@ class DocumentDataModelSimple extends UnitModel<IDocumentData, UniverInstanceTyp
         }
     }
 
+    getDocumentStyle() {
+        return this.snapshot.documentStyle;
+    }
+
     updateDocumentStyle(config: IDocumentStyle) {
         if (this.snapshot.documentStyle == null) {
             this.snapshot.documentStyle = config;
@@ -220,6 +218,18 @@ class DocumentDataModelSimple extends UnitModel<IDocumentData, UniverInstanceTyp
         } else {
             this.snapshot.settings.zoomRatio = 1;
         }
+    }
+
+    setDisabled(disabled: boolean) {
+        this.snapshot.disabled = disabled;
+    }
+
+    getDisabled() {
+        return this.snapshot.disabled;
+    }
+
+    getTitle() {
+        return this.snapshot.title;
     }
 }
 

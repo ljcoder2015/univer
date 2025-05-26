@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { CommandListener, DocumentDataModel, IDisposable, IDocumentData, IExecutionOptions, IParagraphStyle, ITextDecoration, ITextStyle, LifecycleStages } from '@univerjs/core';
+import type { CommandListener, DocumentDataModel, IDisposable, IDocumentData, IExecutionOptions, ILanguagePack, IParagraphStyle, ITextDecoration, ITextStyle, LifecycleStages, LocaleType } from '@univerjs/core';
 import type { Subscription } from 'rxjs';
 import type { ICommandEvent, IEventParamConfig } from './f-event';
-import { CanceledError, ColorBuilder, Disposable, ICommandService, Inject, Injector, IUniverInstanceService, LifecycleService, ParagraphStyleBuilder, ParagraphStyleValue, RedoCommand, RichTextBuilder, RichTextValue, TextDecorationBuilder, TextStyleBuilder, TextStyleValue, toDisposable, UndoCommand, Univer, UniverInstanceType } from '@univerjs/core';
+import { CanceledError, ColorBuilder, Disposable, ICommandService, Inject, Injector, IUniverInstanceService, LifecycleService, LocaleService, ParagraphStyleBuilder, ParagraphStyleValue, RedoCommand, RichTextBuilder, RichTextValue, TextDecorationBuilder, TextStyleBuilder, TextStyleValue, ThemeService, toDisposable, UndoCommand, Univer, UniverInstanceType } from '@univerjs/core';
 import { FBlob } from './f-blob';
 import { FDoc } from './f-doc';
 import { FEnum } from './f-enum';
@@ -162,11 +162,11 @@ export class FUniver extends Disposable {
 
         this.registerEventHandler(
             this.Event.CommandExecuted,
-            () => commandService.onCommandExecuted((commandInfo) => {
+            () => commandService.onCommandExecuted((commandInfo, options) => {
                 const { id, type: propType, params } = commandInfo;
                 if (commandInfo.id !== RedoCommand.id && commandInfo.id !== UndoCommand.id) {
                     const type = propType!;
-                    const eventParams: ICommandEvent = { id, type, params };
+                    const eventParams: ICommandEvent = { id, type, params, options };
                     this.fireEvent(this.Event.CommandExecuted, eventParams);
                 }
             })
@@ -210,11 +210,11 @@ export class FUniver extends Disposable {
 
         this.registerEventHandler(
             this.Event.BeforeCommandExecute,
-            () => commandService.beforeCommandExecuted((commandInfo) => {
+            () => commandService.beforeCommandExecuted((commandInfo, options) => {
                 const { id, type: propType, params } = commandInfo;
                 if (commandInfo.id !== RedoCommand.id && commandInfo.id !== UndoCommand.id) {
                     const type = propType!;
-                    const eventParams: ICommandEvent = { id, type, params };
+                    const eventParams: ICommandEvent = { id, type, params, options };
                     this.fireEvent(this.Event.BeforeCommandExecute, eventParams);
 
                     if (eventParams.cancel) {
@@ -316,6 +316,49 @@ export class FUniver extends Disposable {
      */
     redo(): Promise<boolean> {
         return this._commandService.executeCommand(RedoCommand.id);
+    }
+
+    /**
+     * Toggle dark mode on or off.
+     * @param {boolean} isDarkMode - Whether the dark mode is enabled.
+     * @example
+     * ```ts
+     * univerAPI.toggleDarkMode(true);
+     * ```
+     */
+    toggleDarkMode(isDarkMode: boolean): void {
+        const themeService = this._injector.get(ThemeService);
+        themeService.setDarkMode(isDarkMode);
+    }
+
+    /**
+     * Load locales for the given locale.
+     * @description This method is utilized to load locales, which can be either built-in or custom-defined.
+     * @param {string} locale - A unique locale identifier.
+     * @param {ILanguagePack} locales  - The locales object containing the translations.
+     * @example
+     * ```ts
+     * univerAPI.loadLocales('esES', {
+     *   'Hello World': 'Hola Mundo',
+     * });
+     * ```
+     */
+    loadLocales(locale: string, locales: ILanguagePack): void {
+        const localeService = this._injector.get(LocaleService);
+        localeService.load({ [locale]: locales });
+    }
+
+    /**
+     * Set the current locale.
+     * @param {string} locale - A unique locale identifier.
+     * @example
+     * ```ts
+     * univerAPI.setLocale('esES');
+     * ```
+     */
+    setLocale(locale: string): void {
+        const localeService = this._injector.get(LocaleService);
+        localeService.setLocale(locale as LocaleType);
     }
 
     /**
@@ -467,6 +510,7 @@ export class FUniver extends Disposable {
      * ```ts
      * const color = univerAPI.newColor();
      * ```
+     * @deprecated
      */
     newColor(): ColorBuilder {
         return new ColorBuilder();

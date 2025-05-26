@@ -16,16 +16,15 @@
 
 import { CheckMarkSingle } from '@univerjs/icons';
 import { useContext, useMemo } from 'react';
+import { borderClassName, scrollbarClassName } from '../../helper/class-utilities';
 import { clsx } from '../../helper/clsx';
-
 import { ConfigContext } from '../config-provider/ConfigProvider';
-import styles from './index.module.less';
 
-interface IOption {
+export interface ICascaderOption {
     label: string;
     value: string;
     color?: string;
-    children?: IOption[];
+    children?: ICascaderOption[];
 }
 
 export interface ICascaderListProps {
@@ -38,7 +37,7 @@ export interface ICascaderListProps {
      * The options of select
      * @default []
      */
-    options?: IOption[];
+    options?: ICascaderOption[];
 
     /**
      * The callback function that is triggered when the value is changed
@@ -54,6 +53,19 @@ export interface ICascaderListProps {
      * The class name of the wrapper
      */
     wrapperClassName?: string;
+}
+
+function Empty({ emptyText }: { emptyText?: string }) {
+    return (
+        <section
+            className={`
+              univer-h-8 univer-px-2 univer-pr-32 univer-text-sm/8 univer-text-gray-600
+              dark:!univer-text-gray-200
+            `}
+        >
+            {emptyText}
+        </section>
+    );
 }
 
 export function CascaderList(props: ICascaderListProps) {
@@ -94,25 +106,53 @@ export function CascaderList(props: ICascaderListProps) {
     }
 
     return (
-        <section className={clsx(styles.cascaderList, wrapperClassName)}>
+        <section
+            data-u-comp="cascader-list"
+            className={clsx(`
+              univer-overflow-auto-y univer-grid univer-h-full univer-max-h-80 univer-grid-flow-col univer-rounded
+              univer-py-2 univer-text-gray-900
+              [&>ul:not(:last-child)]:univer-border-0 [&>ul:not(:last-child)]:univer-border-r
+              [&>ul:not(:last-child)]:univer-border-solid [&>ul:not(:last-child)]:univer-border-r-gray-200
+              dark:!univer-text-white
+            `, borderClassName, scrollbarClassName, wrapperClassName)}
+        >
             {activeOptions.map((options, index) =>
                 options.length
                     ? (
-                        <ul key={index} className={clsx(styles.cascaderListBoard, contentClassName)}>
+                        <ul
+                            key={index}
+                            className={clsx(`
+                              univer-m-0 univer-h-full univer-max-h-full univer-list-none univer-overflow-auto
+                              univer-px-2
+                            `, scrollbarClassName, contentClassName)}
+                        >
                             {options.map((option) => (
-                                <li
-                                    key={option.value}
-                                    className={clsx(styles.cascaderListItem, {
-                                        [styles.cascaderListItemActive]: option.value === value[index],
-                                    })}
-                                >
+                                <li key={option.value}>
                                     <a
-                                        className={styles.cascaderListOption}
+                                        className={clsx(`
+                                          univer-relative univer-block univer-h-8 univer-cursor-pointer univer-rounded
+                                          univer-text-sm/8
+                                        `, {
+                                            'univer-px-7': index > 0,
+                                            'univer-px-1.5': index === 0,
+                                            'univer-bg-gray-200 dark:!univer-bg-gray-600': option.value === value[index],
+                                        })}
                                         onClick={() => handleChange(index, option.value)}
                                     >
-                                        <span className={styles.cascaderListCheckMark}>
-                                            {option.value === value[index] && <CheckMarkSingle />}
-                                        </span>
+                                        {index > 0 && (
+                                            <span
+                                                className={`
+                                                  univer-absolute univer-left-2 univer-flex univer-h-full
+                                                  univer-items-center
+                                                `}
+                                            >
+                                                {option.value === value[index] && (
+                                                    <CheckMarkSingle
+                                                        className="univer-text-primary-600"
+                                                    />
+                                                )}
+                                            </span>
+                                        )}
                                         <span>{option.label}</span>
                                     </a>
                                 </li>
@@ -120,12 +160,12 @@ export function CascaderList(props: ICascaderListProps) {
                         </ul>
                     )
                     : (
-                        <section key={index} className={styles.cascaderListEmpty}>
-                            {locale?.CascaderList.empty}
-                        </section>
+                        <Empty key={index} emptyText={locale?.CascaderList.empty} />
                     )
             )}
-            {value.length <= 0 && <section className={styles.cascaderListEmpty}>{locale?.CascaderList.empty}</section>}
+            {value.length <= 0 && (
+                <Empty emptyText={locale?.CascaderList.empty} />
+            )}
         </section>
     );
 }

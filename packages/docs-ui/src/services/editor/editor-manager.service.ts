@@ -18,7 +18,7 @@ import type { DocumentDataModel, IDisposable, IDocumentBody, IDocumentData, Null
 import type { ISuccinctDocRangeParam, Scene } from '@univerjs/engine-render';
 import type { Observable } from 'rxjs';
 import type { IEditorConfigParams } from './editor';
-import { createIdentifier, DEFAULT_EMPTY_DOCUMENT_VALUE, Disposable, EDITOR_ACTIVATED, FOCUSING_EDITOR_STANDALONE, HorizontalAlign, ICommandService, IContextService, Inject, isInternalEditorID, IUndoRedoService, IUniverInstanceService, toDisposable, UniverInstanceType, VerticalAlign } from '@univerjs/core';
+import { createIdentifier, DEFAULT_EMPTY_DOCUMENT_VALUE, Disposable, EDITOR_ACTIVATED, FOCUSING_EDITOR_STANDALONE, HorizontalAlign, ICommandService, IContextService, Inject, Injector, isInternalEditorID, IUndoRedoService, IUniverInstanceService, toDisposable, UniverInstanceType, VerticalAlign } from '@univerjs/core';
 import { DocSelectionManagerService } from '@univerjs/docs';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { fromEvent, Subject } from 'rxjs';
@@ -28,11 +28,11 @@ import { Editor } from './editor';
  * Not these elements will be considered as editor blur.
  */
 const editorFocusInElements = [
-    'univer-editor',
-    'univer-range-selector',
-    'univer-range-selector-editor',
-    'univer-render-canvas',
-    'univer-text-editor-container-placeholder',
+    'editor',
+    'render-canvas',
+    // 'univer-range-selector',
+    // 'univer-range-selector-editor',
+    // 'univer-text-editor-container-placeholder',
 ];
 
 export interface IEditorSetValueParam {
@@ -83,7 +83,8 @@ export class EditorService extends Disposable implements IEditorService, IDispos
         @Inject(DocSelectionManagerService) private readonly _docSelectionManagerService: DocSelectionManagerService,
         @IContextService private readonly _contextService: IContextService,
         @ICommandService private readonly _commandService: ICommandService,
-        @IUndoRedoService private readonly _undoRedoService: IUndoRedoService
+        @IUndoRedoService private readonly _undoRedoService: IUndoRedoService,
+        @Inject(Injector) private readonly _injector: Injector
     ) {
         super();
 
@@ -102,7 +103,7 @@ export class EditorService extends Disposable implements IEditorService, IDispos
     }
 
     private _blurSheetEditor(target: HTMLElement) {
-        if (editorFocusInElements.some((item) => target.classList.contains(item))) {
+        if (editorFocusInElements.some((item) => target.dataset.uComp === item)) {
             return;
         }
 
@@ -222,7 +223,8 @@ export class EditorService extends Disposable implements IEditorService, IDispos
                 this._univerInstanceService,
                 this._docSelectionManagerService,
                 this._commandService,
-                this._undoRedoService
+                this._undoRedoService,
+                this._injector
             );
 
             this._editors.set(editorUnitId, editor);

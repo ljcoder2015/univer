@@ -19,13 +19,11 @@ import { ICommandService, LocaleService } from '@univerjs/core';
 import { Button, Segmented } from '@univerjs/design';
 import { SheetsFilterService } from '@univerjs/sheets-filter';
 import { SheetsUIPart } from '@univerjs/sheets-ui';
-
 import { ComponentContainer, useComponentsOfPart, useDependency, useObservable } from '@univerjs/ui';
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { of } from 'rxjs';
 import { ChangeFilterByOperation, CloseFilterPanelOperation } from '../../commands/operations/sheets-filter.operation';
 import { FilterBy, SheetsFilterPanelService } from '../../services/sheets-filter-panel.service';
-import styles from './index.module.less';
 import { FilterByCondition } from './SheetsFilterByConditionsPanel';
 import { FilterByValue } from './SheetsFilterByValuesPanel';
 
@@ -71,12 +69,19 @@ export function FilterPanel() {
     const FilterPanelEmbedPointPart = useComponentsOfPart(SheetsUIPart.FILTER_PANEL_EMBED_POINT);
 
     return (
-        <div className={styles.sheetsFilterPanel}>
+        <div
+            data-u-comp="sheets-filter-panel"
+            className={`
+              univer-box-border univer-flex univer-h-[442px] univer-w-[312px] univer-flex-col univer-rounded-lg
+              univer-bg-white univer-p-4 univer-shadow-lg
+              dark:!univer-border-gray-600 dark:!univer-bg-gray-700
+            `}
+        >
             <ComponentContainer
                 components={FilterPanelEmbedPointPart}
                 sharedProps={{ range, colIndex, onClose: onCancel }}
             />
-            <div className={styles.sheetsFilterPanelHeader}>
+            <div className="univer-mb-1 univer-flex-shrink-0 univer-flex-grow-0">
                 <Segmented
                     value={filterBy}
                     items={items}
@@ -85,20 +90,35 @@ export function FilterPanel() {
             </div>
             {filterByModel
                 ? (
-                    <div className={styles.sheetsFilterPanelContent}>
+                    <div
+                        data-u-comp="sheets-filter-panel-content"
+                        className="univer-flex-shrink univer-flex-grow univer-pt-2"
+                    >
                         {filterBy === FilterBy.VALUES
                             ? <FilterByValue model={filterByModel as ByValuesModel} />
                             : <FilterByCondition model={filterByModel as ByConditionsModel} />}
                     </div>
                 )
                 : (
-                    <div style={{ flex: 1 }} />
+                    <div className="univer-flex-1" />
                 )}
-            <div className={styles.sheetsFilterPanelFooter}>
-                <Button type="link" onClick={onClearCriteria} disabled={clearFilterDisabled}>{localeService.t('sheets-filter.panel.clear-filter')}</Button>
-                <span className={styles.sheetsFilterPanelFooterPrimaryButtons}>
-                    <Button type="default" onClick={onCancel}>{localeService.t('sheets-filter.panel.cancel')}</Button>
-                    <Button disabled={!canApply} type="primary" onClick={onApply}>{localeService.t('sheets-filter.panel.confirm')}</Button>
+            <div
+                data-u-comp="sheets-filter-panel-footer"
+                className={`
+                  univer-mt-4 univer-inline-flex univer-flex-shrink-0 univer-flex-grow-0 univer-flex-nowrap
+                  univer-justify-between univer-overflow-hidden
+                `}
+            >
+                <Button variant="link" onClick={onClearCriteria} disabled={clearFilterDisabled}>
+                    {localeService.t('sheets-filter.panel.clear-filter')}
+                </Button>
+                <span className="univer-flex univer-gap-2">
+                    <Button variant="default" onClick={onCancel}>
+                        {localeService.t('sheets-filter.panel.cancel')}
+                    </Button>
+                    <Button disabled={!canApply} variant="primary" onClick={onApply}>
+                        {localeService.t('sheets-filter.panel.confirm')}
+                    </Button>
                 </span>
             </div>
         </div>

@@ -17,7 +17,7 @@
 import type { DocumentDataModel, IDisposable, ITextRange } from '@univerjs/core';
 import type { Editor, IKeyboardEventConfig } from '@univerjs/docs-ui';
 import type { KeyCode, MetaKeys } from '@univerjs/ui';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 import type { FormulaSelectingType } from './hooks/use-formula-selection';
 import type { IRefSelection } from './hooks/use-highlight';
 import { BuildTextUtils, createInternalEditorID, generateRandomId, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
@@ -26,7 +26,7 @@ import { DocBackScrollRenderController, DocSelectionRenderService, IEditorServic
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { EMBEDDING_FORMULA_EDITOR } from '@univerjs/sheets-ui';
 import { useDependency, useEvent, useObservable, useUpdateEffect } from '@univerjs/ui';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { findIndexFromSequenceNodes, findRefSequenceIndex } from '../range-selector/utils/find-index-from-sequence-nodes';
 import { HelpFunction } from './help-function/HelpFunction';
 import { useFocus } from './hooks/use-focus';
@@ -40,7 +40,6 @@ import { useSheetSelectionChange } from './hooks/use-sheet-selection-change';
 import { useStateRef } from './hooks/use-state-ref';
 import { useSwitchSheet } from './hooks/use-switch-sheet';
 import { useVerify } from './hooks/use-verify';
-import styles from './index.module.less';
 import { SearchFunction } from './search-function/SearchFunction';
 import { getFormulaText } from './utils/get-formula-text';
 
@@ -48,6 +47,7 @@ export interface IFormulaEditorProps {
     unitId: string;
     subUnitId: string;
     initValue: `=${string}`;
+    autofocus?: boolean;
     onChange: (text: string) => void;
     errorText?: string | ReactNode;
     onVerify?: (res: boolean, result: string) => void;
@@ -55,14 +55,11 @@ export interface IFormulaEditorProps {
     onFocus?: () => void;
     onBlur?: () => void;
     isSupportAcrossSheet?: boolean;
-    actions?: {
-        handleOutClick?: (e: MouseEvent, cb: () => void) => void;
-    };
     className?: string;
     editorId?: string;
     moveCursor?: boolean;
-    onFormulaSelectingChange?: (isSelecting: FormulaSelectingType) => void;
-    keyboradEventConfig?: IKeyboardEventConfig;
+    onFormulaSelectingChange?: (isSelecting: FormulaSelectingType, isFocusing: boolean) => void;
+    keyboardEventConfig?: IKeyboardEventConfig;
     onMoveInEditor?: (keyCode: KeyCode, metaKey?: MetaKeys) => void;
     resetSelectionOnBlur?: boolean;
     isSingle?: boolean;
@@ -76,7 +73,12 @@ export interface IFormulaEditorProps {
 }
 
 const noop = () => { };
-export function FormulaEditor(props: IFormulaEditorProps) {
+
+export interface IFormulaEditorRef {
+    isClickOutSide: (e: MouseEvent) => boolean;
+}
+
+export const FormulaEditor = forwardRef((props: IFormulaEditorProps, ref: Ref<IFormulaEditorRef>) => {
     const {
         errorText,
         initValue,
@@ -88,17 +90,17 @@ export function FormulaEditor(props: IFormulaEditorProps) {
         onBlur = noop,
         onChange: propOnChange,
         onVerify,
-        actions,
         className,
         editorId: propEditorId,
         moveCursor = true,
         onFormulaSelectingChange: propOnFormulaSelectingChange,
-        keyboradEventConfig,
+        keyboardEventConfig,
         onMoveInEditor,
         resetSelectionOnBlur = true,
         autoScrollbar = true,
         isSingle = true,
         disableSelectionOnClick = false,
+        autofocus = true,
         disableContextMenu,
         style,
     } = props;
@@ -106,16 +108,14 @@ export function FormulaEditor(props: IFormulaEditorProps) {
     const editorService = useDependency(IEditorService);
     const sheetEmbeddingRef = useRef<HTMLDivElement>(null);
     const onChange = useEvent(propOnChange);
-    // init actions
-    if (actions) {
-        actions.handleOutClick = (e: MouseEvent, cb: () => void) => {
+    useImperativeHandle(ref, () => ({
+        isClickOutSide: (e: MouseEvent) => {
             if (sheetEmbeddingRef.current) {
-                const isContain = sheetEmbeddingRef.current.contains(e.target as Node);
-                !isContain && cb();
+                return !sheetEmbeddingRef.current.contains(e.target as Node);
             }
-        };
-    }
-
+            return false;
+        },
+    }));
     const onFormulaSelectingChange = useEvent(propOnFormulaSelectingChange);
     const searchFunctionRef = useRef<HTMLElement>(null);
     const editorRef = useRef<Editor>(undefined);
@@ -153,10 +153,12 @@ export function FormulaEditor(props: IFormulaEditorProps) {
     const highlight = useEvent((text: string, isNeedResetSelection: boolean = true, isEnd?: boolean, newSelections?: ITextRange[]) => {
         if (!editorRef.current) return;
         highTextRef.current = text;
-        const sequenceNodes = getFormulaToken(text[0] === '=' ? text.slice(1) : '');
+        const formulaStr = text[0] === '=' ? text.slice(1) : '';
+        const sequenceNodes = getFormulaToken(formulaStr);
+        const parsedFormula = sequenceNodes.reduce((pre, cur) => (typeof cur === 'object' ? `${pre}${cur.token}` : `${pre}${cur}`), '');
         const ranges = highlightDoc(
             editorRef.current,
-            sequenceNodes,
+            parsedFormula === formulaStr ? sequenceNodes : [],
             isNeedResetSelection,
             newSelections
         );
@@ -202,16 +204,16 @@ export function FormulaEditor(props: IFormulaEditorProps) {
     const resetSelection = useResetSelection(isFocus, unitId, subUnitId);
 
     useEffect(() => {
-        onFormulaSelectingChange(isSelecting);
+        onFormulaSelectingChange(isSelecting, docSelectionRenderService?.isFocusing ?? true);
     }, [onFormulaSelectingChange, isSelecting]);
 
-    useKeyboardEvent(isFocus, keyboradEventConfig, editor);
+    useKeyboardEvent(isFocus, keyboardEventConfig, editor);
 
     useLayoutEffect(() => {
         let dispose: IDisposable;
         if (formulaEditorContainerRef.current) {
             dispose = editorService.register({
-                autofocus: true,
+                autofocus,
                 editorUnitId: editorId,
                 initialSnapshot: {
                     id: editorId,
@@ -250,7 +252,7 @@ export function FormulaEditor(props: IFormulaEditorProps) {
 
     const { checkScrollBar } = useResize(editor, isSingle, autoScrollbar);
     useRefactorEffect(isFocus, Boolean(isSelecting && docFocusing), unitId, disableContextMenu);
-    useLeftAndRightArrow(isFocus && moveCursor, selectingMode, editor, onMoveInEditor);
+    useLeftAndRightArrow(Boolean(isFocus && isFocusing && moveCursor), selectingMode, editor, onMoveInEditor);
 
     const handleSelectionChange = useEvent((refString: string, offset: number, isEnd: boolean) => {
         if (!isFocusing) {
@@ -311,21 +313,33 @@ export function FormulaEditor(props: IFormulaEditorProps) {
     };
 
     return (
-        <div style={style} className={clsx(styles.sheetEmbeddingFormulaEditor, className)}>
+        <div className={className}>
             <div
-                className={clsx(styles.sheetEmbeddingFormulaEditorWrap, {
-                    [styles.sheetEmbeddingFormulaEditorActive]: isFocus,
-                    [styles.sheetEmbeddingFormulaEditorError]: isError,
-                })}
+                className={clsx(
+                    `
+                      univer-relative univer-box-border univer-flex univer-h-full univer-w-full univer-items-center
+                      univer-justify-around univer-gap-2 univer-rounded-none univer-p-0 univer-ring-1
+                    `,
+                    {
+                        'univer-ring-primary-500': isFocus,
+                        'univer-ring-red-500': isError,
+                    }
+                )}
                 ref={sheetEmbeddingRef}
             >
                 <div
-                    className={styles.sheetEmbeddingFormulaEditorText}
                     ref={formulaEditorContainerRef}
+                    className="univer-relative univer-h-full univer-w-full"
                     onMouseUp={handleMouseUp}
                 />
             </div>
-            {errorText !== undefined ? <div className={styles.sheetEmbeddingFormulaEditorErrorWrap}>{errorText}</div> : null}
+            {errorText !== undefined
+                ? (
+                    <div className="univer-my-1 univer-text-xs univer-text-red-500">
+                        {errorText}
+                    </div>
+                )
+                : null}
             {editor
                 ? (
                     <HelpFunction
@@ -350,4 +364,4 @@ export function FormulaEditor(props: IFormulaEditorProps) {
         </div>
     )
     ;
-}
+});

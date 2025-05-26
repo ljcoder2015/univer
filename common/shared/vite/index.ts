@@ -23,9 +23,9 @@ import fs from 'fs-extra';
 import { mergeConfig, build as viteBuild } from 'vite';
 import dts from 'vite-plugin-dts';
 import vitePluginExternal from 'vite-plugin-external';
-
 import { autoDetectedExternalPlugin } from './auto-detected-external-plugin';
 import { cleanupPkgPlugin } from './cleanup-pkg-plugin';
+import { trimClassNamePlugin } from './plugin-trim-classname-plugin';
 import { convertLibNameFromPackageName, obfuscator } from './utils';
 
 interface IBuildExecuterOptions {
@@ -39,7 +39,7 @@ interface IBuildExecuterOptions {
 async function buildESM(sharedConfig: InlineConfig, options: IBuildExecuterOptions) {
     const { pkg, entry } = options;
 
-    return Promise.all(Object.keys(entry).map((key) => {
+    await Promise.all(Object.keys(entry).map((key) => {
         const basicConfig: InlineConfig = {
             build: {
                 emptyOutDir: false,
@@ -75,6 +75,12 @@ async function buildESM(sharedConfig: InlineConfig, options: IBuildExecuterOptio
 
         return viteBuild(config);
     }));
+
+    const __dirname = process.cwd();
+    const libDir = path.resolve(__dirname, 'lib');
+    const esmDir = path.resolve(__dirname, 'lib/es');
+
+    fs.copySync(esmDir, libDir);
 }
 
 async function buildCJS(sharedConfig: InlineConfig, options: IBuildExecuterOptions) {
@@ -209,13 +215,8 @@ export async function build(options?: IBuildOptions) {
             'process.env.NODE_ENV': JSON.stringify('production'),
             'process.env.BUILD_TIMESTAMP': JSON.stringify(Math.floor(Date.now() / 1000)),
         },
-        css: {
-            modules: {
-                localsConvention: 'camelCaseOnly',
-                generateScopedName: 'univer-[local]',
-            },
-        },
         plugins: [
+            trimClassNamePlugin(),
             react(),
             vue(),
             autoDetectedExternalPlugin(),

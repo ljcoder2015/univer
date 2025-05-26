@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     sheet: {
         numfmt: {
-            percent: 'درصد',
             title: 'قالب‌بندی عدد',
             numfmtType: 'انواع قالب‌بندی',
             cancel: 'انصراف',
@@ -28,6 +27,8 @@ const locale: typeof zhCN = {
             accounting: 'حسابداری',
             text: 'متن',
             number: 'عدد',
+            percent: 'درصد',
+            scientific: 'علمی',
             currency: 'ارز',
             date: 'تاریخ',
             time: 'زمان',

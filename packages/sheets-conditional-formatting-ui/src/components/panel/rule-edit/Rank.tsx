@@ -20,11 +20,10 @@ import { LocaleService } from '@univerjs/core';
 import { Checkbox, InputNumber, Select } from '@univerjs/design';
 import { CFNumberOperator, CFRuleType, CFSubRuleType } from '@univerjs/sheets-conditional-formatting';
 import { useDependency } from '@univerjs/ui';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ConditionalStyleEditor } from '../../conditional-style-editor';
 import { Preview } from '../../preview';
-import stylesBase from '../index.module.less';
-import styles from './index.module.less';
+import { previewClassName } from './styles';
 
 export const RankStyleEditor = (props: IStyleEditorProps) => {
     const { onChange, interceptorManager } = props;
@@ -33,7 +32,7 @@ export const RankStyleEditor = (props: IStyleEditorProps) => {
     const rule = props.rule?.type === CFRuleType.highlightCell ? props.rule : undefined as IRankHighlightCell | IAverageHighlightCell | undefined;
     const options = [{ label: localeService.t('sheet.cf.panel.isNotBottom'), value: 'isNotBottom' }, { label: localeService.t('sheet.cf.panel.isBottom'), value: 'isBottom' }, { label: localeService.t('sheet.cf.panel.greaterThanAverage'), value: 'greaterThanAverage' }, { label: localeService.t('sheet.cf.panel.lessThanAverage'), value: 'lessThanAverage' }];
 
-    const [type, typeSet] = useState(() => {
+    const [type, setType] = useState(() => {
         const defaultV = options[0].value;
         const type = rule?.type;
         if (!rule) {
@@ -64,7 +63,7 @@ export const RankStyleEditor = (props: IStyleEditorProps) => {
         }
         return defaultV;
     });
-    const [value, valueSet] = useState(() => {
+    const [value, setValue] = useState(() => {
         const defaultV = 10;
         const type = rule?.type;
         if (!rule) {
@@ -82,7 +81,7 @@ export const RankStyleEditor = (props: IStyleEditorProps) => {
         }
         return defaultV;
     });
-    const [isPercent, isPercentSet] = useState(() => {
+    const [isPercent, setIsPercent] = useState(() => {
         const defaultV = false;
         const type = rule?.type;
         if (!rule) {
@@ -101,7 +100,7 @@ export const RankStyleEditor = (props: IStyleEditorProps) => {
         return defaultV;
     });
 
-    const [style, styleSet] = useState<IHighlightCell['style']>({});
+    const [style, setStyle] = useState<IHighlightCell['style']>({});
 
     const getResult = (config: {
         type: string;
@@ -144,52 +143,40 @@ export const RankStyleEditor = (props: IStyleEditorProps) => {
         <div>
             <div
                 className={`
-                  ${stylesBase.title}
-                  ${stylesBase.mTBase}
+                  univer-mt-4 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
                 {localeService.t('sheet.cf.panel.styleRule')}
             </div>
             <Select
-                className={`
-                  ${styles.width100}
-                  ${stylesBase.mTSm}
-                `}
+                className="univer-mt-3 univer-w-full"
                 value={type}
                 options={options}
                 onChange={(v) => {
-                    typeSet(v);
+                    setType(v);
                     _onChange({ type: v, isPercent, value, style });
                 }}
             />
             {['isNotBottom', 'isBottom'].includes(type) && (
-                <div
-                    className={`
-                      ${stylesBase.labelContainer}
-                      ${stylesBase.mTSm}
-                    `}
-                >
+                <div className="univer-mt-3 univer-flex univer-items-center">
                     <InputNumber
                         min={1}
                         max={1000}
                         value={value}
                         onChange={(v) => {
                             const value = v || 0;
-                            valueSet(value);
+                            setValue(value);
                             _onChange({ type, isPercent, value, style });
                         }}
                     />
                     <div
-                        className={`
-                          ${stylesBase.mLSm}
-                          ${stylesBase.labelContainer}
-                          ${styles.text}
-                        `}
+                        className="univer-ml-3 univer-flex univer-items-center univer-text-xs"
                     >
                         <Checkbox
                             checked={isPercent}
                             onChange={(v) => {
-                                isPercentSet(!!v);
+                                setIsPercent(!!v);
                                 _onChange({ type, isPercent: !!v, value, style });
                             }}
                         />
@@ -198,20 +185,14 @@ export const RankStyleEditor = (props: IStyleEditorProps) => {
 
                 </div>
             )}
-            <div
-                className={`
-                  ${styles.cfPreviewWrap}
-                `}
-            >
+            <div className={previewClassName}>
                 <Preview rule={getResult({ type, isPercent, value, style }) as IConditionalFormattingRuleConfig} />
             </div>
             <ConditionalStyleEditor
                 style={rule?.style}
-                className={`
-                  ${stylesBase.mTSm}
-                `}
+                className="univer-mt-3"
                 onChange={(v) => {
-                    styleSet(v);
+                    setStyle(v);
                     _onChange({ type, isPercent, value, style: v });
                 }}
             />

@@ -16,6 +16,8 @@
 
 import { createIdentifier } from '@univerjs/core';
 
+export type RibbonType = 'default' | 'simple';
+
 export interface IWorkbenchOptions {
     container?: string | HTMLElement;
 
@@ -29,6 +31,8 @@ export interface IWorkbenchOptions {
      */
     toolbar?: boolean;
 
+    ribbonType?: RibbonType;
+
     /**
      * If Univer should make the footer bar visible.
      */
@@ -38,6 +42,11 @@ export interface IWorkbenchOptions {
      * If Univer should make the context menu usable.
      */
     contextMenu?: boolean;
+
+    /**
+     * If Univer should make the header menu visible.
+     */
+    headerMenu?: boolean;
 }
 
 export interface IUIController { }

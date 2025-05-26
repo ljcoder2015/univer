@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-import type { IDocumentBody, IDocumentData } from '@univerjs/core';
+import type { IDocumentBody, IDocumentData, IUser } from '@univerjs/core';
 import type { Editor, IKeyboardEventConfig } from '@univerjs/docs-ui';
 import type { IThreadComment } from '@univerjs/thread-comment';
 import { BuildTextUtils, DOCS_NORMAL_EDITOR_UNIT_ID_KEY, ICommandService, LocaleService, Tools, UniverInstanceType } from '@univerjs/core';
-import { Button } from '@univerjs/design';
+import { Button, clsx } from '@univerjs/design';
 import { BreakLineCommand, IEditorService, RichTextEditor } from '@univerjs/docs-ui';
 import { KeyCode, useDependency } from '@univerjs/ui';
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { SetActiveCommentOperation } from '../../commands/operations/comment.operations';
-import styles from './index.module.less';
 
 export interface IThreadCommentEditorProps {
     id?: string;
@@ -82,8 +81,16 @@ export const ThreadCommentEditor = forwardRef<IThreadCommentEditorInstance, IThr
 
     useImperativeHandle(ref, () => ({
         reply(text) {
-            editor.current?.focus();
-            editor.current?.setDocumentData(getSnapshot(text));
+            if (!editor.current) {
+                return;
+            }
+            editorService.focus(editor.current!.getEditorId() ?? '');
+            const documentData = getSnapshot(text);
+            editor.current?.setDocumentData(documentData, [{
+                startOffset: documentData.body!.dataStream.length - 2,
+                endOffset: documentData.body!.dataStream.length - 2,
+                collapsed: true,
+            }]);
         },
     }));
 
@@ -104,11 +111,11 @@ export const ThreadCommentEditor = forwardRef<IThreadCommentEditorInstance, IThr
     };
 
     return (
-        <div className={styles.threadCommentEditor} onClick={(e) => e.preventDefault()}>
+        <div onClick={(e) => e.preventDefault()}>
             <RichTextEditor
+                className="univer-w-full"
                 editorRef={editor}
                 autoFocus={autoFocus}
-                style={{ width: '100%' }}
                 keyboardEventConfig={keyboardEventConfig}
                 placeholder={localeService.t('threadCommentUI.editor.placeholder')}
                 initialValue={comment?.text && getSnapshot(comment.text)}
@@ -123,9 +130,8 @@ export const ThreadCommentEditor = forwardRef<IThreadCommentEditorInstance, IThr
             />
             {editing
                 ? (
-                    <div className={styles.threadCommentEditorButtons}>
+                    <div className="univer-mt-3 univer-flex univer-flex-row univer-justify-end univer-gap-2">
                         <Button
-                            style={{ marginRight: 12 }}
                             onClick={() => {
                                 onCancel?.();
                                 setEditing(false);
@@ -136,7 +142,7 @@ export const ThreadCommentEditor = forwardRef<IThreadCommentEditorInstance, IThr
                             {localeService.t('threadCommentUI.editor.cancel')}
                         </Button>
                         <Button
-                            type="primary"
+                            variant="primary"
                             disabled={!canSubmit}
                             onClick={handleSave}
                         >
@@ -148,3 +154,22 @@ export const ThreadCommentEditor = forwardRef<IThreadCommentEditorInstance, IThr
         </div>
     );
 });
+
+export const ThreadCommentSuggestion = ({ active, user }: { active: boolean; user: IUser }) => (
+    <div
+        className={clsx(
+            `
+              univer-flex univer-items-center univer-text-sm univer-text-gray-900
+              dark:!univer-text-white
+            `,
+            { 'univer-bg-gray-50 dark:!univer-bg-gray-900': active }
+        )}
+    >
+        <img
+            className="univer-mr-1.5 univer-h-6 univer-w-6 univer-rounded-full"
+            src={user.avatar}
+            draggable={false}
+        />
+        <span>{user.name}</span>
+    </div>
+);

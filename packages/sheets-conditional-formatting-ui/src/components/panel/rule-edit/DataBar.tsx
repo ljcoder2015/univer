@@ -16,18 +16,17 @@
 
 import type { Workbook } from '@univerjs/core';
 import type { IConditionalFormattingRuleConfig, IValueConfig } from '@univerjs/sheets-conditional-formatting';
+import type { IFormulaEditorRef } from '@univerjs/sheets-formula-ui';
 import type { IStyleEditorProps } from './type';
 import { IUniverInstanceService, LocaleService, UniverInstanceType } from '@univerjs/core';
-import { Checkbox, InputNumber, Radio, RadioGroup, Select } from '@univerjs/design';
+import { borderClassName, Checkbox, clsx, InputNumber, Radio, RadioGroup, Select } from '@univerjs/design';
 import { CFRuleType, CFValueType, createDefaultValueByValueType, defaultDataBarNativeColor, defaultDataBarPositiveColor } from '@univerjs/sheets-conditional-formatting';
-
 import { FormulaEditor } from '@univerjs/sheets-formula-ui';
 import { useDependency, useSidebarClick } from '@univerjs/ui';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ColorPicker } from '../../color-picker';
 import { Preview } from '../../preview';
-import stylesBase from '../index.module.less';
-import styles from './index.module.less';
+import { previewClassName } from './styles';
 
 const createOptionItem = (text: CFValueType, localeService: LocaleService) => ({ label: localeService.t(`sheet.cf.valueType.${text}`), value: text });
 
@@ -37,12 +36,12 @@ const InputText = (props: { disabled?: boolean; id: string; className: string; t
     const unitId = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!.getUnitId();
     const subUnitId = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!.getActiveSheet()?.getSheetId();
 
-    const formulaEditorActionsRef = useRef<Parameters<typeof FormulaEditor>[0]['actions']>({});
-    const [isFocusFormulaEditor, isFocusFormulaEditorSet] = useState(false);
+    const formulaEditorRef = useRef<IFormulaEditorRef>(null);
+    const [isFocusFormulaEditor, setIsFocusFormulaEditor] = useState(false);
 
     useSidebarClick((e: MouseEvent) => {
-        const handleOutClick = formulaEditorActionsRef.current?.handleOutClick;
-        handleOutClick && handleOutClick(e, () => isFocusFormulaEditorSet(false));
+        const isOutSide = formulaEditorRef.current?.isClickOutSide(e);
+        isOutSide && setIsFocusFormulaEditor(false);
     });
 
     const _value = useRef(value);
@@ -58,11 +57,21 @@ const InputText = (props: { disabled?: boolean; id: string; className: string; t
             max: Number.MAX_SAFE_INTEGER,
         };
     }, [type]);
+
     if (type === CFValueType.formula) {
         const v = String(_value.current).startsWith('=') ? String(_value.current) || '' : '=';
         return (
-            <div style={{ width: '100%', marginLeft: 12 }}>
+            <div className="univer-ml-3 univer-w-full">
                 <FormulaEditor
+                    ref={formulaEditorRef}
+                    className={clsx(`
+                      univer-box-border univer-h-8 univer-w-full univer-cursor-pointer univer-items-center
+                      univer-rounded-lg univer-bg-white univer-pt-2 univer-transition-colors
+                      [&>div:first-child]:univer-px-2.5
+                      [&>div]:univer-h-5 [&>div]:univer-ring-transparent
+                      dark:!univer-bg-gray-700 dark:!univer-text-white
+                      hover:univer-border-primary-600
+                    `, borderClassName)}
                     initValue={v as any}
                     unitId={unitId}
                     subUnitId={subUnitId}
@@ -71,8 +80,7 @@ const InputText = (props: { disabled?: boolean; id: string; className: string; t
                         const formula = v || '';
                         onChange(formula);
                     }}
-                    onFocus={() => isFocusFormulaEditorSet(true)}
-                    actions={formulaEditorActionsRef.current}
+                    onFocus={() => setIsFocusFormulaEditor(true)}
                 />
             </div>
         );
@@ -116,14 +124,14 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
     const commonOptions = [createOptionItem(CFValueType.num, localeService), createOptionItem(CFValueType.percent, localeService), createOptionItem(CFValueType.percentile, localeService), createOptionItem(CFValueType.formula, localeService)];
     const minOptions = [createOptionItem(CFValueType.min, localeService), ...commonOptions];
     const maxOptions = [createOptionItem(CFValueType.max, localeService), ...commonOptions];
-    const [minValueType, minValueTypeSet] = useState<CFValueType>(() => {
+    const [minValueType, setMinValueType] = useState<CFValueType>(() => {
         const defaultV = minOptions[0].value as CFValueType;
         if (!rule) {
             return defaultV;
         }
         return rule.config?.min.type || defaultV;
     });
-    const [maxValueType, maxValueTypeSet] = useState<CFValueType>(() => {
+    const [maxValueType, setMaxValueType] = useState<CFValueType>(() => {
         const defaultV = maxOptions[0].value as CFValueType;
         if (!rule) {
             return defaultV;
@@ -141,7 +149,7 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
         }
         return value.value || defaultV;
     });
-    const [maxValue, maxValueSet] = useState(() => {
+    const [maxValue, setMaxValue] = useState(() => {
         const defaultV = 100;
         if (!rule) {
             return defaultV;
@@ -153,7 +161,7 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
         return value.value === undefined ? defaultV : value.value;
     });
 
-    const [isShowValue, isShowValueSet] = useState(() => {
+    const [isShowValue, setIsShowValue] = useState(() => {
         const defaultV = true;
         if (!rule) {
             return defaultV;
@@ -211,11 +219,29 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
     const handlePositiveColorChange = (color: string) => {
         positiveColorSet(color);
 
-        _handleChange({ isGradient, minValue, minValueType, maxValue, maxValueType, positiveColor: color, nativeColor, isShowValue });
+        _handleChange({
+            isGradient,
+            minValue,
+            minValueType,
+            maxValue,
+            maxValueType,
+            positiveColor: color,
+            nativeColor,
+            isShowValue,
+        });
     };
     const handleNativeColorChange = (color: string) => {
         nativeColorSet(color);
-        _handleChange({ isGradient, minValue, minValueType, maxValue, maxValueType, positiveColor, nativeColor: color, isShowValue });
+        _handleChange({
+            isGradient,
+            minValue,
+            minValueType,
+            maxValue,
+            maxValueType,
+            positiveColor,
+            nativeColor: color,
+            isShowValue,
+        });
     };
 
     const isShowInput = (type: string) => {
@@ -224,53 +250,77 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
 
     return (
         <div>
-            <div className={stylesBase.title}>
-                {localeService.t('sheet.cf.panel.styleRule')}
-            </div>
             <div
                 className={`
-                  ${styles.cfPreviewWrap}
+                  univer-mt-4 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
-                <Preview rule={getResult({ isGradient, minValue, minValueType, maxValue, maxValueType, positiveColor, nativeColor, isShowValue }) as IConditionalFormattingRuleConfig} />
+                {localeService.t('sheet.cf.panel.styleRule')}
+            </div>
+            <div className={previewClassName}>
+                <Preview
+                    rule={getResult({
+                        isGradient,
+                        minValue,
+                        minValueType,
+                        maxValue,
+                        maxValueType,
+                        positiveColor,
+                        nativeColor,
+                        isShowValue,
+                    }) as IConditionalFormattingRuleConfig}
+                />
             </div>
             <div>
-                <div className={stylesBase.label}>
+                <div
+                    className={`
+                      univer-mt-3 univer-text-sm univer-text-gray-600
+                      dark:!univer-text-gray-200
+                    `}
+                >
                     {localeService.t('sheet.cf.panel.fillType')}
                 </div>
 
-                <div
-                    className={`
-                      ${stylesBase.mTSm}
-                      ${stylesBase.mLXxs}
-                      ${stylesBase.labelContainer}
-                    `}
-                >
+                <div className="univer-ml-1 univer-mt-3 univer-flex univer-items-center">
                     <RadioGroup
                         value={isGradient}
                         onChange={(v) => {
                             isGradientSet(v as string);
-                            _handleChange({ isGradient: v as string, minValue, minValueType, maxValue, maxValueType, positiveColor, nativeColor, isShowValue });
+                            _handleChange({
+                                isGradient: v as string,
+                                minValue,
+                                minValueType,
+                                maxValue,
+                                maxValueType,
+                                positiveColor,
+                                nativeColor,
+                                isShowValue,
+                            });
                         }}
                     >
                         <Radio value="0">
-                            <span className={styles.text}>{localeService.t('sheet.cf.panel.pureColor')}</span>
+                            <span className="univer-text-xs">{localeService.t('sheet.cf.panel.pureColor')}</span>
                         </Radio>
                         <Radio value="1">
-                            <span className={styles.text}>{localeService.t('sheet.cf.panel.gradient')}</span>
+                            <span className="univer-text-xs">{localeService.t('sheet.cf.panel.gradient')}</span>
                         </Radio>
                     </RadioGroup>
-                    <div
-                        className={`
-                          ${styles.utilItem}
-                          ${stylesBase.mLXl}
-                        `}
-                    >
+                    <div className="univer-ml-6 univer-flex univer-items-center univer-text-xs">
                         <Checkbox
                             checked={!isShowValue}
                             onChange={(v) => {
-                                isShowValueSet(!v);
-                                _handleChange({ isGradient: v as string, minValue, minValueType, maxValue, maxValueType, positiveColor, nativeColor, isShowValue: !v });
+                                setIsShowValue(!v);
+                                _handleChange({
+                                    isGradient: v as string,
+                                    minValue,
+                                    minValueType,
+                                    maxValue,
+                                    maxValueType,
+                                    positiveColor,
+                                    nativeColor,
+                                    isShowValue: !v,
+                                });
                             }}
                         />
                         {localeService.t('sheet.cf.panel.onlyShowDataBar')}
@@ -278,24 +328,17 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
                 </div>
             </div>
             <div>
-                <div className={stylesBase.label}>{localeService.t('sheet.cf.panel.colorSet')}</div>
                 <div
                     className={`
-                      ${stylesBase.labelContainer}
-                      ${stylesBase.mTSm}
-                      ${stylesBase.mLXxs}
+                      univer-mt-3 univer-text-sm univer-text-gray-600
+                      dark:!univer-text-gray-200
                     `}
                 >
-                    <div
-                        className={`
-                          ${stylesBase.labelContainer}
-                        `}
-                    >
-                        <div
-                            className={`
-                              ${styles.text}
-                            `}
-                        >
+                    {localeService.t('sheet.cf.panel.colorSet')}
+                </div>
+                <div className="univer-ml-1 univer-mt-3 univer-flex univer-items-center">
+                    <div className="univer-flex univer-items-center">
+                        <div className="univer-text-xs">
                             {localeService.t('sheet.cf.panel.native')}
                         </div>
                         <ColorPicker
@@ -303,17 +346,8 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
                             onChange={handleNativeColorChange}
                         />
                     </div>
-                    <div
-                        className={`
-                          ${stylesBase.labelContainer}
-                          ${stylesBase.mLSm}
-                        `}
-                    >
-                        <div
-                            className={`
-                              ${styles.text}
-                            `}
-                        >
+                    <div className="univer-ml-3 univer-flex univer-items-center">
+                        <div className="univer-text-xs">
                             {localeService.t('sheet.cf.panel.positive')}
                         </div>
                         <ColorPicker
@@ -325,69 +359,108 @@ export const DataBarStyleEditor = (props: IStyleEditorProps) => {
 
             </div>
             <div>
-                <div className={stylesBase.label}>{localeService.t('sheet.cf.valueType.min')}</div>
                 <div
                     className={`
-                      ${stylesBase.mTSm}
-                      ${stylesBase.labelContainer}
+                      univer-mt-3 univer-text-sm univer-text-gray-600
+                      dark:!univer-text-gray-200
                     `}
                 >
+                    {localeService.t('sheet.cf.valueType.min')}
+                </div>
+                <div className="univer-mt-3 univer-flex univer-items-center">
                     <Select
-                        style={{ width: '50%', flexShrink: 0 }}
+                        className="univer-w-1/2 univer-flex-shrink-0"
                         options={minOptions}
                         value={minValueType}
                         onChange={(v) => {
-                            minValueTypeSet(v as CFValueType);
+                            setMinValueType(v as CFValueType);
                             const value = createDefaultValueByValueType(v as CFValueType, 10);
                             minValueSet(value);
-                            _handleChange({ isGradient, minValue: value, minValueType: v as CFValueType, maxValue, maxValueType, positiveColor, nativeColor, isShowValue });
+                            _handleChange({
+                                isGradient,
+                                minValue: value,
+                                minValueType: v as CFValueType,
+                                maxValue,
+                                maxValueType,
+                                positiveColor,
+                                nativeColor,
+                                isShowValue,
+                            });
                         }}
                     />
 
                     <InputText
-                        disabled={!isShowInput(minValueType)}
                         id="min"
+                        className="univer-ml-3"
+                        disabled={!isShowInput(minValueType)}
                         type={minValueType}
-                        className={stylesBase.mLSm}
                         value={minValue}
                         onChange={(v) => {
                             minValueSet(v || 0);
-                            _handleChange({ isGradient, minValue: v || 0, minValueType, maxValue, maxValueType, positiveColor, nativeColor, isShowValue });
+                            _handleChange({
+                                isGradient,
+                                minValue: v || 0,
+                                minValueType,
+                                maxValue,
+                                maxValueType,
+                                positiveColor,
+                                nativeColor,
+                                isShowValue,
+                            });
                         }}
                     />
                 </div>
-                <div className={stylesBase.label}>{localeService.t('sheet.cf.valueType.max')}</div>
                 <div
                     className={`
-                      ${stylesBase.mTSm}
-                      ${stylesBase.labelContainer}
+                      univer-mt-3 univer-text-sm univer-text-gray-600
+                      dark:!univer-text-gray-200
                     `}
                 >
+                    {localeService.t('sheet.cf.valueType.max')}
+                </div>
+                <div className="univer-mt-3 univer-flex univer-items-center">
                     <Select
-                        style={{ width: '50%', flexShrink: 0 }}
+                        className="univer-w-1/2 univer-flex-shrink-0"
                         options={maxOptions}
                         value={maxValueType}
                         onChange={(v) => {
-                            maxValueTypeSet(v as CFValueType);
+                            setMaxValueType(v as CFValueType);
                             const value = createDefaultValueByValueType(v as CFValueType, 90);
-                            maxValueSet(value);
-                            _handleChange({ isGradient, minValue, minValueType, maxValue: value, maxValueType: v as CFValueType, positiveColor, nativeColor, isShowValue });
+                            setMaxValue(value);
+                            _handleChange({
+                                isGradient,
+                                minValue,
+                                minValueType,
+                                maxValue: value,
+                                maxValueType: v as CFValueType,
+                                positiveColor,
+                                nativeColor,
+                                isShowValue,
+                            });
                         }}
                     />
                     <InputText
+                        className="univer-ml-3"
                         disabled={!isShowInput(maxValueType)}
                         id="max"
                         type={maxValueType}
-                        className={stylesBase.mLSm}
                         value={maxValue}
                         onChange={(v) => {
-                            maxValueSet(v || 0);
-                            _handleChange({ isGradient, minValue, minValueType, maxValue: v || 0, maxValueType, positiveColor, nativeColor, isShowValue });
+                            setMaxValue(v || 0);
+                            _handleChange({
+                                isGradient,
+                                minValue,
+                                minValueType,
+                                maxValue: v || 0,
+                                maxValueType,
+                                positiveColor,
+                                nativeColor,
+                                isShowValue,
+                            });
                         }}
                     />
                 </div>
             </div>
-
         </div>
     );
 };

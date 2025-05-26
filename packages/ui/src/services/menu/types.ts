@@ -20,37 +20,42 @@ export enum MenuManagerPosition {
 }
 
 export enum RibbonPosition {
-    START = 'ribbon.start',
-    INSERT = 'ribbon.insert',
-    FORMULAS = 'ribbon.formulas',
-    DATA = 'ribbon.data',
-    VIEW = 'ribbon.view',
-    OTHERS = 'ribbon.others',
+    START = 'ribbon.start', // RibbonStartGroup
+    INSERT = 'ribbon.insert', // RibbonInsertGroup
+    FORMULAS = 'ribbon.formulas', // RibbonFormulasGroup
+    DATA = 'ribbon.data', // RibbonDataGroup
+    VIEW = 'ribbon.view', // RibbonViewGroup
+    OTHERS = 'ribbon.others', // RibbonOthersGroup
 }
 
 export enum RibbonStartGroup {
     HISTORY = 'ribbon.start.history',
     FORMAT = 'ribbon.start.format',
     LAYOUT = 'ribbon.start.layout',
-    FORMULAS_INSERT = 'ribbon.start.insert',
-    FORMULAS_VIEW = 'ribbon.start.view',
-    FILE = 'ribbon.start.file',
     OTHERS = 'ribbon.start.others',
 }
 
 export enum RibbonInsertGroup {
+    EDIT = 'ribbon.insert.edit',
+    MEDIA = 'ribbon.insert.media',
     OTHERS = 'ribbon.insert.others',
 }
 
 export enum RibbonFormulasGroup {
+    BASIC = 'ribbon.formulas.basic',
     OTHERS = 'ribbon.formulas.others',
 }
 
 export enum RibbonDataGroup {
+    FORMULAS = 'ribbon.data.formulas',
+    RULES = 'ribbon.data.rules',
+    ORGANIZATION = 'ribbon.data.organization',
     OTHERS = 'ribbon.data.others',
 }
 
 export enum RibbonViewGroup {
+    DISPLAY = 'ribbon.view.display',
+    VISIBILITY = 'ribbon.view.Visibility',
     OTHERS = 'ribbon.view.others',
 }
 
@@ -64,9 +69,17 @@ export enum ContextMenuPosition {
     ROW_HEADER = 'contextMenu.rowHeader',
     FOOTER_TABS = 'contextMenu.footerTabs',
     FOOTER_MENU = 'contextMenu.footerMenu',
+    /**
+     * paragraph context menu in doc
+     */
+    PARAGRAPH = 'contextMenu.paragraph',
 }
 
 export enum ContextMenuGroup {
+    /**
+     * quick context menu, displayed as icon
+     */
+    QUICK = 'contextMenu.quick',
     FORMAT = 'contextMenu.format',
     LAYOUT = 'contextMenu.layout',
     DATA = 'contextMenu.data',

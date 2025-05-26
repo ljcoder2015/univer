@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
+import type { Workbook } from '@univerjs/core';
+import type { IUniverDocsUIConfig } from '../../controllers/config.schema';
+import { IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
+import { useConfigValue, useDependency, useObservable } from '@univerjs/ui';
+import { DOCS_UI_PLUGIN_CONFIG_KEY } from '../../controllers/config.schema';
 import { CountBar } from '../count-bar';
-import styles from './index.module.less';
-import { useDependency, useObservable } from '@univerjs/ui';
-import { IUniverInstanceService, UniverInstanceType, type Workbook } from '@univerjs/core';
 
-export const DocFooter = () => {
+export function DocFooter() {
     const univerInstanceService = useDependency(IUniverInstanceService);
+    const config = useConfigValue<IUniverDocsUIConfig>(DOCS_UI_PLUGIN_CONFIG_KEY);
     const workbook = useObservable(() => univerInstanceService.getCurrentTypeOfUnit$<Workbook>(UniverInstanceType.UNIVER_SHEET), undefined, undefined, []);
+    const isShow = config?.layout?.docContainerConfig?.footer ?? true;
 
-    return workbook ? null : (
-        <div className={styles.docFooterContainer}>
-            <div />
-            <CountBar />
-        </div>
-    );
+    return workbook
+        ? null
+        : isShow && (
+            <div
+                className={`
+                  univer-box-border univer-flex univer-items-center univer-justify-between univer-px-5 univer-py-1.5
+                `}
+            >
+                <div />
+                <CountBar />
+            </div>
+        );
 };

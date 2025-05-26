@@ -15,15 +15,23 @@
  */
 
 import type { FormulaInputType } from '@univerjs/data-validation';
-import { BaseFormulaInput } from './base-formula-input';
-import { CheckboxFormulaInput } from './checkbox-formula-input';
-import { CustomFormulaInput } from './custom-formula-input';
-import { ListFormulaInput } from './list-formula-input';
+import {
+    BASE_FORMULA_INPUT_NAME,
+    CHECKBOX_FORMULA_INPUT_NAME,
+    CUSTOM_FORMULA_INPUT_NAME,
+    LIST_FORMULA_INPUT_NAME,
+} from '@univerjs/sheets-data-validation';
+import { BaseFormulaInput } from './BaseFormulaInput';
+import { CheckboxFormulaInput } from './CheckboxFormulaInput';
+import { CustomFormulaInput } from './CustomFormulaInput';
+import { ListFormulaInput } from './ListFormulaInput';
 
-export const CUSTOM_FORMULA_INPUT_NAME = 'data-validation.custom-formula-input';
-export const BASE_FORMULA_INPUT_NAME = 'data-validation.formula-input';
-export const LIST_FORMULA_INPUT_NAME = 'data-validation.list-formula-input';
-export const CHECKBOX_FORMULA_INPUT_NAME = 'data-validation.checkbox-formula-input';
+export {
+    BASE_FORMULA_INPUT_NAME,
+    CHECKBOX_FORMULA_INPUT_NAME,
+    CUSTOM_FORMULA_INPUT_NAME,
+    LIST_FORMULA_INPUT_NAME,
+};
 
 export const FORMULA_INPUTS: [string, FormulaInputType][] = [
     [

@@ -14,16 +14,36 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
+    toolbar: {
+        heading: {
+            normal: 'Văn bản',
+            title: 'Tiêu đề',
+            subTitle: 'Tiêu đề phụ',
+            1: 'Tiêu đề 1',
+            2: 'Tiêu đề 2',
+            3: 'Tiêu đề 3',
+            4: 'Tiêu đề 4',
+            5: 'Tiêu đề 5',
+            6: 'Tiêu đề 6',
+            tooltip: 'Đặt tiêu đề',
+        },
+    },
     ribbon: {
         start: 'Bắt đầu',
+        startDesc: 'Khởi tạo bảng tính và thiết lập các tham số cơ bản.',
         insert: 'Chèn',
+        insertDesc: 'Chèn hàng, cột, biểu đồ và các phần tử khác.',
         formulas: 'Công thức',
+        formulasDesc: 'Sử dụng hàm và công thức để tính toán dữ liệu.',
         data: 'Dữ liệu',
+        dataDesc: 'Sắp xếp, lọc và phân tích dữ liệu.',
         view: 'Xem',
+        viewDesc: 'Chuyển đổi chế độ xem và điều chỉnh hiệu ứng hiển thị.',
         others: 'Khác',
+        othersDesc: 'Các chức năng và cài đặt khác.',
         more: 'Thêm',
     },
     fontFamily: {

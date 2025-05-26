@@ -16,17 +16,17 @@
 
 import type { Workbook } from '@univerjs/core';
 import type { IColorScale, IConditionalFormattingRuleConfig } from '@univerjs/sheets-conditional-formatting';
+import type { IFormulaEditorRef } from '@univerjs/sheets-formula-ui';
 import type { IStyleEditorProps } from './type';
 import { IUniverInstanceService, LocaleService, UniverInstanceType } from '@univerjs/core';
-import { clsx, InputNumber, Select } from '@univerjs/design';
+import { borderClassName, clsx, InputNumber, Select } from '@univerjs/design';
 import { CFRuleType, CFValueType, createDefaultValueByValueType } from '@univerjs/sheets-conditional-formatting';
 import { FormulaEditor } from '@univerjs/sheets-formula-ui';
 import { useDependency, useSidebarClick } from '@univerjs/ui';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ColorPicker } from '../../color-picker';
 import { Preview } from '../../preview';
-import stylesBase from '../index.module.less';
-import styles from './index.module.less';
+import { previewClassName } from './styles';
 
 const createOptionItem = (text: string, localeService: LocaleService) => ({ label: localeService.t(`sheet.cf.valueType.${text}`), value: text });
 
@@ -38,6 +38,7 @@ const TextInput = (props: { id: string; type: CFValueType | 'none'; value: numbe
     const formulaInitValue = useMemo(() => {
         return String(value).startsWith('=') ? String(value) : '=';
     }, [value]);
+
     const config = useMemo(() => {
         if ([CFValueType.max, CFValueType.min, 'none'].includes(type as CFValueType)) {
             return { disabled: true };
@@ -54,18 +55,27 @@ const TextInput = (props: { id: string; type: CFValueType | 'none'; value: numbe
         };
     }, [type]);
 
-    const formulaEditorActionsRef = useRef<Parameters<typeof FormulaEditor>[0]['actions']>({});
-    const [isFocusFormulaEditor, isFocusFormulaEditorSet] = useState(false);
+    const formulaEditorRef = useRef<IFormulaEditorRef>(null);
+    const [isFocusFormulaEditor, setIsFocusFormulaEditor] = useState(false);
 
     useSidebarClick((e: MouseEvent) => {
-        const handleOutClick = formulaEditorActionsRef.current?.handleOutClick;
-        handleOutClick && handleOutClick(e, () => isFocusFormulaEditorSet(false));
+        const isOutSide = formulaEditorRef.current?.isClickOutSide(e);
+        isOutSide && setIsFocusFormulaEditor(false);
     });
 
     if (type === CFValueType.formula) {
         return (
-            <div style={{ width: '100%', marginLeft: 4 }}>
+            <div className="univer-ml-1 univer-w-full">
                 <FormulaEditor
+                    ref={formulaEditorRef}
+                    className={clsx(`
+                      univer-box-border univer-h-8 univer-w-full univer-cursor-pointer univer-items-center
+                      univer-rounded-lg univer-bg-white univer-pt-2 univer-transition-colors
+                      [&>div:first-child]:univer-px-2.5
+                      [&>div]:univer-h-5 [&>div]:univer-ring-transparent
+                      dark:!univer-bg-gray-700 dark:!univer-text-white
+                      hover:univer-border-primary-600
+                    `, borderClassName)}
                     initValue={formulaInitValue as any}
                     unitId={unitId}
                     subUnitId={subUnitId}
@@ -74,8 +84,7 @@ const TextInput = (props: { id: string; type: CFValueType | 'none'; value: numbe
                         const formula = v || '';
                         onChange(formula);
                     }}
-                    onFocus={() => isFocusFormulaEditorSet(true)}
-                    actions={formulaEditorActionsRef.current}
+                    onFocus={() => setIsFocusFormulaEditor(true)}
                 />
             </div>
         );
@@ -93,14 +102,14 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
     const medianOptions = [createOptionItem('none', localeService), ...commonOptions];
     const maxOptions = [createOptionItem(CFValueType.max, localeService), ...commonOptions];
 
-    const [minType, minTypeSet] = useState(() => {
+    const [minType, setMinType] = useState(() => {
         const defaultV = CFValueType.min;
         if (!rule) {
             return defaultV;
         }
         return rule.config[0]?.value.type || defaultV;
     });
-    const [medianType, medianTypeSet] = useState<CFValueType | 'none'>(() => {
+    const [medianType, setMedianType] = useState<CFValueType | 'none'>(() => {
         const defaultV = 'none';
         if (!rule) {
             return defaultV;
@@ -110,7 +119,7 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
         }
         return rule.config[1]?.value.type || defaultV;
     });
-    const [maxType, maxTypeSet] = useState(() => {
+    const [maxType, setMaxType] = useState(() => {
         const defaultV = CFValueType.max;
         if (!rule) {
             return defaultV;
@@ -118,7 +127,7 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
         return rule.config[rule.config.length - 1]?.value.type || defaultV;
     });
 
-    const [minValue, minValueSet] = useState(() => {
+    const [minValue, setMinValue] = useState(() => {
         const defaultV = 10;
         if (!rule) {
             return defaultV;
@@ -126,7 +135,7 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
         const valueConfig = rule.config[0];
         return valueConfig?.value.value === undefined ? defaultV : valueConfig?.value.value;
     });
-    const [medianValue, medianValueSet] = useState(() => {
+    const [medianValue, setMedianValue] = useState(() => {
         const defaultV = 50;
         if (!rule) {
             return defaultV;
@@ -137,7 +146,7 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
         const v = rule.config[1]?.value.value;
         return v === undefined ? defaultV : v;
     });
-    const [maxValue, maxValueSet] = useState(() => {
+    const [maxValue, setMaxValue] = useState(() => {
         const defaultV = 90;
         if (!rule) {
             return defaultV;
@@ -146,14 +155,14 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
         return v === undefined ? defaultV : v;
     });
 
-    const [minColor, minColorSet] = useState(() => {
+    const [minColor, setMinColor] = useState(() => {
         const defaultV = '#d0d9fb';
         if (!rule) {
             return defaultV;
         }
         return rule.config[0]?.color || defaultV;
     });
-    const [medianColor, medianColorSet] = useState(() => {
+    const [medianColor, setMedianColor] = useState(() => {
         const defaultV = '#7790f3';
         if (!rule) {
             return defaultV;
@@ -163,7 +172,7 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
         }
         return rule.config[1]?.color || defaultV;
     });
-    const [maxColor, maxColorSet] = useState(() => {
+    const [maxColor, setMaxColor] = useState(() => {
         const defaultV = '#2e55ef';
         if (!rule) {
             return defaultV;
@@ -215,136 +224,228 @@ export const ColorScaleStyleEditor = (props: IStyleEditorProps) => {
     };
     return (
         <div>
-            <div className={stylesBase.title}>{localeService.t('sheet.cf.panel.styleRule')}</div>
             <div
                 className={`
-                  ${styles.cfPreviewWrap}
+                  univer-mt-4 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
+                {localeService.t('sheet.cf.panel.styleRule')}
+            </div>
+            <div className={previewClassName}>
                 <Preview rule={getResult({ minType, medianType, maxType, minValue, medianValue, maxValue, minColor, medianColor, maxColor }) as IConditionalFormattingRuleConfig} />
             </div>
-            <div className={stylesBase.label}>{localeService.t('sheet.cf.valueType.min')}</div>
             <div
-                className={clsx(`
-                  ${stylesBase.labelContainer}
-                  ${stylesBase.mTSm}
-                `, 'univer-box-border univer-h-7')}
+                className={`
+                  univer-mt-3 univer-text-xs univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
             >
+                {localeService.t('sheet.cf.valueType.min')}
+            </div>
+            <div className="univer-mt-3 univer-flex univer-h-8 univer-items-center">
                 <Select
-                    style={{ flexShrink: 0 }}
+                    className="univer-flex-shrink-0"
                     options={minOptions}
                     value={minType}
                     onChange={(v) => {
-                        minTypeSet(v as CFValueType);
+                        setMinType(v as CFValueType);
                         const value = createDefaultValueByValueType(v as CFValueType, 10);
-                        minValueSet(value);
-                        handleChange({ minType: v as CFValueType, medianType, maxType, minValue: value, medianValue, maxValue, minColor, medianColor, maxColor });
+                        setMinValue(value);
+                        handleChange({
+                            minType: v as CFValueType,
+                            medianType,
+                            maxType,
+                            minValue: value,
+                            medianValue,
+                            maxValue,
+                            minColor,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
                 <TextInput
                     id="min"
-                    className={`
-                      ${stylesBase.mLXxs}
-                    `}
+                    className="univer-ml-1"
                     value={minValue}
                     type={minType}
                     onChange={(v) => {
-                        minValueSet(v);
-                        handleChange({ minType, medianType, maxType, minValue: v, medianValue, maxValue, minColor, medianColor, maxColor });
+                        setMinValue(v);
+                        handleChange({
+                            minType,
+                            medianType,
+                            maxType,
+                            minValue: v,
+                            medianValue,
+                            maxValue,
+                            minColor,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
                 <ColorPicker
-                    className={stylesBase.mLXxs}
+                    className="univer-ml-1"
                     color={minColor}
                     onChange={(v) => {
-                        minColorSet(v);
-                        handleChange({ minType, medianType, maxType, minValue, medianValue, maxValue, minColor: v, medianColor, maxColor });
+                        setMinColor(v);
+                        handleChange({
+                            minType,
+                            medianType,
+                            maxType,
+                            minValue,
+                            medianValue,
+                            maxValue,
+                            minColor: v,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
             </div>
-            <div className={stylesBase.label}>{localeService.t('sheet.cf.panel.medianValue')}</div>
             <div
-                className={clsx(`
-                  ${stylesBase.labelContainer}
-                  ${stylesBase.mTSm}
-                `, 'univer-box-border univer-h-7')}
+                className={`
+                  univer-mt-3 univer-text-xs
+                  univer-text-gray-600dark:!univer-text-gray-200
+                `}
             >
+                {localeService.t('sheet.cf.panel.medianValue')}
+            </div>
+            <div className="univer-mt-3 univer-flex univer-h-8 univer-items-center">
                 <Select
-                    style={{ flexShrink: 0 }}
+                    className="univer-flex-shrink-0"
                     options={medianOptions}
                     value={medianType}
                     onChange={(v) => {
-                        medianTypeSet(v as CFValueType);
+                        setMedianType(v as CFValueType);
                         const value = createDefaultValueByValueType(v as CFValueType, 50);
-                        medianValueSet(value);
-                        handleChange({ minType, medianType: v as CFValueType, maxType, minValue, medianValue: value, maxValue, minColor, medianColor, maxColor });
+                        setMedianValue(value);
+                        handleChange({
+                            minType,
+                            medianType: v as CFValueType,
+                            maxType,
+                            minValue,
+                            medianValue: value,
+                            maxValue,
+                            minColor,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
 
                 <TextInput
                     id="median"
-                    className={`
-                      ${stylesBase.mLXxs}
-                    `}
+                    className="univer-ml-1"
                     value={medianValue}
                     type={medianType}
                     onChange={(v) => {
-                        medianValueSet(v);
-                        handleChange({ minType, medianType, maxType, minValue, medianValue: v, maxValue, minColor, medianColor, maxColor });
+                        setMedianValue(v);
+                        handleChange({
+                            minType,
+                            medianType,
+                            maxType,
+                            minValue,
+                            medianValue: v,
+                            maxValue,
+                            minColor,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
                 {medianType !== 'none' && (
                     <ColorPicker
-                        className={stylesBase.mLXxs}
+                        className="univer-ml-1"
                         color={medianColor}
                         onChange={(v) => {
-                            medianColorSet(v);
-                            handleChange({ minType, medianType, maxType, minValue, medianValue, maxValue, minColor, medianColor: v, maxColor });
+                            setMedianColor(v);
+                            handleChange({
+                                minType,
+                                medianType,
+                                maxType,
+                                minValue,
+                                medianValue,
+                                maxValue,
+                                minColor,
+                                medianColor: v,
+                                maxColor,
+                            });
                         }}
                     />
                 )}
 
             </div>
-            <div className={stylesBase.label}>{localeService.t('sheet.cf.valueType.max')}</div>
             <div
-                className={clsx(`
-                  ${stylesBase.labelContainer}
-                  ${stylesBase.mTSm}
-                `, 'univer-box-border univer-h-7')}
+                className={`
+                  univer-mt-3 univer-text-xs univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
             >
+                {localeService.t('sheet.cf.valueType.max')}
+            </div>
+            <div className="univer-mt-3 univer-flex univer-h-8 univer-items-center">
                 <Select
-                    style={{ flexShrink: 0 }}
+                    className="univer-flex-shrink-0"
                     options={maxOptions}
                     value={maxType}
                     onChange={(v) => {
-                        maxTypeSet(v as CFValueType);
+                        setMaxType(v as CFValueType);
                         const value = createDefaultValueByValueType(v as CFValueType, 90);
-                        maxValueSet(value);
-                        handleChange({ minType, medianType, maxType: v as CFValueType, minValue, medianValue, maxValue: value, minColor, medianColor, maxColor });
+                        setMaxValue(value);
+                        handleChange({
+                            minType,
+                            medianType,
+                            maxType: v as CFValueType,
+                            minValue,
+                            medianValue,
+                            maxValue: value,
+                            minColor,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
                 <TextInput
                     id="max"
-                    className={`
-                      ${stylesBase.mLXxs}
-                    `}
+                    className="univer-ml-1"
                     value={maxValue}
                     type={maxType}
                     onChange={(v) => {
-                        maxValueSet(v);
-                        handleChange({ minType, medianType, maxType, minValue, medianValue, maxValue: v, minColor, medianColor, maxColor });
+                        setMaxValue(v);
+                        handleChange({
+                            minType,
+                            medianType,
+                            maxType,
+                            minValue,
+                            medianValue,
+                            maxValue: v,
+                            minColor,
+                            medianColor,
+                            maxColor,
+                        });
                     }}
                 />
                 <ColorPicker
-                    className={stylesBase.mLXxs}
+                    className="univer-ml-1"
                     color={maxColor}
                     onChange={(v) => {
-                        maxColorSet(v);
-                        handleChange({ minType, medianType, maxType, minValue, medianValue, maxValue, minColor, medianColor, maxColor: v });
+                        setMaxColor(v);
+                        handleChange({
+                            minType,
+                            medianType,
+                            maxType,
+                            minValue,
+                            medianValue,
+                            maxValue,
+                            minColor,
+                            medianColor,
+                            maxColor: v,
+                        });
                     }}
                 />
             </div>
-
         </div>
     );
 };

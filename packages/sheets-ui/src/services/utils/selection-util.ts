@@ -22,7 +22,7 @@ export function createCopyPasteSelectionStyle(
 ): Partial<ISelectionStyle> {
     return {
         strokeWidth: 1.5,
-        stroke: themeService.getCurrentTheme().primaryColor,
+        stroke: themeService.getColorFromTheme('primary.600'),
         fill: 'rgba(178, 178, 178, 0.10)',
         widgets: {},
         strokeDash: 8,

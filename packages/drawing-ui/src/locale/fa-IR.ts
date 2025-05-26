@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     'image-popup': {
         replace: 'تعویض',
         delete: 'حذف',
@@ -68,6 +68,14 @@ const locale: typeof zhCN = {
             vertical: 'توزیع عمودی',
         },
         null: 'هیچ شیئی انتخاب نشده است',
+    },
+    'drawing-view': 'طراحی',
+    shortcut: {
+        'drawing-move-down': 'جابه‌جایی طراحی به پایین',
+        'drawing-move-up': 'جابه‌جایی طراحی به بالا',
+        'drawing-move-left': 'جابه‌جایی طراحی به چپ',
+        'drawing-move-right': 'جابه‌جایی طراحی به راست',
+        'drawing-delete': 'حذف طراحی',
     },
 };
 

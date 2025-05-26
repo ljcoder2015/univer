@@ -15,13 +15,13 @@
  */
 
 import type { Meta } from '@storybook/react';
-import { Button } from '@univerjs/design';
+import { Button, Toaster } from '@univerjs/design';
 
-import { Notification, notification } from './Notification';
+import { notification } from './Notification';
 
 const meta: Meta<typeof Notification> = {
     title: 'Components / Notification',
-    component: Notification,
+    component: Toaster,
     parameters: {
         layout: 'centered',
     },
@@ -34,26 +34,30 @@ export default meta;
 export const Playground = {
     render: () => (
         <>
-            <Notification />
+            <Toaster />
             <Button
-                type="primary"
+                variant="primary"
                 onClick={() =>
                     notification.show({
+                        title: 'Event has been created',
                         type: 'success',
-                        title: 'Notification Success',
-                        content: 'Notification content',
+                        content: 'Sunday, December 03, 2023 at 9:00 AM',
                     })}
             >
                 Notification Success
             </Button>
             <Button
                 onClick={() =>
-                    notification.show({ type: 'info', title: 'Notification Info', content: 'Notification content' })}
+                    notification.show({
+                        type: 'info',
+                        title: 'Notification Info',
+                        content: 'Notification content',
+                    })}
             >
                 Notification Info
             </Button>
             <Button
-                type="primary"
+                variant="primary"
                 onClick={() =>
                     notification.show({
                         type: 'warning',
@@ -64,9 +68,13 @@ export const Playground = {
                 Notification Warning
             </Button>
             <Button
-                type="primary"
+                variant="danger"
                 onClick={() =>
-                    notification.show({ type: 'error', title: 'Notification Error', content: 'Notification content' })}
+                    notification.show({
+                        type: 'error',
+                        title: 'Notification Error',
+                        content: 'Notification content',
+                    })}
             >
                 Notification Error
             </Button>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export { UniverSheetsPlugin } from './sheets-plugin';
+export { UniverSheetsPlugin } from './plugin';
 
 // #region services
 export {
@@ -56,7 +56,14 @@ export { type IUniverSheetsConfig } from './controllers/config.schema';
 export { MAX_CELL_PER_SHEET_KEY } from './controllers/config/config';
 export { BorderStyleManagerService, type IBorderInfo } from './services/border-style-manager.service';
 export { SheetRangeThemeService } from './services/range-theme-service';
+export { SheetRangeThemeModel } from './model/range-theme-model';
 export type { IRangeThemeStyleJSON } from './model/range-theme-util';
+export { AddRangeThemeMutation } from './commands/mutations/add-range-theme.mutation';
+export type { IAddRangeThemeMutationParams } from './commands/mutations/add-range-theme.mutation';
+export { SetRangeThemeMutation } from './commands/mutations/set-range-theme.mutation';
+export type { ISetRangeThemeMutationParams } from './commands/mutations/set-range-theme.mutation';
+export { RemoveRangeThemeMutation } from './commands/mutations/remove-range-theme.mutation';
+export type { IRemoveRangeThemeMutationParams } from './commands/mutations/remove-range-theme.mutation';
 export * from './services/permission/permission-point';
 export { WorksheetPermissionService } from './services/permission/worksheet-permission/worksheet-permission.service';
 export { WorkbookPermissionService } from './services/permission/workbook-permission/workbook-permission.service';
@@ -102,6 +109,7 @@ export { AddMergeRedoSelectionsOperationFactory, AddMergeUndoSelectionsOperation
 
 export type { FormatType } from './services/numfmt/type';
 export { expandToContinuousRange } from './basics/expand-range';
+export { findFirstNonEmptyCell } from './basics/utils';
 export { SplitDelimiterEnum, splitRangeText } from './basics/split-range-text';
 export { getNextPrimaryCell } from './services/selections/move-active-cell-util';
 export { checkCellValueType } from './basics/cell-type';
@@ -191,6 +199,7 @@ export { handleInsertRangeMutation } from './commands/utils/handle-range-mutatio
 export { type ISheetCommandSharedParams } from './commands/utils/interface';
 export { copyRangeStyles } from './commands/commands/utils/selection-utils';
 export { RangeThemeStyle } from './model/range-theme-util';
+export type { IRangeThemeStyleItem } from './model/range-theme-util';
 
 // #region - all commands
 
@@ -453,5 +462,10 @@ export { SCOPE_WORKBOOK_VALUE_DEFINED_NAME } from './controllers/defined-name-da
 export type { ICellOverGridPosition, ISheetOverGridPosition } from './basics/cell-position';
 
 export { SheetSkeletonService } from './skeleton/skeleton.service';
+
+export { SetWorksheetRowCountCommand } from './commands/commands/set-worksheet-row-count.command';
+export { SetWorksheetColumnCountCommand } from './commands/commands/set-worksheet-column-count.command';
+export { type ISetWorksheetRowCountMutationParams, SetWorksheetRowCountMutation, SetWorksheetRowCountUndoMutationFactory } from './commands/mutations/set-worksheet-row-count.mutation';
+export { type ISetWorksheetColumnCountMutationParams, SetWorksheetColumnCountMutation, SetWorksheetColumnCountUndoMutationFactory } from './commands/mutations/set-worksheet-column-count.mutation';
 
 // #endregion

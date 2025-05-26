@@ -16,11 +16,11 @@
 
 import type { ActionType, AlignType } from '@rc-component/trigger';
 import type Placements from 'rc-dropdown/lib/placements';
+import type { ReactElement } from 'react';
 import RcDropdown from 'rc-dropdown';
-import React, { useContext } from 'react';
-
+import { useContext } from 'react';
 import { ConfigContext } from '../config-provider/ConfigProvider';
-import styles from './index.module.less';
+import './index.css';
 
 export interface IDropdownLegacyProps {
     /** Semantic DOM class */
@@ -29,7 +29,7 @@ export interface IDropdownLegacyProps {
     /**
      * The dropdown content
      */
-    children: React.ReactElement;
+    children: ReactElement;
 
     /**
      * Whether the dropdown is visible
@@ -100,7 +100,7 @@ export function DropdownLegacy(props: IDropdownLegacyProps) {
         <RcDropdown
             {...props}
             overlayClassName={className}
-            prefixCls={styles.dropdown}
+            prefixCls="univer-dropdown"
             getPopupContainer={() => mountContainer}
             trigger={trigger}
             animation="slide-up"

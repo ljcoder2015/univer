@@ -135,6 +135,10 @@ Univer 内置多种语言支持，包括：
 
 Univer has a rich ecosystem that includes a wide range of tools and resources to help you get started with Univer: -->
 
+## 🔒 安全
+
+Univer 致力于维护一个安全的代码库。我们遵循安全最佳实践并定期更新我们的依赖项。有关更多信息，请参阅我们的[安全政策](./SECURITY.md)。
+
 ## 💬 社区
 
 [![][github-community-badge]][github-community-link] [![][discord-community-badge]][discord-community-link] [![][stackoverflow-community-badge]][stackoverflow-community-link]
@@ -148,7 +152,7 @@ Univer 是一个包容和友好的项目。在参与社区之前，请阅读我�
 - 在 [Stack Overflow][stackoverflow-community-link] 上开一个话题，并标记为 `univer`。
 - 微信扫描下方二维码，加入 Univer 中文社群
 
-![wecom-qr-code](https://univer.ai/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fqrcode.45c72be6.png&w=828&q=75)
+![wecom-qr-code](https://univer.ai/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fcommunity-qrcode.2988a6ca.png&w=256&q=75)
 
 你也可以在以下社交平台找到 Univer：
 

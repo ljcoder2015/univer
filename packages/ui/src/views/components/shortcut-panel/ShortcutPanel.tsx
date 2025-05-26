@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { LocaleService } from '@univerjs/core';
-import React, { useCallback, useEffect } from 'react';
+import { dedupeBy, LocaleService } from '@univerjs/core';
 
+import { clsx, divideYClassName, KBD } from '@univerjs/design';
+import { useCallback, useEffect, useState } from 'react';
 import { IShortcutService } from '../../../services/shortcut/shortcut.service';
 import { useDependency, useObservable } from '../../../utils/di';
 
@@ -39,7 +40,7 @@ export function ShortcutPanel() {
     const localeService = useDependency(LocaleService);
     const currentLocale = useObservable(localeService.currentLocale$);
 
-    const [shortcutItems, setShortcutItems] = React.useState<IShortcutGroup[]>([]);
+    const [shortcutItems, setShortcutItems] = useState<IShortcutGroup[]>([]);
 
     const updateShortcuts = useCallback(() => {
         const shortcutGroups = new Map<string, IRenderShortcutItem[]>();
@@ -59,6 +60,7 @@ export function ShortcutPanel() {
             if (!shortcutGroups.has(group)) {
                 shortcutGroups.set(group, []);
             }
+
             shortcutGroups.get(group)!.push(shortcutItem);
         }
 
@@ -66,14 +68,16 @@ export function ShortcutPanel() {
             .map(([name, items]) => {
                 const groupSequence = name.split('_')[0];
                 const groupName = name.slice(groupSequence.length + 1);
+
                 return {
                     sequence: +groupSequence,
                     name: localeService.t(groupName),
-                    items,
+                    items: dedupeBy(items, (item) => item.title + item.shortcut),
                 };
             })
             .sort((a, b) => a.sequence - b.sequence);
 
+        // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
         setShortcutItems(toRender);
     }, [shortcutService, localeService, currentLocale]);
 
@@ -85,7 +89,12 @@ export function ShortcutPanel() {
     }, [shortcutService, updateShortcuts]);
 
     return (
-        <ul className="univer-m-0 univer-list-none univer-p-0 univer-text-gray-900">
+        <ul
+            className={`
+              univer-m-0 univer-list-none univer-p-0 univer-text-gray-900
+              dark:!univer-text-white
+            `}
+        >
             {shortcutItems.map((group) => (
                 <li key={group.name}>
                     <div className="univer-flex univer-h-10 univer-items-center univer-text-sm univer-font-semibold">
@@ -93,22 +102,18 @@ export function ShortcutPanel() {
                     </div>
 
                     <ul
-                        className={`
-                          univer-list-none univer-p-0
-                          [&>li]:univer-border-0 [&>li]:univer-border-b [&>li]:univer-border-solid
-                          [&>li]:univer-border-b-gray-200
-                        `}
+                        className={clsx('univer-list-none univer-p-0', divideYClassName)}
                     >
                         {group.items.map((item) => (
                             <li
                                 key={`${item.title}-${item.shortcut}`}
                                 className={`
-                                  univer-flex univer-h-10 univer-items-center univer-justify-between univer-text-[13px]
+                                  univer-flex univer-h-10 univer-items-center univer-justify-between univer-text-sm
                                   last:univer-border-b-0
                                 `}
                             >
                                 <span className="univer-line-clamp-1">{item.title}</span>
-                                <span className="univer-text-gray-500">{item.shortcut}</span>
+                                {item.shortcut && <KBD keyboard={item.shortcut} />}
                             </li>
                         ))}
                     </ul>

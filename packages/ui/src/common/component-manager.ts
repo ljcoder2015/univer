@@ -54,6 +54,7 @@ import {
     DownBorder,
     EuroSingle,
     ExportSingle,
+    EyeOutlineSingle,
     FolderSingle,
     FontColor,
     FontSizeIncreaseSingle,
@@ -133,16 +134,16 @@ export interface IComponentOptions {
     framework?: ComponentFramework;
 }
 
-export interface IVue3Component {
+export interface IVue3Component<T extends Record<string, any> = Record<string, any>> {
     framework: 'vue3';
-    component: ReturnType<typeof defineComponent>;
+    component: ReturnType<typeof defineComponent<T>>;
 }
-export interface IReactComponent {
+export interface IReactComponent<T extends Record<string, any> = Record<string, any>> {
     framework: 'react';
-    component: React.ForwardRefExoticComponent<any>;
+    component: React.ForwardRefExoticComponent<T>;
 };
 
-export type ComponentType = React.ForwardRefExoticComponent<any> | ReturnType<typeof defineComponent>;
+export type ComponentType<T extends Record<string, any> = Record<string, any>> = React.ForwardRefExoticComponent<T> | ReturnType<typeof defineComponent>;
 
 export type ComponentList = Map<string, IVue3Component | IReactComponent>;
 
@@ -257,6 +258,7 @@ export class ComponentManager {
             EuroSingle,
             RoubleSingle,
             DollarSingle,
+            EyeOutlineSingle,
         };
 
         for (const k in iconList) {
@@ -296,12 +298,11 @@ export class ComponentManager {
             return value.component;
         } else if (value?.framework === 'vue3') {
             // TODO: slot support
-            return (props: any) => cloneElement(
+            // eslint-disable-next-line ts/no-explicit-any, react/no-clone-element
+            return (props: Record<string, any>) => cloneElement(
                 createElement(VueComponentWrapper, {
                     component: value.component,
-                    props: {
-                        ...props,
-                    },
+                    props,
                 })
             );
         } else {
@@ -327,6 +328,7 @@ async function renderVue3Component(VueComponent: ReturnType<typeof defineCompone
             document.body.removeChild(container);
         };
     } catch (error) {
+        console.warn('Vue3 component render error', error);
     }
 }
 

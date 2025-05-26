@@ -27,8 +27,10 @@ export const IMenuManagerService = createIdentifier<IMenuManagerService>('univer
 export interface IMenuSchema {
     key: string;
     order: number;
+    title?: string;
     item?: IMenuItem;
     children?: IMenuSchema[];
+    tiny?: boolean;
 }
 
 export interface IMenuManagerService {
@@ -39,11 +41,14 @@ export interface IMenuManagerService {
     appendRootMenu(source: MenuSchemaType): void;
 
     getMenuByPositionKey(position: string): IMenuSchema[];
+
+    getFlatMenuByPositionKey(position: string): IMenuSchema[];
 }
 
 export type MenuSchemaType = {
     order?: number;
     menuItemFactory?: (accessor: IAccessor) => IMenuItem;
+    title?: string;
 } | {
     [key: string]: MenuSchemaType;
 };
@@ -64,39 +69,54 @@ export class MenuManagerService extends Disposable implements IMenuManagerServic
                 [RibbonStartGroup.LAYOUT]: {
                     order: 2,
                 },
-                [RibbonStartGroup.FORMULAS_INSERT]: {
-                    order: 3,
-                },
-                [RibbonStartGroup.FORMULAS_VIEW]: {
-                    order: 4,
-                },
-                [RibbonStartGroup.FILE]: {
-                    order: 5,
-                },
                 [RibbonStartGroup.OTHERS]: {
-                    order: 6,
+                    order: 3,
                 },
             },
             [RibbonPosition.INSERT]: {
                 order: 1,
-                [RibbonInsertGroup.OTHERS]: {
+                [RibbonInsertGroup.EDIT]: {
                     order: 0,
+                },
+                [RibbonInsertGroup.MEDIA]: {
+                    order: 1,
+                },
+                [RibbonInsertGroup.OTHERS]: {
+                    order: 2,
                 },
             },
             [RibbonPosition.FORMULAS]: {
                 order: 2,
-                [RibbonFormulasGroup.OTHERS]: {
+                [RibbonFormulasGroup.BASIC]: {
                     order: 0,
+                },
+                [RibbonFormulasGroup.OTHERS]: {
+                    order: 1,
                 },
             },
             [RibbonPosition.DATA]: {
                 order: 3,
-                [RibbonDataGroup.OTHERS]: {
+                [RibbonDataGroup.FORMULAS]: {
                     order: 0,
+                },
+                [RibbonDataGroup.RULES]: {
+                    order: 1,
+                },
+                [RibbonDataGroup.ORGANIZATION]: {
+                    order: 2,
+                },
+                [RibbonDataGroup.OTHERS]: {
+                    order: 3,
                 },
             },
             [RibbonPosition.VIEW]: {
                 order: 4,
+                [RibbonViewGroup.DISPLAY]: {
+                    order: 0,
+                },
+                [RibbonViewGroup.VISIBILITY]: {
+                    order: 0,
+                },
                 [RibbonViewGroup.OTHERS]: {
                     order: 0,
                 },
@@ -111,6 +131,27 @@ export class MenuManagerService extends Disposable implements IMenuManagerServic
         [MenuManagerPosition.CONTEXT_MENU]: {
             [ContextMenuPosition.MAIN_AREA]: {
                 order: 0,
+                [ContextMenuGroup.QUICK]: {
+                    order: -1,
+                },
+                [ContextMenuGroup.FORMAT]: {
+                    order: 0,
+                },
+                [ContextMenuGroup.LAYOUT]: {
+                    order: 1,
+                },
+                [ContextMenuGroup.DATA]: {
+                    order: 2,
+                },
+                [ContextMenuGroup.OTHERS]: {
+                    order: 3,
+                },
+            },
+            [ContextMenuPosition.PARAGRAPH]: {
+                order: 0,
+                [ContextMenuGroup.QUICK]: {
+                    order: -1,
+                },
                 [ContextMenuGroup.FORMAT]: {
                     order: 0,
                 },
@@ -203,7 +244,7 @@ export class MenuManagerService extends Disposable implements IMenuManagerServic
                 _target[_key] = merge({}, _target[_key], source[_key]);
 
                 this.menuChanged$.next();
-            } else {
+            } else if (typeof value === 'object') {
                 this.mergeMenu(source, value);
             }
         }
@@ -221,6 +262,7 @@ export class MenuManagerService extends Disposable implements IMenuManagerServic
             const menuItem: Partial<IMenuSchema> = {
                 key,
                 order: value.order,
+                title: value.title,
             };
 
             if (value.menuItemFactory) {
@@ -237,14 +279,15 @@ export class MenuManagerService extends Disposable implements IMenuManagerServic
                     }
                 }
             }
+            if (typeof value === 'object') {
+                const children = this._buildMenuSchema(value);
+                if (children.length > 0) {
+                    menuItem.children = children.sort((a, b) => a.order - b.order);
+                }
 
-            const children = this._buildMenuSchema(value);
-            if (children.length > 0) {
-                menuItem.children = children.sort((a, b) => a.order - b.order);
-            }
-
-            if (menuItem.item || menuItem.children) {
-                result.push(menuItem as IMenuSchema); // 使用类型断言补充缺失字段
+                if (menuItem.item || menuItem.children) {
+                    result.push(menuItem as IMenuSchema); // 使用类型断言补充缺失字段
+                }
             }
         }
 
@@ -276,5 +319,25 @@ export class MenuManagerService extends Disposable implements IMenuManagerServic
         };
 
         return findKey(this._menu);
+    }
+
+    /**
+     * Get flat menu schema by position key
+     * @param key
+     * @returns Flat menu schema array or empty array if not found
+     */
+    getFlatMenuByPositionKey(key: string): IMenuSchema[] {
+        const menu = this.getMenuByPositionKey(key);
+
+        function flatMenuItems(items: IMenuSchema[]): IMenuSchema[] {
+            return items.reduce((acc, item) => {
+                if (item.children) {
+                    return [...acc, item, ...flatMenuItems(item.children)];
+                }
+                return [...acc, item];
+            }, [] as IMenuSchema[]);
+        }
+
+        return flatMenuItems(menu);
     }
 }

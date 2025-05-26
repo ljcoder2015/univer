@@ -21,7 +21,6 @@ import { CreateCopySingle } from '@univerjs/icons';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useRef, useState } from 'react';
 import { AutoImageCropOperation, CloseImageCropOperation, CropType } from '../../commands/operations/image-crop.operation';
-import styles from './index.module.less';
 
 export interface IImageCropperProps {
     drawings: IDrawingParam[];
@@ -111,10 +110,6 @@ export const ImageCropper = (props: IImageCropperProps) => {
         }
     }
 
-    const gridDisplay = (isShow: boolean) => {
-        return isShow ? 'block' : 'none';
-    };
-
     const onCropperBtnClick = (val: CropType) => {
         commandService.executeCommand(AutoImageCropOperation.id, {
             cropType: val,
@@ -123,24 +118,27 @@ export const ImageCropper = (props: IImageCropperProps) => {
     };
 
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: gridDisplay(cropperShow) }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('image-panel.crop.title')}</div>
-                </div>
-            </div>
-            <div className={clsx(styles.imageCommonPanelRow, styles.imageCommonPanelRowVertical)}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <Button size="small" onClick={() => { onCropperBtnClick(cropValue as CropType); }}>
-                        <span className={styles.imageCommonPanelInline}>
-                            <CreateCopySingle />
-                            {localeService.t('image-panel.crop.start')}
-                        </span>
-                    </Button>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <Select value={cropValue} options={cropOptions} onChange={handleCropChange} />
-                </div>
+        <div
+            className={clsx('univer-grid univer-gap-2 univer-py-2 univer-text-gray-400', {
+                'univer-hidden': !cropperShow,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-panel.crop.title')}</div>
+            </header>
+
+            <div className="univer-flex univer-items-center univer-justify-center univer-gap-2">
+                <Button onClick={() => { onCropperBtnClick(cropValue as CropType); }}>
+                    <CreateCopySingle />
+                    {localeService.t('image-panel.crop.start')}
+                </Button>
+
+                <Select value={cropValue} options={cropOptions} onChange={handleCropChange} />
             </div>
         </div>
     );

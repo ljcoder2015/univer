@@ -23,10 +23,14 @@ const locale: typeof enUS = {
             bulletedList: 'Liste à puces',
             divider: 'Ligne de séparation',
             text: 'Texte',
+            table: 'Tableau',
+            image: 'Image',
         },
         group: {
             basics: 'Basiques',
         },
+        placeholder: 'Aucun résultat',
+        keywordInputPlaceholder: 'Entrez des mots clés',
     },
 };
 

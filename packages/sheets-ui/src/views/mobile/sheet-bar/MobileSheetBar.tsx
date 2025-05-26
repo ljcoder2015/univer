@@ -18,7 +18,7 @@ import type { ICommandInfo, Workbook } from '@univerjs/core';
 import type { ISetWorksheetActiveOperationParams } from '@univerjs/sheets';
 import type { IBaseSheetBarProps } from '../../sheet-bar/sheet-bar-tabs/SheetBarItem';
 import { ICommandService } from '@univerjs/core';
-import { clsx } from '@univerjs/design';
+import { borderRightClassName, clsx } from '@univerjs/design';
 import {
     InsertSheetMutation,
     RemoveSheetMutation,
@@ -30,7 +30,6 @@ import {
 import { useDependency } from '@univerjs/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useActiveWorkbook } from '../../../components/hook';
-import styles from './index.module.less';
 
 export function MobileSheetBar() {
     const workbook = useActiveWorkbook();
@@ -107,21 +106,32 @@ function MobileSheetBarImpl(props: { workbook: Workbook }) {
     }, [commandService, updateSheetItems]);
 
     return (
-        <div className={styles.mobileSheetBarContainer}>
-            <div className={styles.mobileSheetBarSlider}>
+        <div
+            className={`
+              univer-h-8 univer-w-full univer-overflow-x-scroll univer-bg-gray-100
+              dark:!univer-bg-gray-900
+            `}
+        >
+            <div className="univer-flex univer-h-8 univer-flex-nowrap univer-items-center">
                 {sheetList.map((sheet) => (
                     <div
+                        ref={(element) => {
+                            tabMapRef.current.set(sheet.sheetId!, element);
+                        }}
                         className={clsx(
-                            styles.mobileSheetBarItem,
+                            `
+                              univer-box-border univer-h-full univer-min-w-12 univer-max-w-[120px] univer-shrink-0
+                              univer-flex-nowrap univer-items-center univer-overflow-hidden univer-truncate
+                              univer-whitespace-nowrap univer-px-1 univer-py-0.5 univer-text-center univer-text-xs
+                              univer-leading-7
+                            `,
+                            borderRightClassName,
                             {
-                                [styles.mobileSheetBarItemActivated]: sheet.sheetId === activeKey,
+                                'univer-bg-white univer-text-primary-600 dark:!univer-bg-slate-600': sheet.sheetId === activeKey,
                             }
                         )}
                         key={sheet.sheetId}
                         onClick={() => onTabClick(sheet.sheetId!)}
-                        ref={(element) => {
-                            tabMapRef.current.set(sheet.sheetId!, element);
-                        }}
                     >
                         {sheet.label}
                     </div>

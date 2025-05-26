@@ -25,7 +25,7 @@ import type {
 } from '@xyflow/react';
 import type { IFloatingToolbarRef } from '../uni-toolbar/UniFloatToolbar';
 import { debounce, ICommandService, IContextService, IUniverInstanceService, LocaleService, ThemeService } from '@univerjs/core';
-import { clsx, ConfigContext, ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
+import { borderClassName, clsx, ConfigContext, ConfigProvider } from '@univerjs/design';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { MenuSingle } from '@univerjs/icons';
 import {
@@ -45,7 +45,7 @@ import {
     ReactFlowProvider,
     useNodesState,
 } from '@xyflow/react';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { UniFocusUnitOperation } from '../../commands/operations/uni-focus-unit.operation';
 import { FlowManagerService } from '../../services/flow/flow-manager.service';
@@ -55,7 +55,7 @@ import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, UniControlItem, UniControls } from '.
 import { LeftSidebar, RightSidebar } from '../uni-sidebar/UniSidebar';
 import { UniFloatingToolbar } from '../uni-toolbar/UniFloatToolbar';
 import { UniToolbar } from '../uni-toolbar/UniToolbar';
-import styles from './workbench.module.less';
+
 import '@xyflow/react/dist/style.css';
 // Refer to packages/ui/src/views/workbench/Workbench.tsx
 
@@ -92,13 +92,6 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
     const focusedUnit = useObservable(instanceService.focused$);
 
     useEffect(() => {
-        if (!themeService.getCurrentTheme()) {
-            themeService.setTheme(defaultTheme);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
         if (contentRef.current) {
             onRendered?.(contentRef.current);
         }
@@ -115,7 +108,7 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
             }
         }
     }, [commandService]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     const resizeUnits = useCallback(debounce(() => {
         renderManagerService.getRenderAll().forEach((renderer) => renderer.engine.resize());
     }, 400), [renderManagerService]); // TODO: this is not
@@ -129,10 +122,6 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
         const subscriptions = [
             localeService.localeChanged$.subscribe(() => {
                 setLocale(localeService.getLocales() as unknown as ILocale);
-            }),
-            themeService.currentTheme$.subscribe((theme) => {
-                themeInstance.setTheme(mountContainer, theme);
-                portalContainer && themeInstance.setTheme(portalContainer, theme);
             }),
         ];
 
@@ -190,11 +179,15 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
               * bubbled to this element and refocus the input element.
               */}
             <ReactFlowProvider>
-                <div className={styles.workbenchLayout} tabIndex={-1} onBlur={(e) => e.stopPropagation()}>
-
-                    <div className={styles.flowLayer}>
+                <div
+                    data-u-comp="workbench-layout"
+                    className="univer-relative univer-flex univer-h-full univer-min-h-0 univer-flex-col"
+                    tabIndex={-1}
+                    onBlur={(e) => e.stopPropagation()}
+                >
+                    <div className="univer-absolute univer-left-0 univer-top-0 univer-h-full univer-w-full">
                         <section
-                            className={styles.workbenchContainerCanvasContainer}
+                            className="univer-relative univer-flex univer-h-full univer-w-full"
                             ref={contentRef}
                             data-range-selector
                             onContextMenu={(e) => e.preventDefault()}
@@ -221,13 +214,13 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
 
                                     onNodesChange(nodes);
                                 }}
-                                onResize={resizeUnits}
+                                onReset={resizeUnits}
                                 fitView
                                 defaultViewport={{ zoom: MIN_ZOOM, x: 0, y: 0 }}
                                 onPointerDown={(event) => {
                                     if (event.target instanceof HTMLElement
                                         && (
-                                            event.target.classList.contains('univer-render-canvas')
+                                            event.target.dataset.uComp === 'render-canvas'
                                             || event.target.classList.contains('react-flow__resize-control'))
                                     ) {
                                         return;
@@ -244,11 +237,22 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
                             <ComponentContainer key="content" components={contentComponents} />
                         </section>
                     </div>
-                    <div className={styles.floatLayer}>
+                    <div
+                        className={`
+                          univer-pointer-events-none univer-absolute univer-left-0 univer-top-0 univer-h-full
+                          univer-w-full
+                          [&>*]:univer-pointer-events-auto
+                        `}
+                    >
                         {/* header */}
                         {header && (
-                            <div className={styles.workbenchContainerHeader}>
-                                <div className={styles.workbenchToolbarWrapper}>
+                            <div
+                                className={`
+                                  univer-relative univer-z-10 univer-flex univer-w-full univer-items-center
+                                  univer-justify-center univer-pt-3
+                                `}
+                            >
+                                <div className="univer-pointer-events-auto univer-max-w-[calc(100%-650px)]">
                                     <UniToolbar />
                                     <ComponentContainer key="header" components={headerComponents} />
                                 </div>
@@ -299,18 +303,27 @@ function UnitNode({ data }: IUnitNodeProps) {
     }, [disableChangingUnitFocusing, focused, unitId, commandService]);
 
     return (
-        <div className={styles.uniNodeContainer} onPointerDownCapture={focus}>
+        <div className="univer-relative univer-flex univer-h-full univer-w-full" onPointerDownCapture={focus}>
             <NodeResizer isVisible={focused} minWidth={180} minHeight={100} />
             <UnitRenderer
                 key={data.unitId}
                 {...data}
             />
 
-            <div className={styles.uniNodeDragHandle}>
+            <div
+                className={`
+                  univer-absolute -univer-left-8 univer-flex univer-h-[18px] univer-w-[18px] univer-items-center
+                  univer-justify-center univer-rounded univer-p-1 univer-shadow-sm
+                `}
+            >
                 <MenuSingle />
             </div>
 
-            <div className={styles.uniNodeTitle}>
+            <div
+                className={`
+                  univer-absolute -univer-top-6 univer-left-0 univer-text-sm univer-text-gray-600 !univer-text-gray-200
+                `}
+            >
                 {title}
             </div>
             <ComponentContainer key="unit" components={unitComponents} sharedProps={{ unitId }} />
@@ -343,8 +356,10 @@ function UnitRenderer(props: IUnitRendererProps) {
 
     return (
         <div
-            className={clsx(styles.workbenchContainerCanvas, {
-                [styles.workbenchContainerCanvasFocused]: focused,
+            className={clsx(`
+              univer-relative univer-flex-1 univer-overflow-hidden univer-rounded-lg univer-border-transparent
+            `, borderClassName, {
+                'univer-border-primary-600': focused,
             })}
             ref={mountRef}
             // We bind these focusing events on capture phrase so the

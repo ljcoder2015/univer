@@ -40,9 +40,11 @@ export interface IRefSelection {
     index: number;
 }
 
+// eslint-disable-next-line complexity, max-lines-per-function
 export function calcHighlightRanges(opts: {
     unitId: string;
     subUnitId: string;
+    currentWorkbook: Workbook;
     refSelections: IRefSelection[];
     editor: Editor | undefined;
     refSelectionsService: SheetsSelectionsService;
@@ -54,6 +56,7 @@ export function calcHighlightRanges(opts: {
     const {
         unitId,
         subUnitId,
+        currentWorkbook,
         refSelections,
         editor,
         refSelectionsService,
@@ -62,6 +65,7 @@ export function calcHighlightRanges(opts: {
         themeService,
         univerInstanceService,
     } = opts;
+    const currentUnitId = currentWorkbook.getUnitId();
     const workbook = univerInstanceService.getUnit<Workbook>(unitId, UniverInstanceType.UNIVER_SHEET);
     const worksheet = workbook?.getActiveSheet();
     const selectionWithStyle: ISelectionWithStyle[] = [];
@@ -74,7 +78,6 @@ export function calcHighlightRanges(opts: {
 
     const skeleton = sheetSkeletonManagerService?.getWorksheetSkeleton(currentSheetId)?.skeleton;
     if (!skeleton) return;
-
     const endIndexes: number[] = [];
     for (let i = 0, len = refSelections.length; i < len; i++) {
         const refSelection = refSelections[i];
@@ -82,11 +85,15 @@ export function calcHighlightRanges(opts: {
 
         const unitRangeName = deserializeRangeWithSheet(token);
         const { unitId: refUnitId, sheetName, range: rawRange } = unitRangeName;
-        if (refUnitId && unitId !== refUnitId) {
+        const refSheetId = getSheetIdByName(sheetName);
+
+        if (currentUnitId !== unitId && refUnitId !== currentUnitId) {
             continue;
         }
 
-        const refSheetId = getSheetIdByName(sheetName);
+        if (refUnitId && refUnitId !== currentUnitId) {
+            continue;
+        }
 
         if ((refSheetId && refSheetId !== currentSheetId) || (!refSheetId && currentSheetId !== subUnitId)) {
             continue;
@@ -132,10 +139,13 @@ export function useSheetHighlight(unitId: string, subUnitId: string) {
     const sheetSkeletonManagerService = render?.with(SheetSkeletonManagerService);
 
     const highlightSheet = useEvent((refSelections: IRefSelection[], editor?: Editor) => {
+        const currentWorkbook = univerInstanceService.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET);
+        if (!currentWorkbook) return;
         if (refSelectionsRenderService?.selectionMoving) return;
         const selectionWithStyle = calcHighlightRanges({
             unitId,
             subUnitId,
+            currentWorkbook,
             refSelections,
             editor,
             refSelectionsService,
@@ -144,7 +154,6 @@ export function useSheetHighlight(unitId: string, subUnitId: string) {
             themeService,
             univerInstanceService,
         });
-
         if (!selectionWithStyle) return;
         const allControls = refSelectionsRenderService?.getSelectionControls() || [];
         if (allControls.length === selectionWithStyle.length) {
@@ -241,27 +250,28 @@ interface IColorMap {
 
 export function useColor(): IColorMap {
     const themeService = useDependency(ThemeService);
-    const style = themeService.getCurrentTheme();
+    const theme = themeService.getCurrentTheme();
     const result = useMemo(() => {
         const formulaRefColors = [
-            style.loopColor1,
-            style.loopColor2,
-            style.loopColor3,
-            style.loopColor4,
-            style.loopColor5,
-            style.loopColor6,
-            style.loopColor7,
-            style.loopColor8,
-            style.loopColor9,
-            style.loopColor10,
-            style.loopColor11,
-            style.loopColor12,
+            themeService.getColorFromTheme('loop-color.1'),
+            themeService.getColorFromTheme('loop-color.2'),
+            themeService.getColorFromTheme('loop-color.3'),
+            themeService.getColorFromTheme('loop-color.4'),
+            themeService.getColorFromTheme('loop-color.5'),
+            themeService.getColorFromTheme('loop-color.6'),
+            themeService.getColorFromTheme('loop-color.7'),
+            themeService.getColorFromTheme('loop-color.8'),
+            themeService.getColorFromTheme('loop-color.9'),
+            themeService.getColorFromTheme('loop-color.10'),
+            themeService.getColorFromTheme('loop-color.11'),
+            themeService.getColorFromTheme('loop-color.12'),
         ];
-        const numberColor = style.hyacinth700;
-        const stringColor = style.verdancy800;
-        const plainTextColor = style.colorBlack;
+        const numberColor = themeService.getColorFromTheme('blue.700');
+        const stringColor = themeService.getColorFromTheme('jiqing.800');
+        const plainTextColor = themeService.getColorFromTheme('black');
         return { formulaRefColors, numberColor, stringColor, plainTextColor };
-    }, [style]);
+    }, [theme]);
+
     return result;
 }
 

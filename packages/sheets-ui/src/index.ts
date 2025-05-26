@@ -83,10 +83,7 @@ export type { IRangeProtectionRenderCellData } from './views/permission/extensio
 export { SheetBar } from './views/sheet-bar/SheetBar';
 export { RenderSheetContent, RenderSheetFooter, RenderSheetHeader } from './views/sheet-container/SheetContainer';
 export { type IUniverSheetsUIConfig } from './controllers/config.schema';
-
 export { getCellRealRange } from './common/utils';
-export { FONT_FAMILY_COMPONENT, FONT_FAMILY_ITEM_COMPONENT } from './components/font-family/interface';
-export { FONT_SIZE_COMPONENT } from './components/font-size/interface';
 export { EMBEDDING_FORMULA_EDITOR, isEmbeddingFormulaEditor } from './controllers/editor/utils/is-embedding-formula-editor';
 export { isRangeSelector, RANGE_SELECTOR_SYMBOLS } from './controllers/editor/utils/is-range-selector';
 export { menuSchema as SheetsUIMenuSchema } from './controllers/menu.schema';
@@ -95,8 +92,11 @@ export { FormatPainterStatus, IFormatPainterService } from './services/format-pa
 export type { IFormatPainterBeforeApplyHookParams, IFormatPainterHook } from './services/format-painter/format-painter.service';
 export { SELECTION_SHAPE_DEPTH } from './services/selection/const';
 export { type IBaseSheetBarProps } from './views/sheet-bar/sheet-bar-tabs/SheetBarItem';
+export { useKeyEventConfig } from './views/editor-container';
+export { type IDropdownParam, ISheetCellDropdownManagerService, SheetCellDropdownManagerService } from './services/cell-dropdown-manager.service';
 export { FormulaBar } from './views/formula-bar/FormulaBar';
-
+export { type IPermissionDetailUserPartProps } from './views/permission/panel-detail/PermissionDetailUserPart';
+export { CellPopupManagerService } from './services/cell-popup-manager.service';
 // #region - all commands
 export { SetWorksheetColAutoWidthCommand } from './commands/commands/set-worksheet-auto-col-width.command';
 export { AutoClearContentCommand, AutoFillCommand } from './commands/commands/auto-fill.command';

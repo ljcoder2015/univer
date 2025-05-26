@@ -29,6 +29,13 @@ export interface IUniverUIConfig extends IWorkbenchOptions {
     override?: DependencyOverride;
 
     menu?: MenuConfig;
+
+    popupRootId?: string;
+
+    /**
+     * The fallback avatar for user.
+     */
+    avatarFallback?: string;
 }
 
 export const defaultPluginConfig: IUniverUIConfig = {};

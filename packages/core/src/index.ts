@@ -21,10 +21,11 @@ export { getPlainText } from './docs/data-model/text-x/build-utils/parse';
 export type { INumfmt } from './shared/types/numfmt.type';
 export { debounce, get, merge, mergeWith, set } from 'lodash-es';
 export { textDiff } from './shared/text-diff';
-export { dedupe, groupBy, makeArray, remove, rotate } from './common/array';
+export { dedupe, dedupeBy, groupBy, makeArray, remove, rotate } from './common/array';
 export { isBooleanString } from './common/boolean';
 export * from './common/const';
 export * from './common/di';
+export * from './common/async';
 export { shallowEqual } from './common/equal';
 export { ParagraphStyleBuilder, ParagraphStyleValue, RichTextBuilder, RichTextValue, TextDecorationBuilder, TextStyleBuilder, TextStyleValue } from './docs/data-model/rich-text-builder';
 export { CanceledError, CustomCommandExecutionError } from './common/error';
@@ -34,7 +35,7 @@ export { AsyncInterceptorManager, composeInterceptors, createAsyncInterceptorKey
 export type { Serializable } from './common/json';
 export { MemoryCursor } from './common/memory-cursor';
 export { mixinClass } from './common/mixin';
-export { isNumeric, isSafeNumeric } from './common/number';
+export { isNumeric, isSafeNumeric, willLoseNumericPrecision } from './common/number';
 export { Registry, RegistryAsMap } from './common/registry';
 export { requestImmediateMacroTask } from './common/request-immediate-macro-task';
 export { type ISequenceExecuteResult, sequence, sequenceAsync } from './common/sequence';
@@ -116,14 +117,14 @@ export type { IPermissionParam } from './services/permission/type';
 
 export type { IPermissionPoint } from './services/permission/type';
 export type { IPermissionTypes, RangePermissionPointConstructor, WorkbookPermissionPointConstructor, WorkSheetPermissionPointConstructor } from './services/permission/type';
-export type { PluginCtor } from './services/plugin/plugin.service.ts';
+export type { PluginCtor } from './services/plugin/plugin.service';
 export { DependentOn, Plugin, PluginService } from './services/plugin/plugin.service';
 export { type DependencyOverride, mergeOverrideWithDependencies } from './services/plugin/plugin-override';
 export { IResourceLoaderService } from './services/resource-loader/type';
 export { ResourceManagerService } from './services/resource-manager/resource-manager.service';
 export type { IResourceHook, IResources } from './services/resource-manager/type';
 export { IResourceManagerService } from './services/resource-manager/type';
-export { type IStyleSheet, ThemeService } from './services/theme/theme.service';
+export { ThemeService } from './services/theme/theme.service';
 
 // #region sheet
 
@@ -146,7 +147,7 @@ export { isBlackColor, isWhiteColor } from './shared/color/color-kit';
 export { cellToRange } from './shared/common';
 export { getIntersectRange } from './shared/range';
 export { nameCharacterCheck } from './shared/name';
-export { afterTime, bufferDebounceTime, fromCallback, takeAfter } from './shared/rxjs';
+export { afterTime, bufferDebounceTime, convertObservableToBehaviorSubject, fromCallback, takeAfter } from './shared/rxjs';
 export { awaitTime, delayAnimationFrame } from './shared/timer';
 export { Range } from './sheets/range';
 export {
@@ -196,5 +197,10 @@ export { type IUniverConfig, Univer } from './univer';
 export { isNodeEnv } from './shared/tools';
 export { Skeleton } from './skeleton';
 export type { IGetRowColByPosOptions } from './sheets/sheet-skeleton';
-export type { IPosition } from './sheets/typedef.ts';
+export type { IPosition } from './sheets/typedef';
 export * from './sheets/sheet-skeleton';
+
+// invert color utils
+export { invertColorByMatrix } from './common/invert-color/invert-rgb';
+export { invertColorByHSL } from './common/invert-color/invert-hsl';
+export type { RGBColorType } from './common/invert-color/utils';

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     toolbar: {
         undo: '撤銷',
         redo: '重做',
@@ -53,6 +53,7 @@ const locale: typeof zhCN = {
         headerFooter: '頁眉頁腳',
         checklist: '任務列表',
         documentFlavor: '现代模式',
+        pageSetup: '頁面設置',
     },
     table: {
         insert: 'Insert',
@@ -97,6 +98,44 @@ const locale: typeof zhCN = {
             multiSpace: 'Multi Space',
             fixedValue: 'Fixed Value(px)',
         },
+    },
+    rightClick: {
+        copy: '複製',
+        cut: '剪切',
+        paste: '貼上',
+        delete: '刪除',
+        bulletList: '無序列表',
+        orderList: '有序列表',
+        checkList: '任務列表',
+        insertBellow: '在下方插入',
+    },
+    'page-settings': {
+        'document-setting': '文檔設置',
+        'page-size': {
+            main: '紙張大小',
+            a4: 'A4',
+            a3: 'A3',
+            a5: 'A5',
+            b4: 'B4',
+            b5: 'B5',
+            letter: '美式信紙',
+            legal: '美式法律用紙',
+            tabloid: '小報尺寸',
+            statement: '聲明用紙',
+            executive: '行政用紙',
+            folio: '對開紙',
+        },
+        'paper-size': '紙張大小',
+        orientation: '方向',
+        portrait: '縱向',
+        landscape: '橫向',
+        'custom-paper-size': '自定義紙張大小',
+        top: '上',
+        bottom: '下',
+        left: '左',
+        right: '右',
+        cancel: '取消',
+        confirm: '確認',
     },
 };
 

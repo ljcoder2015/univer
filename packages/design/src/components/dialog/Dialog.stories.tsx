@@ -15,7 +15,6 @@
  */
 
 import type { Meta } from '@storybook/react';
-import { CloseSingle } from '@univerjs/icons';
 import React, { useState } from 'react';
 
 import { Button } from '../button/Button';
@@ -36,19 +35,15 @@ export const DialogBasic = {
     render() {
         const [visible, setVisible] = useState(false);
 
-        function handleToggleVisible() {
-            setVisible(!visible);
-        }
-
         return (
             <>
-                <Button onClick={handleToggleVisible}>open dialog</Button>
+                <Button onClick={() => setVisible(true)}>open dialog</Button>
                 <Dialog
-                    visible={visible}
+                    open={visible}
                     title="hello world"
-                    closeIcon={<CloseSingle />}
-                    footer={<footer>footer</footer>}
-                    onClose={handleToggleVisible}
+                    showOk
+                    showCancel
+                    onOpenChange={setVisible}
                 >
                     xxxx
                 </Dialog>
@@ -61,22 +56,17 @@ export const DialogDraggable = {
     render() {
         const [visible, setVisible] = useState(false);
 
-        function handleToggleVisible() {
-            setVisible(!visible);
-        }
-
         return (
             <>
-                <Button onClick={handleToggleVisible}>open dialog</Button>
+                <Button onClick={() => setVisible(true)}>open dialog</Button>
                 <Dialog
-                    visible={visible}
+                    open={visible}
                     title="hello world"
-                    closeIcon={<CloseSingle />}
                     draggable
                     destroyOnClose
                     preservePositionOnDestroy
                     defaultPosition={{ x: 100, y: 100 }}
-                    onClose={handleToggleVisible}
+                    onClose={() => setVisible(false)}
                 >
                     xxxx
                 </Dialog>

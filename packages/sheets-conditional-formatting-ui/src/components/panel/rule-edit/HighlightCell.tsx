@@ -33,12 +33,11 @@ import {
     createDefaultValue,
 } from '@univerjs/sheets-conditional-formatting';
 import { useDependency } from '@univerjs/ui';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ConditionalStyleEditor } from '../../conditional-style-editor';
 import { Preview } from '../../preview';
 import { WrapperError } from '../../wrapper-error/WrapperError';
-import stylesBase from '../index.module.less';
-import styles from './index.module.less';
+import { previewClassName } from './styles';
 
 const createOptionItem = (text: string, localeService: LocaleService) => ({ label: localeService.t(`sheet.cf.operator.${text}`), value: text });
 type IValue = number | string | [number, number];
@@ -55,16 +54,16 @@ const HighlightCellInput = (props: {
     const { type, operator, onChange, value, interceptorManager } = props;
 
     const localeService = useDependency(LocaleService);
-    const [inputNumberValue, inputNumberValueSet] = useState(() => typeof value === 'number' ? value : 0);
-    const [numberError, numberErrorSet] = useState('');
+    const [inputNumberValue, setInputNumberValue] = useState(() => typeof value === 'number' ? value : 0);
+    const [numberError, setNumberError] = useState('');
 
-    const [inputTextValue, inputTextValueSet] = useState(() => typeof value === 'string' ? value : '');
-    const [textError, textErrorSet] = useState('');
-    const [inputNumberMin, inputNumberMinSet] = useState(() => Array.isArray(value) ? value[0] === undefined ? 0 : value[0] : 0);
-    const [numberMinError, numberMinErrorSet] = useState('');
+    const [inputTextValue, setInputTextValue] = useState(() => typeof value === 'string' ? value : '');
+    const [textError, setTextError] = useState('');
+    const [inputNumberMin, setInputNumberMin] = useState(() => Array.isArray(value) ? value[0] === undefined ? 0 : value[0] : 0);
+    const [numberMinError, setNumberMinError] = useState('');
 
-    const [inputNumberMax, inputNumberMaxSet] = useState(() => Array.isArray(value) ? value[1] === undefined ? 100 : value[1] : 100);
-    const [numberMaxError, numberMaxErrorSet] = useState('');
+    const [inputNumberMax, setInputNumberMax] = useState(() => Array.isArray(value) ? value[1] === undefined ? 100 : value[1] : 100);
+    const [numberMaxError, setNumberMaxError] = useState('');
 
     useEffect(() => {
         switch (type) {
@@ -93,7 +92,7 @@ const HighlightCellInput = (props: {
                     case CFSubRuleType.text: {
                         if ([CFTextOperator.beginsWith, CFTextOperator.containsText, CFTextOperator.endsWith, CFTextOperator.notEqual, CFTextOperator.notContainsText, CFTextOperator.equal].includes(operator as any)) {
                             if (!inputTextValue) {
-                                textErrorSet(localeService.t('sheet.cf.errorMessage.notBlank'));
+                                setTextError(localeService.t('sheet.cf.errorMessage.notBlank'));
                                 return false;
                             }
                             return next(v);
@@ -112,21 +111,16 @@ const HighlightCellInput = (props: {
         case CFSubRuleType.text: {
             if ([CFTextOperator.beginsWith, CFTextOperator.endsWith, CFTextOperator.containsText, CFTextOperator.notContainsText, CFTextOperator.equal, CFTextOperator.notEqual].includes(operator as CFTextOperator)) {
                 const _onChange = (value: string) => {
-                    inputTextValueSet(value);
+                    setInputTextValue(value);
                     onChange(value);
                 };
                 return (
-                    <div
-                        className={`
-                          ${stylesBase.mTSm}
-                        `}
-                    >
+                    <div className="univer-mt-3">
                         <WrapperError errorText={textError}>
                             <Input
-                                className={styles.width100}
                                 value={inputTextValue}
                                 onChange={(v) => {
-                                    textErrorSet('');
+                                    setTextError('');
                                     _onChange(v);
                                 }}
                             />
@@ -139,52 +133,47 @@ const HighlightCellInput = (props: {
         case CFSubRuleType.number: {
             if ([CFNumberOperator.equal, CFNumberOperator.notEqual, CFNumberOperator.greaterThan, CFNumberOperator.greaterThanOrEqual, CFNumberOperator.lessThan, CFNumberOperator.lessThanOrEqual].includes(operator as CFNumberOperator)) {
                 const _onChange = (value: number | null) => {
-                    inputNumberValueSet(value || 0);
+                    setInputNumberValue(value || 0);
                     onChange(value || 0);
-                    numberErrorSet('');
+                    setNumberError('');
                 };
                 return (
-                    <div
-                        className={`
-                          ${stylesBase.mTSm}
-                        `}
-                    >
+                    <div className="univer-mt-3">
                         <WrapperError errorText={numberError}>
-                            <InputNumber min={Number.MIN_SAFE_INTEGER} max={Number.MAX_SAFE_INTEGER} className={styles.width100} value={inputNumberValue} onChange={_onChange} />
+                            <InputNumber
+                                className="univer-w-full"
+                                min={Number.MIN_SAFE_INTEGER}
+                                max={Number.MAX_SAFE_INTEGER}
+                                value={inputNumberValue}
+                                onChange={_onChange}
+                            />
                         </WrapperError>
                     </div>
                 );
             }
             if ([CFNumberOperator.between, CFNumberOperator.notBetween].includes(operator as CFNumberOperator)) {
                 const onChangeMin = (_value: number | null) => {
-                    inputNumberMinSet(_value || 0);
+                    setInputNumberMin(_value || 0);
                     const value: [number, number] = [_value || 0, inputNumberMax];
                     onChange(value);
-                    numberMinErrorSet('');
+                    setNumberMinError('');
                 };
                 const onChangeMax = (_value: number | null) => {
-                    inputNumberMaxSet(_value || 0);
+                    setInputNumberMax(_value || 0);
                     const value: [number, number] = [inputNumberMin, _value || 0];
                     onChange(value);
-                    numberMaxErrorSet('');
+                    setNumberMaxError('');
                 };
                 return (
-                    <div
-                        className={`
-                          ${stylesBase.mTSm}
-                          ${stylesBase.labelContainer}
-                        `}
-                    >
+                    <div className="univer-mt-3 univer-flex univer-items-center">
                         <WrapperError errorText={numberMinError}>
                             <InputNumber min={Number.MIN_SAFE_INTEGER} max={Number.MAX_SAFE_INTEGER} value={inputNumberMin} onChange={onChangeMin} />
                         </WrapperError>
                         <WrapperError errorText={numberMaxError}>
                             <InputNumber
+                                className="univer-ml-3"
                                 min={Number.MIN_SAFE_INTEGER}
                                 max={Number.MAX_SAFE_INTEGER}
-                                className={`
-                                  ${stylesBase.mLSm}
-                                `}
                                 value={inputNumberMax}
                                 onChange={onChangeMax}
                             />
@@ -290,7 +279,7 @@ export const HighlightCellStyleEditor = (props: IStyleEditorProps<any, ITextHigh
         return v;
     });
 
-    const [style, styleSet] = useState<IHighlightCell['style']>({});
+    const [style, setStyle] = useState<IHighlightCell['style']>({});
 
     const getResult = useMemo(() => (option: { subType?: string; operator?: string; value?: IValue; style?: IHighlightCell['style'] }) => {
         switch (option.subType || subType) {
@@ -380,47 +369,45 @@ export const HighlightCellStyleEditor = (props: IStyleEditorProps<any, ITextHigh
         <div>
             <div
                 className={`
-                  ${stylesBase.title}
-                  ${stylesBase.mTBase}
+                  univer-mt-4 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
                 {localeService.t('sheet.cf.panel.styleRule')}
             </div>
-            <Select
-                className={`
-                  ${stylesBase.mTSm}
-                  ${styles.width100}
-                `}
-                onChange={onTypeChange}
-                value={subType}
-                options={typeOptions}
-            />
-            {operatorOptions?.length && (
+            <div className="univer-flex univer-justify-between univer-gap-4">
                 <Select
-                    className={`
-                      ${stylesBase.mTSm}
-                      ${styles.width100}
-                    `}
-                    onChange={onOperatorChange}
-                    value={operator || ''}
-                    options={operatorOptions}
+                    className="univer-mt-3 univer-w-full"
+                    onChange={onTypeChange}
+                    value={subType}
+                    options={typeOptions}
                 />
-            )}
-            <HighlightCellInput key={inputRenderKey} value={value} interceptorManager={interceptorManager} type={subType} operator={operator} rule={rule} onChange={onInputChange} />
-            <div
-                className={`
-                  ${styles.cfPreviewWrap}
-                `}
-            >
+                {operatorOptions?.length && (
+                    <Select
+                        className="univer-mt-3 univer-w-full"
+                        onChange={onOperatorChange}
+                        value={operator || ''}
+                        options={operatorOptions}
+                    />
+                )}
+            </div>
+            <HighlightCellInput
+                key={inputRenderKey}
+                value={value}
+                interceptorManager={interceptorManager}
+                type={subType}
+                operator={operator}
+                rule={rule}
+                onChange={onInputChange}
+            />
+            <div className={previewClassName}>
                 <Preview rule={getResult({}) as IConditionalFormattingRuleConfig} />
             </div>
             <ConditionalStyleEditor
                 style={rule?.style}
-                className={`
-                  ${stylesBase.mLXxs}
-                `}
+                className="univer-ml-1"
                 onChange={(v) => {
-                    styleSet(v);
+                    setStyle(v);
                     onChange(getResult({ style: v }));
                 }}
             />

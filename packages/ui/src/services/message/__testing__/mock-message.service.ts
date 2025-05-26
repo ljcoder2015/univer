@@ -22,10 +22,20 @@ import { toDisposable } from '@univerjs/core';
 
 /**
  * This is a mocked message service for testing purposes.
+ *
+ * @ignore
  */
 export class MockMessageService implements IMessageService {
     show(_options: IMessageProps): IDisposable {
         return toDisposable(() => { /* empty */ });
+    }
+
+    remove(_id: string): void {
+        // empty
+    }
+
+    removeAll(): void {
+        // empty
     }
 
     setContainer(): void {

@@ -15,11 +15,10 @@
  */
 
 import type { ISidebarMethodOptions } from '@univerjs/ui';
-import { clsx } from '@univerjs/design';
+import { borderClassName, clsx, scrollbarClassName } from '@univerjs/design';
 import { CloseSingle } from '@univerjs/icons';
 import { CustomLabel, ILeftSidebarService, ISidebarService, useDependency, useObservable } from '@univerjs/ui';
 import React, { useEffect, useMemo, useRef } from 'react';
-import styles from './index.module.less';
 
 export interface IUniSidebarProps {
     position: 'left' | 'right';
@@ -82,14 +81,8 @@ export function UniSidebar(props: IUniSidebarProps) {
         };
     }, [sidebarService]);
 
-    const rootClassName = clsx(styles.uniSidebar, {
-        [styles.uniSidebarOpen]: options?.visible,
-        [styles.uniSidebarLeft]: position === 'left',
-        [styles.uniSidebarRight]: position === 'right',
-    });
-
     const width = useMemo(() => {
-        if (!options?.visible) return 0;
+        if (!options?.visible) return '0px';
 
         if (typeof options.width === 'number') {
             return `${options.width}px`;
@@ -107,22 +100,50 @@ export function UniSidebar(props: IUniSidebarProps) {
         sidebarService.sidebarOptions$.next(options);
         options?.onClose?.();
     }
+
+    const visible = options?.visible ?? false;
     return (
-        <aside className={rootClassName} style={{ width }}>
-            <section className={styles.uniSidebarContainer} ref={scrollRef}>
+        <aside
+            className={clsx(`
+              univer-pointer-events-auto univer-fixed univer-bottom-3 univer-top-12 univer-z-20 univer-box-border
+              univer-overflow-hidden univer-rounded-lg univer-shadow-lg univer-transition-all
+            `, borderClassName, {
+                'univer-left-3 univer-w-[180px]': position === 'left',
+                'univer-right-3 univer-min-w-[280px] univer-max-w-[400px]': position === 'right',
+                'univer-translate-x-[calc(-100%-12px)]': position === 'left' && !visible,
+                'univer-translate-x-[calc(100%+12px)]': position === 'right' && !visible,
+            })}
+            style={{ width }}
+        >
+            <section
+                ref={scrollRef}
+                className={clsx(`
+                  univer-m-auto univer-box-border univer-flex univer-h-0 univer-min-h-full univer-w-full univer-flex-col
+                  univer-overflow-hidden univer-overflow-y-auto univer-bg-white
+                `, scrollbarClassName)}
+            >
                 { showClose && (
-                    <header className={styles.uniSidebarHeader}>
+                    <header
+                        className={`
+                          univer-sticky univer-top-0 univer-z-10 univer-box-border univer-flex univer-h-[44px]
+                          univer-flex-shrink-0 univer-flex-grow-0 univer-content-between univer-items-center
+                          univer-justify-between univer-p-4 univer-pb-0 univer-text-lg univer-font-medium
+                        `}
+                    >
                         {options?.header}
 
-                        <a className={styles.uniSidebarHeaderClose} onClick={handleClose}>
+                        <a className="univer-cursor-pointer" onClick={handleClose}>
                             <CloseSingle />
                         </a>
                     </header>
                 )}
 
-                <section className={styles.uniSidebarBody}>{options?.children}</section>
-
-                {options?.footer && <footer className={styles.uniSidebarFooter}>{options.footer}</footer>}
+                <section
+                    className="univer-box-border univer-flex-grow univer-p-2"
+                >
+                    {options?.children}
+                </section>
+                {options?.footer && <footer className="univer-sticky univer-bottom-0 univer-box-border univer-p-4">{options.footer}</footer>}
             </section>
         </aside>
     );

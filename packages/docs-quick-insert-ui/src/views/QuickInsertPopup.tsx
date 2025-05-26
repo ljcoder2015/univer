@@ -16,11 +16,12 @@
 
 import type { DocPopupMenu, IDocPopupMenuItem } from '../services/doc-quick-insert-popup.service';
 import { CommandType, Direction, DisposableCollection, generateRandomId, ICommandService, LocaleService, toDisposable } from '@univerjs/core';
-import { clsx, Menu, MenuItem, MenuItemGroup } from '@univerjs/design';
+import { clsx, Menu, MenuItem, MenuItemGroup, Tooltip } from '@univerjs/design';
 import { ComponentManager, IShortcutService, KeyCode, useDependency, useObservable } from '@univerjs/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CloseQuickInsertPopupOperation } from '../commands/operations/quick-insert-popup.operation';
 import { DocQuickInsertPopupService } from '../services/doc-quick-insert-popup.service';
+import { QuickInsertPlaceholder } from './QuickInsertPlaceholder';
 
 function filterMenusByKeyword(menus: DocPopupMenu[], keyword: string) {
     return menus
@@ -63,7 +64,7 @@ function translateMenus(menus: DocPopupMenu[], localeService: LocaleService) {
 
 const interceptKeys = [KeyCode.ARROW_UP, KeyCode.ARROW_DOWN, KeyCode.ENTER];
 
-const QuickInsertPopup = () => {
+export const QuickInsertPopup = () => {
     const localeService = useDependency(LocaleService);
     const docQuickInsertPopupService = useDependency(DocQuickInsertPopupService);
     const componentManager = useDependency(ComponentManager);
@@ -81,11 +82,14 @@ const QuickInsertPopup = () => {
     const filterKeyword = useObservable(docQuickInsertPopupService.filterKeyword$, '');
     const currentPopup = useObservable(docQuickInsertPopupService.editPopup$);
     const menus = useObservable<DocPopupMenu[]>(currentPopup?.popup.menus$, []);
-    const [filteredMenus, setFilteredMenus] = useState<DocPopupMenu[]>([]);
 
     const translatedMenus = useMemo(() => {
         return translateMenus(menus, localeService);
     }, [menus]);
+
+    const [filteredMenus, setFilteredMenus] = useState<DocPopupMenu[]>(() => {
+        return filterMenusByKeyword(translatedMenus, filterKeyword.toLowerCase());
+    });
 
     useEffect(() => {
         const id = requestIdleCallback(() => {
@@ -194,6 +198,14 @@ const QuickInsertPopup = () => {
         setFocusedMenuIndex(0);
     }, [filteredMenus]);
 
+    const menuNodeMapRef = useRef<Map<string, HTMLElement>>(new Map());
+
+    useEffect(() => {
+        return () => {
+            menuNodeMapRef.current.clear();
+        };
+    }, []);
+
     function renderMenus(menus: DocPopupMenu[]) {
         return menus.map((menu) => {
             const iconKey = (menu as IDocPopupMenuItem).icon;
@@ -223,26 +235,40 @@ const QuickInsertPopup = () => {
             const isFocused = focusedMenuIndex === currentMenuIndex;
             if (isFocused) {
                 focusedMenuRef.current = menu as IDocPopupMenuItem;
+                const node = menuNodeMapRef.current.get(menu.id);
+                node?.scrollIntoView({
+                    block: 'nearest',
+                });
             }
 
             menuIndexAccumulator.current++;
 
             return (
                 <MenuItem
+                    // @ts-expect-error
+                    ref={(node) => {
+                        if (node) {
+                            menuNodeMapRef.current.set(menu.id, node);
+                        }
+                    }}
                     onMouseEnter={() => setFocusedMenuIndex(currentMenuIndex)}
                     onMouseLeave={() => setFocusedMenuIndex(Number.NaN)}
                     key={menu.id}
-                    className={clsx('univer-text-sm', {
+                    className={clsx('univer-w-[calc(220px-var(--padding-base)*2)] univer-text-sm', {
                         'hover:univer-bg-transparent': !isFocused,
-                        'univer-bg-gray-100': isFocused,
+                        'univer-bg-gray-100 dark:!univer-bg-gray-500': isFocused,
                     })}
                     onClick={() => {
                         handleMenuSelect(menu as IDocPopupMenuItem);
                     }}
                 >
-                    <div className="univer-flex univer-items-center univer-px-1">
+                    <div
+                        className="univer-flex univer-w-full univer-items-center univer-px-1"
+                    >
                         {Icon && <span className="univer-mr-2 univer-inline-flex univer-text-base"><Icon /></span>}
-                        <span>{menu.title}</span>
+                        <Tooltip showIfEllipsis title={menu.title} placement="right">
+                            <span className="univer-truncate">{menu.title}</span>
+                        </Tooltip>
                     </div>
                 </MenuItem>
             );
@@ -251,27 +277,20 @@ const QuickInsertPopup = () => {
 
     const hasMenus = filteredMenus.length > 0;
 
+    const Placeholder = currentPopup?.popup.Placeholder || componentManager.get(QuickInsertPlaceholder.componentKey);
+
     return (
-        <div
-            className={clsx(`
-              univer-rounded-lg univer-border univer-border-solid univer-border-gray-100
-              univer-shadow-[0_0_10px_0_rgba(0,0,0,0.1)]
-            `)}
-        >
+        <div className={clsx('univer-mt-2')}>
             {hasMenus
                 ? (
-                    <div className="univer-max-h-[360px] univer-w-[220px] univer-overflow-y-auto">
-                        <Menu>
-                            {renderMenus(filteredMenus)}
-                        </Menu>
-                    </div>
+                    <Menu wrapperClass="univer-max-h-[360px] univer-w-[220px] univer-overflow-y-auto univer-overflow-x-hidden">
+                        {renderMenus(filteredMenus)}
+                    </Menu>
                 )
-                : currentPopup?.popup.placeholder}
+                : Placeholder && <Placeholder />}
         </div>
 
     );
 };
 
-QuickInsertPopup.componentKey = 'doc.quick-insert-popup';
-
-export { QuickInsertPopup };
+QuickInsertPopup.componentKey = 'docs.quick.insert.popup';

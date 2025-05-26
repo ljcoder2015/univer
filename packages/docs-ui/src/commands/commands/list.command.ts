@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import type { DocumentDataModel, ICommand, IMutationInfo, IParagraph, IParagraphRange, ISectionBreak } from '@univerjs/core';
+import type { DocumentDataModel, IAccessor, ICommand, IMutationInfo, IParagraph, IParagraphRange, ISectionBreak } from '@univerjs/core';
 import type { IRichTextEditingMutationParams } from '@univerjs/docs';
 import type { ITextRangeWithStyle } from '@univerjs/engine-render';
 import {
     BuildTextUtils,
     CommandType,
-    GridType,
     ICommandService,
     IUniverInstanceService,
     JSONX,
@@ -34,11 +33,12 @@ import {
     UniverInstanceType,
 } from '@univerjs/core';
 import { DocSelectionManagerService, RichTextEditingMutation } from '@univerjs/docs';
-import { getCharSpaceApply, getNumberUnitValue } from '@univerjs/engine-render';
 import { getRichTextEditPath } from '../util';
+import { getCurrentParagraph } from './util';
 
 interface IListOperationCommandParams {
     listType: PresetListType;
+    docRange?: ITextRangeWithStyle[];
 }
 
 export const ListOperationCommand: ICommand<IListOperationCommandParams> = {
@@ -53,7 +53,7 @@ export const ListOperationCommand: ICommand<IListOperationCommandParams> = {
         const listType: string = params.listType;
 
         const docDataModel = univerInstanceService.getCurrentUnitForType<DocumentDataModel>(UniverInstanceType.UNIVER_DOC);
-        const docRanges = docSelectionManagerService.getDocRanges() ?? [];
+        const docRanges = params.docRange ?? docSelectionManagerService.getDocRanges() ?? [];
 
         if (docDataModel == null || docRanges.length === 0) {
             return false;
@@ -61,13 +61,15 @@ export const ListOperationCommand: ICommand<IListOperationCommandParams> = {
 
         const segmentId = docRanges[0].segmentId;
 
-        const paragraphs = docDataModel.getSelfOrHeaderFooterModel(segmentId).getBody()?.paragraphs;
+        const segment = docDataModel.getSelfOrHeaderFooterModel(segmentId);
+        const paragraphs = segment.getBody()?.paragraphs ?? [];
+        const dataStream = segment.getBody()?.dataStream ?? '';
 
-        if (paragraphs == null) {
+        if (!paragraphs.length) {
             return false;
         }
 
-        const currentParagraphs = getParagraphsInRanges(docRanges, paragraphs);
+        const currentParagraphs = BuildTextUtils.range.getParagraphsInRanges(docRanges, paragraphs, dataStream);
 
         const unitId = docDataModel.getUnitId();
 
@@ -104,6 +106,7 @@ export const ListOperationCommand: ICommand<IListOperationCommandParams> = {
 
 interface IChangeListTypeCommandParams {
     listType: PresetListType;
+    docRange?: ITextRangeWithStyle[];
 }
 
 export const ChangeListTypeCommand: ICommand<IChangeListTypeCommandParams> = {
@@ -116,20 +119,21 @@ export const ChangeListTypeCommand: ICommand<IChangeListTypeCommandParams> = {
         const commandService = accessor.get(ICommandService);
         const { listType } = params;
         const docDataModel = univerInstanceService.getCurrentUnitForType<DocumentDataModel>(UniverInstanceType.UNIVER_DOC);
-        const activeRanges = docSelectionManagerService.getDocRanges();
+        const activeRanges = params.docRange ?? docSelectionManagerService.getDocRanges();
         if (docDataModel == null || activeRanges == null || !activeRanges.length) {
             return false;
         }
 
         const { segmentId } = activeRanges[0];
-        const selections = docSelectionManagerService.getDocRanges() ?? [];
-        const paragraphs = docDataModel.getSelfOrHeaderFooterModel(segmentId).getBody()?.paragraphs;
+        const segment = docDataModel.getSelfOrHeaderFooterModel(segmentId);
+        const paragraphs = segment.getBody()?.paragraphs ?? [];
+        const dataStream = segment.getBody()?.dataStream ?? '';
 
-        if (paragraphs == null) {
+        if (!paragraphs.length) {
             return false;
         }
 
-        const currentParagraphs = getParagraphsInRanges(selections, paragraphs);
+        const currentParagraphs = BuildTextUtils.range.getParagraphsInRanges(activeRanges, paragraphs, dataStream);
 
         const unitId = docDataModel.getUnitId();
         const textX = BuildTextUtils.paragraph.bullet.set({
@@ -149,7 +153,7 @@ export const ChangeListTypeCommand: ICommand<IChangeListTypeCommandParams> = {
             params: {
                 unitId,
                 actions: [],
-                textRanges: selections,
+                textRanges: activeRanges,
                 isEditing: false,
             },
         };
@@ -193,13 +197,15 @@ export const ChangeListNestingLevelCommand: ICommand<IChangeListNestingLevelComm
 
         const { segmentId } = activeRange;
         const selections = docSelectionManagerService.getDocRanges() ?? [];
-        const paragraphs = docDataModel.getSelfOrHeaderFooterModel(segmentId).getBody()?.paragraphs;
+        const segment = docDataModel.getSelfOrHeaderFooterModel(segmentId);
+        const paragraphs = segment.getBody()?.paragraphs ?? [];
+        const dataStream = segment.getBody()?.dataStream ?? '';
 
-        if (paragraphs == null) {
+        if (!paragraphs.length) {
             return false;
         }
 
-        const currentParagraphs = getParagraphsInRange(activeRange, paragraphs);
+        const currentParagraphs = BuildTextUtils.range.getParagraphsInRange(activeRange, paragraphs, dataStream);
 
         const unitId = docDataModel.getUnitId();
         const jsonX = JSONX.getInstance();
@@ -231,6 +237,7 @@ export const ChangeListNestingLevelCommand: ICommand<IChangeListNestingLevelComm
 
 interface IBulletListCommandParams {
     value?: PresetListType;
+    docRange?: ITextRangeWithStyle[];
 }
 
 export const BulletListCommand: ICommand<IBulletListCommandParams> = {
@@ -244,11 +251,13 @@ export const BulletListCommand: ICommand<IBulletListCommandParams> = {
         if (params?.value) {
             return commandService.syncExecuteCommand(ChangeListTypeCommand.id, {
                 listType: params.value,
+                docRange: params.docRange,
             });
         }
 
         return commandService.syncExecuteCommand(ListOperationCommand.id, {
             listType: PresetListType.BULLET_LIST,
+            docRange: params?.docRange,
         });
     },
 };
@@ -262,11 +271,13 @@ export const CheckListCommand: ICommand<IBulletListCommandParams> = {
         if (params?.value) {
             return commandService.syncExecuteCommand(ChangeListTypeCommand.id, {
                 listType: params.value,
+                docRange: params.docRange,
             });
         }
 
         return commandService.syncExecuteCommand(ListOperationCommand.id, {
             listType: PresetListType.CHECK_LIST,
+            docRange: params?.docRange,
         });
     },
 };
@@ -377,21 +388,14 @@ export const QuickListCommand: ICommand<IQuickListCommandParams> = {
             return false;
         }
 
-        const { segmentId } = activeRange;
+        const { segmentId, startOffset } = activeRange;
         const { listType, paragraph } = params;
         const { paragraphStart, paragraphEnd } = paragraph;
-        // const selection =
         const textX = new TextX();
         const jsonX = JSONX.getInstance();
-        const { defaultTabStop = 36 } = docDataModel.getSnapshot().documentStyle;
-        const sectionBreaks = docDataModel.getSelfOrHeaderFooterModel(segmentId).getBody()?.sectionBreaks ?? [];
-        const { startIndex, paragraphStyle = {} } = paragraph;
-        const { indentFirstLine, snapToGrid, indentStart } = paragraphStyle;
+        const { paragraphStyle = {} } = paragraph;
         const paragraphProperties = PRESET_LIST_TYPE[listType].nestingLevel[0].paragraphProperties || {};
-        const { hanging: listHanging, indentStart: listIndentStart } = paragraphProperties;
         const bulletParagraphTextStyle = paragraphProperties.textStyle;
-        const { charSpace, gridType } = findNearestSectionBreak(startIndex, sectionBreaks) || { charSpace: 0, gridType: GridType.LINES };
-        const charSpaceApply = getCharSpaceApply(charSpace, defaultTabStop, gridType, snapToGrid);
 
         const ID_LENGTH = 6;
         let listId = Tools.generateRandomId(ID_LENGTH);
@@ -428,8 +432,15 @@ export const QuickListCommand: ICommand<IQuickListCommandParams> = {
 
         textX.push({
             t: TextXActionType.DELETE,
-            len: paragraphEnd - paragraphStart,
+            len: startOffset - paragraphStart,
         });
+
+        if (paragraphEnd > startOffset) {
+            textX.push({
+                t: TextXActionType.RETAIN,
+                len: paragraphEnd - startOffset,
+            });
+        }
 
         textX.push({
             t: TextXActionType.RETAIN,
@@ -446,8 +457,6 @@ export const QuickListCommand: ICommand<IQuickListCommandParams> = {
                                 ...bulletParagraphTextStyle,
                             },
                             indentFirstLine: undefined,
-                            hanging: listHanging,
-                            indentStart: { v: getNumberUnitValue(listIndentStart, charSpaceApply) - getNumberUnitValue(listHanging, charSpaceApply) + getNumberUnitValue(indentFirstLine, charSpaceApply) + getNumberUnitValue(indentStart, charSpaceApply) },
                         },
                         bullet: {
                             ...(paragraph.bullet ?? {
@@ -472,29 +481,91 @@ export const QuickListCommand: ICommand<IQuickListCommandParams> = {
     },
 };
 
-export function getParagraphsInRange(activeRange: ITextRangeWithStyle, paragraphs: IParagraph[]) {
-    const { startOffset, endOffset } = activeRange;
-    const results: IParagraph[] = [];
-
-    let start = -1;
-
-    for (const paragraph of paragraphs) {
-        const { startIndex } = paragraph;
-
-        if ((startOffset > start && startOffset <= startIndex) || (endOffset > start && endOffset <= startIndex)) {
-            results.push(paragraph);
-        } else if (startIndex >= startOffset && startIndex <= endOffset) {
-            results.push(paragraph);
-        }
-
-        start = startIndex;
+function insertList(accessor: IAccessor, listType: PresetListType) {
+    const commandService = accessor.get(ICommandService);
+    const paragraph = getCurrentParagraph(accessor);
+    if (!paragraph) {
+        return false;
     }
+    const docDataModel = accessor.get(IUniverInstanceService).getCurrentUnitOfType<DocumentDataModel>(UniverInstanceType.UNIVER_DOC);
+    if (!docDataModel) {
+        return false;
+    }
+    const textX = BuildTextUtils.selection.replace({
+        doc: docDataModel,
+        selection: {
+            startOffset: paragraph.startIndex + 1,
+            endOffset: paragraph.startIndex + 1,
+            collapsed: true,
+        },
+        body: {
+            dataStream: '\r',
+            paragraphs: [
+                {
+                    startIndex: 0,
+                    paragraphStyle: {
+                        ...paragraph.paragraphStyle,
+                    },
+                    bullet: {
+                        listType,
+                        listId: paragraph.bullet?.listType === listType ? paragraph.bullet.listId : Tools.generateRandomId(6),
+                        nestingLevel: paragraph.bullet?.listType === listType ? paragraph.bullet.nestingLevel : 0,
+                    },
+                },
+            ],
+        },
+    });
 
-    return results;
+    if (!textX) {
+        return false;
+    }
+    const doMutation: IMutationInfo<IRichTextEditingMutationParams> = {
+        id: RichTextEditingMutation.id,
+        params: {
+            unitId: docDataModel.getUnitId(),
+            actions: [],
+            textRanges: [{
+                startOffset: paragraph.startIndex + 1,
+                endOffset: paragraph.startIndex + 1,
+                collapsed: true,
+            }],
+            isEditing: false,
+        },
+    };
+    const jsonX = JSONX.getInstance();
+    const path = getRichTextEditPath(docDataModel);
+    doMutation.params.actions = jsonX.editOp(textX.serialize(), path);
+    const result = commandService.syncExecuteCommand(doMutation.id, doMutation.params);
+
+    return Boolean(result);
 }
 
-export function getParagraphsRelative(ranges: ITextRangeWithStyle[], paragraphs: IParagraph[]) {
-    const selectionParagraphs = getParagraphsInRanges(ranges, paragraphs);
+export const InsertBulletListBellowCommand: ICommand<IQuickListCommandParams> = {
+    id: 'doc.command.insert-bullet-list-bellow',
+    type: CommandType.COMMAND,
+    handler: (accessor) => {
+        return insertList(accessor, PresetListType.BULLET_LIST);
+    },
+};
+
+export const InsertOrderListBellowCommand: ICommand<IQuickListCommandParams> = {
+    id: 'doc.command.insert-order-list-bellow',
+    type: CommandType.COMMAND,
+    handler: (accessor) => {
+        return insertList(accessor, PresetListType.ORDER_LIST);
+    },
+};
+
+export const InsertCheckListBellowCommand: ICommand<IQuickListCommandParams> = {
+    id: 'doc.command.insert-check-list-bellow',
+    type: CommandType.COMMAND,
+    handler: (accessor) => {
+        return insertList(accessor, PresetListType.CHECK_LIST);
+    },
+};
+
+export function getParagraphsRelative(ranges: ITextRangeWithStyle[], paragraphs: IParagraph[], dataStream: string) {
+    const selectionParagraphs: IParagraph[] = BuildTextUtils.range.getParagraphsInRanges(ranges, paragraphs, dataStream);
     const startIndex = paragraphs.indexOf(selectionParagraphs[0]);
     const endIndex = paragraphs.indexOf(selectionParagraphs[selectionParagraphs.length - 1]);
     if (selectionParagraphs[0].bullet) {
@@ -517,18 +588,6 @@ export function getParagraphsRelative(ranges: ITextRangeWithStyle[], paragraphs:
     }
 
     return selectionParagraphs;
-}
-
-export function getParagraphsInRanges(ranges: ITextRangeWithStyle[], paragraphs: IParagraph[]) {
-    const results: IParagraph[] = [];
-
-    for (const range of ranges) {
-        const ps = getParagraphsInRange(range, paragraphs);
-
-        results.push(...ps);
-    }
-
-    return results;
 }
 
 export function findNearestSectionBreak(currentIndex: number, sectionBreaks: ISectionBreak[]) {

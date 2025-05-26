@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-import type { DocumentDataModel, IDocumentData, Nullable } from '@univerjs/core';
 import type { ILocale } from '@univerjs/design';
+import type { IUniverUIConfig } from '../../controllers/config.schema';
 import type { IWorkbenchOptions } from '../../controllers/ui/ui.controller';
-import { DocumentFlavor, IUniverInstanceService, LocaleService, ThemeService, UniverInstanceType } from '@univerjs/core';
-import { clsx, ConfigContext, ConfigProvider, defaultTheme, themeInstance } from '@univerjs/design';
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { IConfigService, LocaleService, ThemeService } from '@univerjs/core';
+import { borderBottomClassName, clsx, ConfigContext, ConfigProvider } from '@univerjs/design';
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useConfigValue } from '../../components/hooks';
+import { UI_PLUGIN_CONFIG_KEY } from '../../controllers/config.schema';
 import { BuiltInUIPart } from '../../services/parts/parts.service';
+import { ThemeSwitcherService } from '../../services/theme-switcher/theme-switcher.service';
 import { useDependency } from '../../utils/di';
 import { ComponentContainer, useComponentsOfPart } from '../components/ComponentContainer';
 import { DesktopContextMenu } from '../components/context-menu/ContextMenu';
 import { GlobalZone } from '../components/global-zone/GlobalZone';
 import { Sidebar } from '../components/sidebar/Sidebar';
 import { ZenZone } from '../components/zen-zone/ZenZone';
-import styles from './workbench.module.less';
 
 export interface IUniverWorkbenchProps extends IWorkbenchOptions {
     mountContainer: HTMLElement;
@@ -37,20 +39,28 @@ export interface IUniverWorkbenchProps extends IWorkbenchOptions {
 }
 
 export function DesktopWorkbench(props: IUniverWorkbenchProps) {
+    const uiConfig = useConfigValue<IUniverUIConfig>(UI_PLUGIN_CONFIG_KEY);
+    return <DesktopWorkbenchContent {...props} {...uiConfig} />;
+}
+
+export function DesktopWorkbenchContent(props: IUniverWorkbenchProps) {
     const {
         header = true,
         toolbar = true,
         footer = true,
+        headerMenu = true,
         contextMenu = true,
+        ribbonType = 'default',
         mountContainer,
         onRendered,
     } = props;
 
     const localeService = useDependency(LocaleService);
     const themeService = useDependency(ThemeService);
-    const instanceService = useDependency(IUniverInstanceService);
+    const themeSwitcherService = useDependency(ThemeSwitcherService);
     const contentRef = useRef<HTMLDivElement>(null);
-
+    const configService = useDependency(IConfigService);
+    const uiConfig = configService.getConfig(UI_PLUGIN_CONFIG_KEY) as IUniverUIConfig;
     const customHeaderComponents = useComponentsOfPart(BuiltInUIPart.CUSTOM_HEADER);
     const footerComponents = useComponentsOfPart(BuiltInUIPart.FOOTER);
     const headerComponents = useComponentsOfPart(BuiltInUIPart.HEADER);
@@ -60,19 +70,11 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
     const globalComponents = useComponentsOfPart(BuiltInUIPart.GLOBAL);
     const toolbarComponents = useComponentsOfPart(BuiltInUIPart.TOOLBAR);
 
-    const [docSnapShot, setDocSnapShot] = useState<Nullable<IDocumentData>>(null);
+    const popupRootId = uiConfig?.popupRootId ?? 'univer-popup-portal';
 
-    useEffect(() => {
-        const sub = instanceService.focused$.subscribe((id) => {
-            if (id == null) {
-                return;
-            }
-            const instanceType = instanceService.getUnitType(id);
-            const instance = instanceService.getUnit(id);
-
-            if (instanceType === UniverInstanceType.UNIVER_DOC && instance) {
-                setDocSnapShot((instance as DocumentDataModel).getSnapshot());
-            }
+    useLayoutEffect(() => {
+        const sub = themeService.currentTheme$.subscribe((theme) => {
+            themeSwitcherService.injectThemeToHead(theme);
         });
 
         return () => {
@@ -80,10 +82,21 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
         };
     }, []);
 
-    useEffect(() => {
-        if (!themeService.getCurrentTheme()) {
-            themeService.setTheme(defaultTheme);
-        }
+    const [darkMode, setDarkMode] = useState<boolean>(false);
+    useLayoutEffect(() => {
+        const sub = themeService.darkMode$.subscribe((darkMode) => {
+            setDarkMode(darkMode);
+
+            if (darkMode) {
+                document.documentElement.classList.add('univer-dark');
+            } else {
+                document.documentElement.classList.remove('univer-dark');
+            }
+        });
+
+        return () => {
+            sub.unsubscribe();
+        };
     }, []);
 
     useEffect(() => {
@@ -104,12 +117,6 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
             localeService.localeChanged$.subscribe(() => {
                 setLocale(localeService.getLocales() as unknown as ILocale);
             }),
-            themeService.currentTheme$.subscribe((theme) => {
-                themeInstance.setTheme(mountContainer, theme);
-                if (portalContainer) {
-                    themeInstance.setTheme(portalContainer, theme);
-                }
-            }),
         ];
 
         return () => {
@@ -128,46 +135,68 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
               * all focusin event merged from its descendants. The DesktopLayoutService would listen to focusin events
               * bubbled to this element and refocus the input element.
               */}
-            <div className={styles.workbenchLayout} tabIndex={-1} onBlur={(e) => e.stopPropagation()}>
+            <div
+                data-u-comp="workbench-layout"
+                className={clsx(`
+                  univer-flex univer-h-full univer-min-h-0 univer-flex-col univer-bg-white
+                  dark:!univer-bg-gray-800
+                `, {
+                    'univer-dark': darkMode,
+                })}
+                tabIndex={-1}
+                onBlur={(e) => e.stopPropagation()}
+                onContextMenu={(e) => e.preventDefault()}
+            >
                 {/* user header */}
-                <div className={styles.workbenchCustomHeader}>
+                <div className="univer-relative univer-flex univer-min-h-0 univer-flex-col univer-bg-white">
                     <ComponentContainer key="custom-header" components={customHeaderComponents} />
                 </div>
 
                 {/* header */}
                 {header && toolbar && (
-                    <header className={styles.workbenchContainerHeader}>
+                    <header
+                        data-u-comp="headerbar"
+                        className="univer-relative univer-z-10 univer-w-full"
+                    >
                         <ComponentContainer
                             key="toolbar"
                             components={toolbarComponents}
                             sharedProps={{
+                                ribbonType,
                                 headerMenuComponents,
+                                headerMenu,
                             }}
                         />
                     </header>
                 )}
 
                 {/* content */}
-                <section className={styles.workbenchContainer}>
-                    <div className={styles.workbenchContainerWrapper}>
-                        <aside className={styles.workbenchContainerLeftSidebar}>
+                <section className="univer-relative univer-flex univer-min-h-0 univer-flex-1 univer-flex-col">
+                    <div
+                        className={`
+                          univer-grid univer-h-full univer-grid-cols-[auto_1fr_auto] univer-grid-rows-[100%]
+                          univer-overflow-hidden
+                        `}
+                    >
+                        <aside data-u-comp="left-sidebar" className="univer-h-full">
                             <ComponentContainer key="left-sidebar" components={leftSidebarComponents} />
                         </aside>
 
                         <section
-                            className={clsx(
-                                styles.workbenchContainerContent,
-                                {
-                                    [styles.workbenchContainerDocContent]: docSnapShot?.documentStyle.documentFlavor === DocumentFlavor.TRADITIONAL,
-                                }
-                            )}
+                            className={clsx(`
+                              univer-relative univer-grid univer-flex-1 univer-grid-rows-[auto_1fr]
+                              univer-overflow-hidden univer-bg-white
+                            `, borderBottomClassName)}
                         >
                             <header>
                                 {header && <ComponentContainer key="header" components={headerComponents} />}
                             </header>
 
                             <section
-                                className={styles.workbenchContainerCanvas}
+                                className={`
+                                  univer-relative univer-overflow-hidden
+                                  dark:!univer-bg-gray-900
+                                `}
                                 ref={contentRef}
                                 data-range-selector
                                 onContextMenu={(e) => e.preventDefault()}
@@ -177,14 +206,14 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
 
                         </section>
 
-                        <aside className={styles.workbenchContainerSidebar}>
+                        <aside data-u-comp="right-sidebar" className="univer-h-full">
                             <Sidebar />
                         </aside>
                     </div>
 
                     {/* footer */}
                     {footer && (
-                        <footer className={styles.workbenchFooter}>
+                        <footer>
                             <ComponentContainer key="footer" components={footerComponents} sharedProps={{ contextMenu }} />
                         </footer>
                     )}
@@ -196,7 +225,7 @@ export function DesktopWorkbench(props: IUniverWorkbenchProps) {
             <GlobalZone />
             {contextMenu && <DesktopContextMenu />}
             <FloatingContainer />
-            <div id="univer-popup-portal" />
+            <div id={popupRootId} />
         </ConfigProvider>
     );
 }

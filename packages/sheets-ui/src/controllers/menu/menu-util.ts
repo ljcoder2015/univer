@@ -16,10 +16,11 @@
 
 import type { IAccessor, IPermissionTypes, IRange, Nullable, Workbook, WorkbookPermissionPointConstructor, Worksheet } from '@univerjs/core';
 import type { Observable } from 'rxjs';
+import type { IEditorBridgeServiceVisibleParam } from '../../services/editor-bridge.service';
 import { FOCUSING_COMMON_DRAWINGS, FOCUSING_FX_BAR_EDITOR, IContextService, IPermissionService, IUniverInstanceService, Rectangle, Tools, UniverInstanceType, UserManagerService } from '@univerjs/core';
 import { IExclusiveRangeService, RangeProtectionPermissionEditPoint, RangeProtectionRuleModel, SheetsSelectionsService, WorkbookEditablePermission, WorksheetEditPermission, WorksheetProtectionRuleModel } from '@univerjs/sheets';
-import { BehaviorSubject, combineLatest, merge, of } from 'rxjs';
-import { debounceTime, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { combineLatest, merge, of } from 'rxjs';
+import { debounceTime, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { IEditorBridgeService } from '../../services/editor-bridge.service';
 
 interface IActive {
@@ -104,18 +105,19 @@ export function getCurrentRangeDisable$(accessor: IAccessor, permissionTypes: IP
     const userManagerService = accessor.get(UserManagerService);
     const editorBridgeService = accessor.has(IEditorBridgeService) ? accessor.get(IEditorBridgeService) : null;
     const contextService = accessor.get(IContextService);
-    const formulaEditorFocus$ = new BehaviorSubject<boolean>(false);
-    const editorVisible$ = editorBridgeService?.visible$ ?? of(null);
+    const _editorVisible$ = editorBridgeService?.visible$ ?? of<Nullable<IEditorBridgeServiceVisibleParam>>(null);
 
-    const subscription = contextService.subscribeContextValue$(FOCUSING_FX_BAR_EDITOR).subscribe((visible) => {
-        formulaEditorFocus$.next(visible);
-    });
+    const editorVisible$ = _editorVisible$.pipe(
+        startWith(null),
+        shareReplay(1)
+    );
+
+    const formulaEditorFocus$ = contextService.subscribeContextValue$(FOCUSING_FX_BAR_EDITOR).pipe(
+        startWith(false),
+        shareReplay(1)
+    );
 
     const observable = combineLatest([userManagerService.currentUser$, workbook$, editorVisible$, formulaEditorFocus$]).pipe(
-        finalize(() => {
-            subscription.unsubscribe();
-            formulaEditorFocus$.complete();
-        }),
         switchMap(([_, workbook, visible, formulaEditorFocus]) => {
             if (
                 !workbook ||

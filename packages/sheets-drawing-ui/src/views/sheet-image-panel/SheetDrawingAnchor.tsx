@@ -25,7 +25,6 @@ import { SheetDrawingAnchorType } from '@univerjs/sheets-drawing';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
 import { SetSheetDrawingCommand } from '../../commands/commands/set-sheet-drawing.command';
-import styles from './index.module.less';
 
 export interface ISheetDrawingAnchorProps {
     drawings: IDrawingParam[];
@@ -135,25 +134,27 @@ export const SheetDrawingAnchor = (props: ISheetDrawingAnchorProps) => {
         });
     }
 
-    const gridDisplay = (isShow: boolean) => {
-        return isShow ? 'block' : 'none';
-    };
-
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: gridDisplay(anchorShow) }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('drawing-anchor.title')}</div>
-                </div>
-            </div>
-            <div className={clsx(styles.imageCommonPanelRow)}>
-                <div className={clsx(styles.imageCommonPanelColumn)}>
-                    <RadioGroup value={value} onChange={handleChange} direction="vertical">
-                        <Radio value={SheetDrawingAnchorType.Both}>{localeService.t('drawing-anchor.both')}</Radio>
-                        <Radio value={SheetDrawingAnchorType.Position}>{localeService.t('drawing-anchor.position')}</Radio>
-                        <Radio value={SheetDrawingAnchorType.None}>{localeService.t('drawing-anchor.none')}</Radio>
-                    </RadioGroup>
-                </div>
+        <div
+            className={clsx('univer-grid univer-gap-2 univer-py-2 univer-text-gray-400', {
+                'univer-hidden': !anchorShow,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('drawing-anchor.title')}</div>
+            </header>
+
+            <div>
+                <RadioGroup value={value} onChange={handleChange} direction="vertical">
+                    <Radio value={SheetDrawingAnchorType.Both}>{localeService.t('drawing-anchor.both')}</Radio>
+                    <Radio value={SheetDrawingAnchorType.Position}>{localeService.t('drawing-anchor.position')}</Radio>
+                    <Radio value={SheetDrawingAnchorType.None}>{localeService.t('drawing-anchor.none')}</Radio>
+                </RadioGroup>
             </div>
         </div>
     );

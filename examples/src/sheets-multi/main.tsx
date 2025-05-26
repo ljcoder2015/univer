@@ -15,13 +15,13 @@
  */
 
 import { LocaleType, LogLevel, Tools, Univer, UniverInstanceType } from '@univerjs/core';
-import { defaultTheme, render } from '@univerjs/design';
-
+import { render } from '@univerjs/design';
 import { UniverDocsPlugin } from '@univerjs/docs';
 import { UniverDocsUIPlugin } from '@univerjs/docs-ui';
 import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula';
 import { UniverRenderEnginePlugin } from '@univerjs/engine-render';
 import { DEFAULT_WORKBOOK_DATA_DEMO } from '@univerjs/mockdata';
+import zhCN from '@univerjs/mockdata/locales/zh-CN';
 import { UniverSheetsPlugin } from '@univerjs/sheets';
 import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula';
 import { UniverSheetsFormulaUIPlugin } from '@univerjs/sheets-formula-ui';
@@ -29,9 +29,8 @@ import { UniverSheetsNumfmtPlugin } from '@univerjs/sheets-numfmt';
 import { UniverSheetsNumfmtUIPlugin } from '@univerjs/sheets-numfmt-ui';
 import { UniverSheetsUIPlugin } from '@univerjs/sheets-ui';
 import { UniverUIPlugin } from '@univerjs/ui';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Mosaic, MosaicWindow } from 'react-mosaic-component';
-import { enUS, faIR, frFR, ruRU, zhCN } from '../locales';
 
 import 'react-mosaic-component/react-mosaic-component.css';
 
@@ -40,14 +39,9 @@ import '../global.css';
 function factory(id: string) {
     return function createUniverOnContainer() {
         const univer = new Univer({
-            theme: defaultTheme,
             locale: LocaleType.ZH_CN,
             locales: {
                 [LocaleType.ZH_CN]: zhCN,
-                [LocaleType.EN_US]: enUS,
-                [LocaleType.FR_FR]: frFR,
-                [LocaleType.RU_RU]: ruRU,
-                [LocaleType.FA_IR]: faIR,
             },
             logLevel: LogLevel.VERBOSE,
         });
@@ -99,7 +93,7 @@ export function App() {
                     title={TITLE_MAP[id]}
                     toolbarControls={<div />}
                 >
-                    <div id={`app-${id}`} style={{ height: '100%' }}>
+                    <div id={`app-${id}`} className="univer-h-full">
                         {TITLE_MAP[id]}
                     </div>
                 </MosaicWindow>

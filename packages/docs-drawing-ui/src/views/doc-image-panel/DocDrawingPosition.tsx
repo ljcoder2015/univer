@@ -17,7 +17,15 @@
 import type { ICommandInfo, IDrawingParam, IObjectPositionH, IObjectPositionV, Nullable } from '@univerjs/core';
 import type { IDocDrawing } from '@univerjs/docs-drawing';
 import type { IDocumentSkeletonDrawing } from '@univerjs/engine-render';
-import { DocumentFlavor, ICommandService, IUniverInstanceService, LocaleService, ObjectRelativeFromH, ObjectRelativeFromV, PositionedObjectLayoutType } from '@univerjs/core';
+import {
+    DocumentFlavor,
+    ICommandService,
+    IUniverInstanceService,
+    LocaleService,
+    ObjectRelativeFromH,
+    ObjectRelativeFromV,
+    PositionedObjectLayoutType,
+} from '@univerjs/core';
 import { Checkbox, clsx, InputNumber, Select } from '@univerjs/design';
 import { DocSkeletonManagerService, RichTextEditingMutation } from '@univerjs/docs';
 import { DocSelectionRenderService } from '@univerjs/docs-ui';
@@ -26,7 +34,6 @@ import { IRenderManagerService } from '@univerjs/engine-render';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
 import { UpdateDrawingDocTransformCommand } from '../../commands/commands/update-doc-drawing.command';
-import styles from './index.module.less';
 
 const MIN_OFFSET = -1000;
 const MAX_OFFSET = 1000;
@@ -360,132 +367,121 @@ export const DocDrawingPosition = (props: IDocDrawingPositionProps) => {
     }, []);
 
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: showPanel ? 'block' : 'none' }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('image-position.title')}</div>
-                </div>
+        <div
+            className={clsx('univer-grid univer-gap-2 univer-py-2 univer-text-gray-400', {
+                'univer-hidden': !showPanel,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-position.title')}</div>
+            </header>
+
+            <div
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-position.horizontal')}</div>
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSubtitle)}>
-                    <div>{localeService.t('image-position.horizontal')}</div>
+
+            <div
+                className={`
+                  univer-grid univer-grid-cols-2 univer-gap-2
+                  [&>div]:univer-grid [&>div]:univer-gap-2
+                `}
+            >
+                <div>
+                    <span>{localeService.t('image-position.absolutePosition')}</span>
+                    <InputNumber
+                        min={MIN_OFFSET}
+                        max={MAX_OFFSET}
+                        precision={1}
+                        disabled={disabled}
+                        value={hPosition.posOffset}
+                        onChange={(val) => {
+                            handlePositionChange('positionH', {
+                                relativeFrom: hPosition.relativeFrom,
+                                posOffset: val as number,
+                            });
+                        }}
+                    />
+                </div>
+                <div>
+                    <span>{localeService.t('image-position.toTheRightOf')}</span>
+                    <Select
+                        value={String(hPosition.relativeFrom)}
+                        disabled={disabled}
+                        options={HORIZONTAL_RELATIVE_FROM}
+                        onChange={handleHorizontalRelativeFromChange}
+                    />
                 </div>
             </div>
 
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-position.absolutePosition')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber
-                                    min={MIN_OFFSET}
-                                    max={MAX_OFFSET}
-                                    precision={1}
-                                    disabled={disabled}
-                                    value={hPosition.posOffset}
-                                    onChange={(val) => {
-                                        handlePositionChange('positionH', {
-                                            relativeFrom: hPosition.relativeFrom,
-                                            posOffset: val as number,
-                                        });
-                                    }}
-                                    className={styles.imageCommonPanelInput}
-                                />
-                            </div>
-                        </div>
-                    </label>
+            <div
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-position.vertical')}</div>
+            </div>
+
+            <div
+                className={`
+                  univer-grid univer-grid-cols-2 univer-gap-2
+                  [&>div]:univer-grid [&>div]:univer-gap-2
+                `}
+            >
+                <div>
+                    <span>{localeService.t('image-position.absolutePosition')}</span>
+                    <InputNumber
+                        min={MIN_OFFSET}
+                        max={MAX_OFFSET}
+                        precision={1}
+                        disabled={disabled}
+                        value={vPosition.posOffset}
+                        onChange={(val) => {
+                            handlePositionChange('positionV', {
+                                relativeFrom: vPosition.relativeFrom,
+                                posOffset: val as number,
+                            });
+                        }}
+                    />
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-position.toTheRightOf')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <Select
-                                    value={String(hPosition.relativeFrom)}
-                                    disabled={disabled}
-                                    options={HORIZONTAL_RELATIVE_FROM}
-                                    onChange={handleHorizontalRelativeFromChange}
-                                />
-                            </div>
-                        </div>
-                    </label>
+                <div>
+                    <span>{localeService.t('image-position.bellow')}</span>
+                    <Select
+                        disabled={disabled}
+                        value={String(vPosition.relativeFrom)}
+                        options={VERTICAL_RELATIVE_FROM}
+                        onChange={handleVerticalRelativeFromChange}
+                    />
                 </div>
             </div>
 
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSubtitle)}>
-                    <div>{localeService.t('image-position.vertical')}</div>
-                </div>
+            <div
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-position.options')}</div>
             </div>
 
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-position.absolutePosition')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber
-                                    min={MIN_OFFSET}
-                                    max={MAX_OFFSET}
-                                    precision={1}
-                                    disabled={disabled}
-                                    value={vPosition.posOffset}
-                                    onChange={(val) => {
-                                        handlePositionChange('positionV', {
-                                            relativeFrom: vPosition.relativeFrom,
-                                            posOffset: val as number,
-                                        });
-                                    }}
-                                    className={styles.imageCommonPanelInput}
-                                />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-position.bellow')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <Select
-                                    disabled={disabled}
-                                    value={String(vPosition.relativeFrom)}
-                                    options={VERTICAL_RELATIVE_FROM}
-                                    onChange={handleVerticalRelativeFromChange}
-                                />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSubtitle)}>
-                    <div>{localeService.t('image-position.options')}</div>
-                </div>
-            </div>
-
-            <div className={styles.imageCommonPanelRow} style={{ marginBottom: '50px' }}>
-                <div className={styles.imageCommonPanelColumn}>
-                    <Checkbox disabled={disabled} checked={followTextMove} onChange={handleFollowTextMoveCheck}>{localeService.t('image-position.moveObjectWithText')}</Checkbox>
-                </div>
+            <div>
+                <Checkbox
+                    disabled={disabled}
+                    checked={followTextMove}
+                    onChange={handleFollowTextMoveCheck}
+                >
+                    {localeService.t('image-position.moveObjectWithText')}
+                </Checkbox>
             </div>
         </div>
     );

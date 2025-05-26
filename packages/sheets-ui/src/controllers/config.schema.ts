@@ -15,7 +15,9 @@
  */
 
 import type { DependencyOverride } from '@univerjs/core';
-import type { MenuConfig } from '@univerjs/ui';
+import type { IScrollBarProps } from '@univerjs/engine-render';
+import type { ComponentType, MenuConfig } from '@univerjs/ui';
+import type { IPermissionDetailUserPartProps } from '../views/permission/panel-detail/PermissionDetailUserPart';
 
 export const SHEETS_UI_PLUGIN_CONFIG_KEY = 'sheets-ui.config';
 
@@ -37,12 +39,75 @@ export interface IUniverSheetsUIConfig {
      */
     formulaBar?: boolean;
 
+    /**
+     * The config of the footer.
+     * @default {}
+     */
+    footer?: false | {
+        /**
+         * Sheet bar is the manager of sub sheets, including add/switch/delete sub sheets.
+         * @default true
+         */
+        sheetBar?: boolean;
+        /**
+         * statistic bar including statistic info current selections, such as count, sum, average, etc.
+         * @default true
+         */
+        statisticBar?: boolean;
+        /**
+         * Including the menus in the footer. such as highlight, gridlines, etc.
+         * @default true
+         */
+        menus?: boolean;
+        /**
+         * Zoom slider is the zoom slider in the footer.
+         * @default true
+         */
+        zoomSlider?: boolean;
+    };
+
+    /**
+     * @deprecated Use `footer.statisticBar` instead.
+     */
     statusBarStatistic?: boolean;
 
     clipboardConfig?: {
         hidePasteOptions?: boolean;
     };
 
+    /** The config of the scroll bar. */
+    scrollConfig?: IScrollBarProps;
+
+    /**
+     * Whether to show the protected range shadow.
+     * @default true
+     */
+    protectedRangeShadow?: boolean;
+
+    /**
+     * The custom component of the protected range user selector.
+     */
+    protectedRangeUserSelector?: {
+        /**
+         * custom component, should implement the `IPermissionDetailUserPartProps` interface.
+         */
+        component: ComponentType<IPermissionDetailUserPartProps>;
+        /**
+         * The framework of the component. Must be passed correctly.
+         */
+        framework: 'react' | 'vue3';
+    };
+
+    /**
+     * Whether to disable the force string alert.
+     * @default false
+     */
+    disableForceStringAlert?: boolean;
+    /**
+     * Whether to disable the force string mark.
+     * @default false
+     */
+    disableForceStringMark?: boolean;
 }
 
 export const defaultPluginConfig: IUniverSheetsUIConfig = {

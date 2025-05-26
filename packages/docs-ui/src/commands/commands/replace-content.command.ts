@@ -38,7 +38,6 @@ export const ReplaceSnapshotCommand: ICommand<IReplaceSnapshotCommandParams> = {
         const univerInstanceService = accessor.get(IUniverInstanceService);
         const commandService = accessor.get(ICommandService);
         const docSelectionManagerService = accessor.get(DocSelectionManagerService);
-
         const docDataModel = univerInstanceService.getUnit<DocumentDataModel>(unitId, UniverInstanceType.UNIVER_DOC);
         const prevSnapshot = docDataModel?.getSelfOrHeaderFooterModel(segmentId).getSnapshot();
 
@@ -219,6 +218,7 @@ interface ICoverContentCommandParams {
     unitId: string;
     body: IDocumentBody; // Do not contain `\r\n` at the end.
     segmentId?: string;
+    textRanges?: ITextRangeWithStyle[];
 }
 
 // Cover all content with new body, and clear undo/redo stack.
@@ -227,8 +227,8 @@ export const CoverContentCommand: ICommand<ICoverContentCommandParams> = {
 
     type: CommandType.COMMAND,
 
-    handler: async (accessor, params: ICoverContentCommandParams) => {
-        const { unitId, body, segmentId = '' } = params;
+    handler: (accessor, params: ICoverContentCommandParams) => {
+        const { unitId, body, segmentId = '', textRanges } = params;
         const univerInstanceService = accessor.get(IUniverInstanceService);
         const commandService = accessor.get(ICommandService);
         const undoRedoService = accessor.get(IUndoRedoService);
@@ -246,6 +246,7 @@ export const CoverContentCommand: ICommand<ICoverContentCommandParams> = {
         // No need to set the cursor or selection.
         doMutation.params.noNeedSetTextRange = true;
         doMutation.params.noHistory = true;
+        doMutation.params.textRanges = textRanges;
 
         commandService.syncExecuteCommand<IRichTextEditingMutationParams, IRichTextEditingMutationParams>(
             doMutation.id,
@@ -307,7 +308,6 @@ export interface IReplaceSelectionCommandParams {
     textRanges?: ITextRangeWithStyle[];
 }
 
-// TODO: implement
 export const ReplaceSelectionCommand: ICommand<IReplaceSelectionCommandParams> = {
     id: 'doc.command.replace-selection',
     type: CommandType.COMMAND,
@@ -315,6 +315,7 @@ export const ReplaceSelectionCommand: ICommand<IReplaceSelectionCommandParams> =
         if (!params) {
             return false;
         }
+        const commandService = accessor.get(ICommandService);
         const { unitId, body: insertBody, textRanges } = params;
         const univerInstanceService = accessor.get(IUniverInstanceService);
         const docDataModel = univerInstanceService.getUnit<DocumentDataModel>(unitId);
@@ -344,8 +345,7 @@ export const ReplaceSelectionCommand: ICommand<IReplaceSelectionCommandParams> =
         // delete
         textX.push(...BuildTextUtils.selection.delete([selection], body, 0, insertBody));
         doMutation.params.actions = jsonX.editOp(textX.serialize());
-
-        return true;
+        return commandService.syncExecuteCommand(doMutation.id, doMutation.params);
     },
 };
 

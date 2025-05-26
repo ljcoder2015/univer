@@ -16,8 +16,9 @@
 
 import type { IShortcutItem } from '@univerjs/ui';
 import { ClearSelectionContentCommand } from '@univerjs/sheets';
-import { KeyCode } from '@univerjs/ui';
+import { KeyCode, MetaKeys } from '@univerjs/ui';
 
+import { SheetCutCommand } from '../../commands/commands/clipboard.command';
 import { whenSheetEditorFocused } from './utils';
 
 export const ClearSelectionValueShortcutItem: IShortcutItem = {
@@ -33,4 +34,18 @@ export const ClearSelectionValueShortcutItemMac: IShortcutItem = {
     // when focusing on any other input tag do not trigger this shortcut
     preconditions: (contextService) => whenSheetEditorFocused(contextService),
     mac: KeyCode.DELETE,
+};
+
+export const ShiftClearSelectionValueShortcutItem: IShortcutItem = {
+    id: ClearSelectionContentCommand.id,
+    // when focusing on any other input tag do not trigger this shortcut
+    preconditions: (contextService) => whenSheetEditorFocused(contextService),
+    binding: MetaKeys.SHIFT + KeyCode.BACKSPACE,
+};
+
+export const ShiftDeleteSelectionValueShortcutItem: IShortcutItem = {
+    id: SheetCutCommand.id,
+     // when focusing on any other input tag do not trigger this shortcut
+    preconditions: (contextService) => whenSheetEditorFocused(contextService),
+    binding: MetaKeys.SHIFT + KeyCode.DELETE,
 };

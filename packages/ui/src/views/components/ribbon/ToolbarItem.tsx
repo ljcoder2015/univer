@@ -26,8 +26,8 @@ import { CustomLabel } from '../../../components/custom-label/CustomLabel';
 import { ILayoutService } from '../../../services/layout/layout.service';
 import { MenuItemType } from '../../../services/menu/menu';
 import { useDependency, useObservable } from '../../../utils/di';
-import { ToolbarButton } from './Button/ToolbarButton';
 import { useToolbarItemStatus } from './hook';
+import { ToolbarButton } from './ToolbarButton';
 import { DropdownMenuWrapper, TooltipWrapper } from './TooltipButtonWrapper';
 
 export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenuItem>>((props, ref) => {
@@ -43,7 +43,7 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
         commandService.executeCommand(commandId, params);
     };
 
-    const { tooltip, shortcut, icon, title, label, id, commandId, type, slot } = props;
+    const { tooltip, shortcut, icon, title, label, id, commandId, type, slot, params } = props;
 
     const tooltipTitle = localeService.t(tooltip ?? '') + (shortcut ? ` (${shortcut})` : '');
 
@@ -104,25 +104,28 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
         if (menuType === MenuItemType.BUTTON_SELECTOR) {
             return (
                 <div
+                    data-u-command={id}
+                    data-disabled={disabled}
                     className={clsx(`
-                      univer-relative univer-flex univer-cursor-pointer univer-items-center univer-rounded
-                    `, `
-                      univer-group univer-h-6 univer-pr-5 univer-transition-colors
+                      univer-group univer-relative univer-flex univer-h-6 univer-cursor-pointer univer-items-center
+                      univer-rounded univer-pr-5 univer-text-sm univer-transition-colors univer-animate-in
+                      univer-fade-in
+                      dark:hover:!univer-bg-gray-700
                       hover:univer-bg-gray-100
                     `, {
-                        'univer-text-gray-900': !disabled,
-                        'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-200': disabled,
+                        'univer-text-gray-900 dark:!univer-text-white': !disabled,
+                        'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-300 dark:!univer-text-gray-600': disabled,
                     })}
-                    data-disabled={disabled}
                 >
                     <div
                         className={clsx(`
                           univer-relative univer-z-[1] univer-flex univer-h-full univer-items-center univer-rounded-l
                           univer-px-1 univer-transition-colors
+                          dark:hover:!univer-bg-gray-600
                           hover:univer-bg-gray-200
                         `, {
-                            'univer-bg-gray-200': activated,
-                            'univer-bg-gray-50': activated && disabled,
+                            'univer-bg-gray-200 dark:!univer-bg-gray-500': activated,
+                            'univer-bg-gray-100': activated && disabled,
                         })}
                         onClick={handleClick}
                     >
@@ -148,11 +151,12 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                               univer-absolute univer-right-0 univer-top-0 univer-box-border univer-flex univer-h-6
                               univer-w-5 univer-items-center univer-justify-center univer-rounded-r
                               univer-transition-colors
+                              dark:hover:!univer-bg-gray-600
                               hover:univer-bg-gray-200
                             `, {
-                                'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-200': disabled,
-                                'univer-bg-gray-200': activated,
-                                'univer-bg-gray-50': activated && disabled,
+                                'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-300 dark:!univer-text-gray-600': disabled,
+                                'univer-bg-gray-200 dark:!univer-bg-gray-500': activated,
+                                'univer-bg-gray-100': activated && disabled,
                             })}
                             data-disabled={disabled}
                         >
@@ -172,15 +176,18 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                     onOptionSelect={handleSelect}
                 >
                     <div
+                        data-u-command={id}
                         className={clsx(`
                           univer-relative univer-flex univer-h-6 univer-cursor-pointer univer-items-center univer-gap-2
-                          univer-rounded univer-px-1 univer-transition-colors
+                          univer-whitespace-nowrap univer-rounded univer-px-1 univer-transition-colors univer-animate-in
+                          univer-fade-in
+                          dark:hover:!univer-bg-gray-700
                           hover:univer-bg-gray-100
                         `, {
-                            'univer-text-gray-900': !disabled,
-                            'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-200': disabled,
+                            'univer-text-gray-900 dark:!univer-text-white': !disabled,
+                            'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-300 dark:!univer-text-gray-600': disabled,
                             'univer-bg-gray-200': activated,
-                            'univer-bg-gray-50': activated && disabled,
+                            'univer-bg-gray-100': activated && disabled,
                         })}
                     >
                         <CustomLabel
@@ -192,7 +199,7 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                         />
                         <div
                             className={clsx('univer-flex univer-h-full univer-items-center', {
-                                'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-200': disabled,
+                                'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-300 dark:!univer-text-gray-600': disabled,
                             })}
                         >
                             <MoreDownSingle />
@@ -208,10 +215,12 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
 
         return (
             <ToolbarButton
+                data-u-command={id}
+                className="univer-text-sm"
                 noIcon={!icon}
                 active={activated}
                 disabled={disabled}
-                onClick={() => executeCommand(props.commandId ?? props.id)}
+                onClick={() => executeCommand(props.commandId ?? props.id, value ?? params)}
                 onDoubleClick={() => props.subId && executeCommand(props.subId)}
             >
                 {isCustomComponent
@@ -238,12 +247,16 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
     }
 
     return !hidden && (
-        <TooltipWrapper
-            ref={ref}
-            title={tooltipTitle}
-            placement="bottom"
-        >
-            {renderItem()}
-        </TooltipWrapper>
+        tooltipTitle
+            ? (
+                <TooltipWrapper
+                    ref={ref}
+                    title={tooltipTitle}
+                    placement="bottom"
+                >
+                    {renderItem()}
+                </TooltipWrapper>
+            )
+            : renderItem()
     );
 });

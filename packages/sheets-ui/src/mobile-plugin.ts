@@ -52,8 +52,11 @@ import { StatusBarController } from './controllers/status-bar.controller';
 import { AutoFillService, IAutoFillService } from './services/auto-fill/auto-fill.service';
 import { SheetCanvasPopManagerService } from './services/canvas-pop-manager.service';
 import { CellAlertManagerService } from './services/cell-alert-manager.service';
+import { ISheetCellDropdownManagerService, SheetCellDropdownManagerService } from './services/cell-dropdown-manager.service';
+import { CellPopupManagerService } from './services/cell-popup-manager.service';
 import { ISheetClipboardService, SheetClipboardService } from './services/clipboard/clipboard.service';
 import { DragManagerService } from './services/drag-manager.service';
+import { EditorBridgeService, IEditorBridgeService } from './services/editor-bridge.service';
 import { FormatPainterService, IFormatPainterService } from './services/format-painter/format-painter.service';
 import { HoverManagerService } from './services/hover-manager.service';
 import { IMarkSelectionService, MarkSelectionService } from './services/mark-selection/mark-selection.service';
@@ -99,11 +102,14 @@ export class UniverSheetsMobileUIPlugin extends Plugin {
                 [ISheetSelectionRenderService, { useClass: MobileSheetsSelectionRenderService }],
                 [IStatusBarService, { useClass: StatusBarService }],
                 [IMarkSelectionService, { useClass: MarkSelectionService }],
+                [IEditorBridgeService, { useClass: EditorBridgeService }],
                 [HoverManagerService],
                 [DragManagerService],
                 [SheetCanvasPopManagerService],
+                [CellPopupManagerService],
                 [CellAlertManagerService],
                 [SelectAllService],
+                [ISheetCellDropdownManagerService, { useClass: SheetCellDropdownManagerService }],
 
                 [ActiveWorksheetController],
                 [AutoHeightController],

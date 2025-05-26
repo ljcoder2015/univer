@@ -14,26 +14,38 @@
  * limitations under the License.
  */
 
-import type { LabelInValueType } from 'rc-select/lib/Select';
-import type { CSSProperties, JSXElementConstructor, ReactElement, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import type { IDropdownMenuProps } from '../dropdown-menu/DropdownMenu';
 import { MoreDownSingle } from '@univerjs/icons';
-import RcSelect from 'rc-select';
-import { useContext } from 'react';
+import { useMemo, useState } from 'react';
+import { borderClassName } from '../../helper/class-utilities';
 import { clsx } from '../../helper/clsx';
-import { ConfigContext } from '../config-provider/ConfigProvider';
-import styles from './index.module.less';
+import { DropdownMenu } from '../dropdown-menu/DropdownMenu';
 
 interface IOption {
     label?: string | ReactNode;
     value?: string;
+    disabled?: boolean;
     options?: IOption[];
 }
 
+interface IOptionSeparator {
+    type: 'separator';
+}
+
 export interface ISelectProps {
+    className?: string;
+
     /**
      * The value of select
      */
     value: string;
+
+    /**
+     * Whether the select is disabled
+     * @default false
+     */
+    disabled?: boolean;
 
     /**
      * The options of select
@@ -42,81 +54,130 @@ export interface ISelectProps {
     options?: IOption[];
 
     /**
-     * The callback function that is triggered when the value is changed
-     */
-    onChange: (value: string) => void;
-
-    style?: CSSProperties;
-
-    /**
-     * Whether the borderless style is used
+     * The style of select
      * @default false
      */
     borderless?: boolean;
 
-    className?: string;
     /**
-     * select mode
+     * The callback function that is triggered when the value is changed
      */
-    mode?: 'combobox' | 'multiple' | 'tags' | undefined;
-
-    dropdownRender?: (
-        menu: ReactElement<any, string | JSXElementConstructor<any>>
-    ) => ReactElement<any, string | JSXElementConstructor<any>>;
-
-    labelRender?: ((props: LabelInValueType) => ReactNode) | undefined;
-
-    open?: boolean;
-
-    dropdownStyle?: CSSProperties;
-
-    onDropdownVisibleChange?: (open: boolean) => void;
-
-    disabled?: boolean;
+    onChange: (value: string) => void;
 }
+
+export const selectClassName = clsx(`
+  univer-box-border univer-inline-flex univer-h-8 univer-min-w-36 univer-items-center univer-justify-between
+  univer-gap-2 univer-rounded-lg univer-bg-white univer-px-2.5 univer-transition-colors univer-duration-200
+  dark:!univer-bg-gray-700 dark:!univer-text-white
+`, borderClassName);
 
 export function Select(props: ISelectProps) {
     const {
-        value,
-        options = [],
-        onChange,
-        style,
         className,
-        mode,
+        value,
+        disabled = false,
+        options = [],
         borderless = false,
-        dropdownRender,
-        labelRender,
-        open,
-        dropdownStyle,
-        onDropdownVisibleChange,
-        disabled,
+        onChange,
     } = props;
 
-    const { mountContainer, locale } = useContext(ConfigContext);
+    const [open, setOpen] = useState(false);
 
-    const _className = clsx(className, {
-        [styles.selectBorderless]: borderless,
-    });
+    function handleOpenChange(open: boolean) {
+        setOpen(open);
+    }
 
-    return mountContainer && (
-        <RcSelect
-            mode={mode}
-            prefixCls={styles.select}
-            getPopupContainer={() => mountContainer}
-            options={options}
-            value={value}
-            menuItemSelectedIcon={null}
-            suffixIcon={<MoreDownSingle />}
-            onChange={onChange}
-            style={style}
-            className={_className}
-            dropdownRender={dropdownRender}
-            labelRender={labelRender}
+    const items: IDropdownMenuProps['items'] = useMemo(() => {
+        const selectOptions: (IOption | IOptionSeparator)[] = [];
+
+        for (const option of options) {
+            if (option.options) {
+                option.options.forEach((opt) => {
+                    selectOptions.push({
+                        label: opt.label,
+                        value: opt.value!,
+                        disabled: opt.disabled,
+                    });
+                });
+                selectOptions.push({
+                    type: 'separator',
+                });
+            } else {
+                selectOptions.push({
+                    label: option.label,
+                    value: option.value!,
+                    disabled: option.disabled,
+                });
+            }
+        }
+
+        return [{
+            type: 'radio',
+            value,
+            hideIndicator: true,
+            options: selectOptions,
+            onSelect: (item) => {
+                onChange(item);
+            },
+        }];
+    }, [options]);
+
+    const displayValue = useMemo(() => {
+        let label = null;
+
+        for (const option of options) {
+            if (option.options) {
+                for (const opt of option.options) {
+                    if (opt.value === value) {
+                        label = opt.label;
+                        break;
+                    }
+                }
+            } else {
+                if (option.value === value) {
+                    label = option.label;
+                    break;
+                }
+            }
+        }
+
+        return label || value;
+    }, [options, value]);
+
+    return (
+        <DropdownMenu
+            className="univer-w-[var(--radix-popper-anchor-width)] univer-min-w-36 max-h"
+            align="start"
             open={open}
-            dropdownStyle={dropdownStyle}
-            onDropdownVisibleChange={onDropdownVisibleChange}
-            notFoundContent={locale?.Select.empty}
+            items={items}
             disabled={disabled}
-        />
+            onOpenChange={handleOpenChange}
+        >
+            <div
+                data-u-comp="select"
+                className={clsx(selectClassName, {
+                    'univer-border-primary-600 univer-outline-none univer-ring-2 univer-ring-primary-50 dark:!univer-ring-primary-900': open && !borderless,
+                    'univer-border-transparent univer-bg-transparent hover:univer-border-transparent': borderless,
+                    'univer-cursor-not-allowed': disabled,
+                    'hover:univer-border-primary-600': !disabled && !borderless,
+                    'univer-cursor-pointer': !disabled && !open,
+                }, className)}
+            >
+                <div
+                    className={`
+                      univer-flex-1 univer-truncate univer-text-sm univer-text-gray-500
+                      dark:!univer-text-white
+                    `}
+                >
+                    {displayValue}
+                </div>
+                <MoreDownSingle
+                    className={`
+                      univer-flex-shrink-0
+                      dark:!univer-text-white
+                    `}
+                />
+            </div>
+        </DropdownMenu>
     );
 }

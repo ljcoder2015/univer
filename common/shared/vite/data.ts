@@ -18,7 +18,7 @@ export const peerDepsMap = {
     react: {
         global: 'React',
         name: 'react',
-        version: '>=16.9.0',
+        version: '^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc',
     },
     'react/jsx-runtime': {
         global: 'React',
@@ -28,7 +28,7 @@ export const peerDepsMap = {
     'react-dom': {
         global: 'ReactDOM',
         name: 'react-dom',
-        version: '>=16.9.0',
+        version: '^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc',
     },
     'react-dom/client': {
         global: 'ReactDOM',
@@ -48,7 +48,7 @@ export const peerDepsMap = {
     '@wendellhu/redi': {
         global: '@wendellhu/redi',
         name: '@wendellhu/redi',
-        version: '0.17.1',
+        version: '0.18.0',
     },
     '@wendellhu/redi/react-bindings': {
         global: '@wendellhu/redi/react-bindings',

@@ -20,12 +20,10 @@ import { clsx, Select } from '@univerjs/design';
 import { useDependency } from '@univerjs/ui';
 import { useState } from 'react';
 import { AlignType, SetDrawingAlignOperation } from '../../commands/operations/drawing-align.operation';
-import styles from './index.module.less';
 
 export interface IDrawingAlignProps {
     drawings: IDrawingParam[];
     alignShow: boolean;
-
 }
 
 export const DrawingAlign = (props: IDrawingAlignProps) => {
@@ -93,19 +91,28 @@ export const DrawingAlign = (props: IDrawingAlignProps) => {
         });
     }
 
-    const gridDisplay = (isShow: boolean) => {
-        return isShow ? 'block' : 'none';
-    };
-
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: gridDisplay(alignShow) }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('image-panel.align.title')}</div>
-                </div>
-            </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn)}>
+        <div
+            className={clsx('univer-relative univer-w-full', {
+                'univer-hidden': !alignShow,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-panel.align.title')}</div>
+            </header>
+
+            <div className="univer-relative univer-mt-2.5 univer-flex univer-h-full">
+                <div
+                    className={`
+                      univer-w-full univer-text-gray-900
+                      dark:!univer-text-white
+                    `}
+                >
                     <Select value={alignValue} options={alignOptions} onChange={handleAlignChange} />
                 </div>
             </div>

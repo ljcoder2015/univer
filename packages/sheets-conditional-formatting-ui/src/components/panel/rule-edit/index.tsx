@@ -25,14 +25,12 @@ import { RemoveSheetMutation, setEndForRange, SetWorksheetActiveOperation, Sheet
 import { AddCfCommand, CFRuleType, CFSubRuleType, ConditionalFormattingRuleModel, SetCfCommand } from '@univerjs/sheets-conditional-formatting';
 import { RangeSelector } from '@univerjs/sheets-formula-ui';
 import { useDependency } from '@univerjs/ui';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import styleBase from '../index.module.less';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ColorScaleStyleEditor } from './ColorScale';
 import { DataBarStyleEditor } from './DataBar';
 import { FormulaStyleEditor } from './Formula';
 import { HighlightCellStyleEditor } from './HighlightCell';
 import { IconSet } from './IconSet';
-import styles from './index.module.less';
 import { RankStyleEditor } from './Rank';
 import { beforeSubmit, submit } from './type';
 
@@ -231,13 +229,16 @@ export const RuleEdit = (props: IRuleEditProps) => {
         }
     };
     return (
-        <div className={styles.cfRuleStyleEditor}>
-            <div className={styleBase.title}>{localeService.t('sheet.cf.panel.range')}</div>
+        <div>
             <div
                 className={`
-                  ${styleBase.mTBase}
+                  univer-mt-4 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
+                {localeService.t('sheet.cf.panel.range')}
+            </div>
+            <div className="univer-mt-4">
                 <RangeSelector
                     unitId={unitId}
                     subUnitId={subUnitId}
@@ -245,21 +246,32 @@ export const RuleEdit = (props: IRuleEditProps) => {
                     onChange={(_, text) => onRangeSelectorChange(text)}
                     onVerify={handleVerify}
                 />
-                {errorText && <div className={styles.cfErrorText}>{errorText}</div>}
+                {errorText && <div className="univer-mt-1 univer-text-xs univer-text-red-500">{errorText}</div>}
             </div>
-            <div className={styleBase.title}>{localeService.t('sheet.cf.panel.styleType')}</div>
-            <div className={styleBase.mTBase}>
-                <Select className={styles.width100} value={ruleType} options={options} onChange={(e) => ruleTypeSet(e)} />
-            </div>
-            <StyleEditor interceptorManager={interceptorManager} rule={props.rule?.rule as any} onChange={onStyleChange} />
             <div
                 className={`
-                  ${styleBase.mTBase}
-                  ${styles.btnList}
+                  univer-mt-4 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
-                <Button size="small" onClick={handleCancel}>{localeService.t('sheet.cf.panel.cancel')}</Button>
-                <Button className={styleBase.mLSm} size="small" type="primary" onClick={handleSubmit}>{localeService.t('sheet.cf.panel.submit')}</Button>
+                {localeService.t('sheet.cf.panel.styleType')}
+            </div>
+            <Select
+                className="univer-mt-4 univer-w-full"
+                value={ruleType}
+                options={options}
+                onChange={(e) => ruleTypeSet(e)}
+            />
+            <StyleEditor
+                interceptorManager={interceptorManager}
+                rule={props.rule?.rule as any}
+                onChange={onStyleChange}
+            />
+            <div className="univer-mt-4 univer-flex univer-justify-end">
+                <Button onClick={handleCancel}>{localeService.t('sheet.cf.panel.cancel')}</Button>
+                <Button className="univer-ml-3" variant="primary" onClick={handleSubmit}>
+                    {localeService.t('sheet.cf.panel.submit')}
+                </Button>
             </div>
         </div>
     );

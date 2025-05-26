@@ -16,6 +16,7 @@
 
 import type { Meta } from '@storybook/react';
 
+import { Pager } from '../pager/Pager';
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {
@@ -54,6 +55,32 @@ export const InputSize = {
 
 export const InputDisabled = {
     render() {
-        return <Input disabled />;
+        return (
+            <>
+                <Input disabled />
+                <Input value="disabled content" disabled />
+            </>
+        );
+    },
+};
+
+export const Clear = {
+    render() {
+        return (
+            <>
+                <Input allowClear />
+                <Input value="content" allowClear />
+            </>
+        );
+    },
+};
+
+export const ClearWithPage = {
+    render() {
+        return (
+            <>
+                <Input value="with some very long content to push content offset" allowClear slot={<Pager value={1} total={10} />} />
+            </>
+        );
     },
 };

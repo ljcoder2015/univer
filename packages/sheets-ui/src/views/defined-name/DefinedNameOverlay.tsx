@@ -18,6 +18,7 @@ import type { Workbook } from '@univerjs/core';
 
 import type { IDefinedNamesServiceParam } from '@univerjs/engine-formula';
 import { ICommandService, IUniverInstanceService, LocaleService, UniverInstanceType } from '@univerjs/core';
+import { borderBottomClassName, clsx, scrollbarClassName } from '@univerjs/design';
 import { IDefinedNamesService } from '@univerjs/engine-formula';
 import { SetWorksheetShowCommand } from '@univerjs/sheets';
 import { ISidebarService, useDependency } from '@univerjs/ui';
@@ -25,11 +26,7 @@ import React, { useEffect, useState } from 'react';
 import { SidebarDefinedNameOperation } from '../../commands/operations/sidebar-defined-name.operation';
 import { DEFINED_NAME_CONTAINER } from './component-name';
 
-export interface IDefinedNameOverlayProps {
-
-}
-
-export function DefinedNameOverlay(props: IDefinedNameOverlayProps) {
+export function DefinedNameOverlay() {
     const commandService = useDependency(ICommandService);
     const localeService = useDependency(LocaleService);
     const definedNamesService = useDependency(IDefinedNamesService);
@@ -98,11 +95,7 @@ export function DefinedNameOverlay(props: IDefinedNameOverlayProps) {
     return (
         <div className="univer-w-[300px]">
             <ul
-                className={`
-                  univer-m-0 univer-max-h-[360px] univer-list-none univer-overflow-y-auto univer-p-0
-                  univer-scrollbar-thin univer-scrollbar-track-transparent univer-scrollbar-thumb-gray-300
-                  univer-scrollbar-w-[4px]
-                `}
+                className={clsx('univer-m-0 univer-max-h-[360px] univer-list-none univer-overflow-y-auto univer-p-0', scrollbarClassName)}
             >
                 {definedNames.map((definedName, index) => {
                     return (
@@ -110,21 +103,21 @@ export function DefinedNameOverlay(props: IDefinedNameOverlayProps) {
                             key={index}
                             className={`
                               univer-cursor-pointer univer-px-2 univer-transition-colors univer-duration-200
-                              dark:hover:univer-bg-gray-600
+                              dark:hover:!univer-bg-gray-600
                               hover:univer-bg-gray-100
                             `}
                             onClick={() => { focusDefinedName(definedName); }}
                         >
                             <div
-                                className={`
-                                  univer-flex univer-items-center univer-justify-between univer-gap-2 univer-border-0
-                                  univer-border-b univer-border-solid univer-border-gray-200 univer-py-1
-                                `}
+                                className={clsx(`
+                                  univer-flex univer-items-center univer-justify-between univer-gap-2 univer-py-1
+                                `, borderBottomClassName)}
                             >
                                 <div
                                     className={`
                                       univer-w-[50%] univer-flex-shrink-0 univer-overflow-hidden univer-text-ellipsis
                                       univer-whitespace-nowrap univer-text-sm univer-text-gray-600
+                                      dark:!univer-text-gray-200
                                     `}
                                     title={definedName.name}
                                 >
@@ -148,12 +141,17 @@ export function DefinedNameOverlay(props: IDefinedNameOverlayProps) {
             <div
                 className={`
                   univer-cursor-pointer univer-p-2 univer-transition-colors univer-duration-200
-                  dark:hover:univer-bg-gray-600
+                  dark:hover:!univer-bg-gray-600
                   hover:univer-bg-gray-100
                 `}
                 onClick={openSlider}
             >
-                <div className="univer-mb-2 univer-text-sm univer-font-semibold univer-text-gray-600">
+                <div
+                    className={`
+                      univer-mb-2 univer-text-sm univer-font-semibold univer-text-gray-600
+                      dark:!univer-text-gray-200
+                    `}
+                >
                     {localeService.t('definedName.managerTitle')}
                 </div>
                 <div className="univer-text-xs univer-text-gray-400">

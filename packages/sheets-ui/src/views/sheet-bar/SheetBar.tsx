@@ -15,16 +15,13 @@
  */
 
 import type { IScrollState } from './sheet-bar-tabs/utils/slide-tab-bar';
-import { ICommandService, IPermissionService } from '@univerjs/core';
-import { clsx } from '@univerjs/design';
+import { ICommandService, IPermissionService, throttle } from '@univerjs/core';
 import { IncreaseSingle, MoreSingle } from '@univerjs/icons';
 import { InsertSheetCommand, WorkbookCreateSheetPermission, WorkbookEditablePermission } from '@univerjs/sheets';
-
 import { useDependency, useObservable } from '@univerjs/ui';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useActiveWorkbook } from '../../components/hook';
 import { ISheetBarService } from '../../services/sheet-bar/sheet-bar.service';
-import styles from './index.module.less';
 import { SheetBarButton } from './sheet-bar-button/SheetBarButton';
 import { SheetBarMenu } from './sheet-bar-menu/SheetBarMenu';
 import { SheetBarTabs } from './sheet-bar-tabs/SheetBarTabs';
@@ -45,21 +42,21 @@ export const SheetBar = () => {
     const workbookEditablePermission = useObservable(permissionService.getPermissionPoint$(new WorkbookEditablePermission(unitId)?.id));
     const workbookCreateSheetPermission = useObservable(permissionService.getPermissionPoint$(new WorkbookCreateSheetPermission(unitId)?.id));
 
-    useEffect(() => {
-        const subscription = sheetBarService.scroll$.subscribe((state: IScrollState) => {
-            updateScrollButtonState(state);
-        });
-
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, []);
-
     const updateScrollButtonState = (state: IScrollState) => {
         const { leftEnd, rightEnd } = state;
         setLeftScrollState(leftEnd);
         setRightScrollState(rightEnd);
     };
+
+    useEffect(() => {
+        const subscription = sheetBarService.scroll$.subscribe(throttle((state: IScrollState) => {
+            updateScrollButtonState(state);
+        }, 100));
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, []);
 
     // Complete the _addSheet, handleScrollLeft, and handleScrollRight functions
     const addSheet = () => {
@@ -78,10 +75,14 @@ export const SheetBar = () => {
     };
 
     return (
-        <div className={clsx(styles.sheetBar, 'univer-relative univer-flex univer-h-full univer-flex-1')}>
-            <div className={styles.sheetBarOptions}>
+        <div className="univer-relative univer-flex univer-h-full univer-min-w-0 univer-flex-1">
+            <div className="univer-flex univer-items-center">
                 {/* Add sheet button */}
-                <SheetBarButton onClick={addSheet} disabled={!(workbookCreateSheetPermission?.value && workbookEditablePermission?.value)}>
+                <SheetBarButton
+                    className="univer-mr-2"
+                    onClick={addSheet}
+                    disabled={!(workbookCreateSheetPermission?.value && workbookEditablePermission?.value)}
+                >
                     <IncreaseSingle />
                 </SheetBarButton>
                 {/* All sheets button */}
@@ -95,12 +96,13 @@ export const SheetBar = () => {
             {(!leftScrollState || !rightScrollState) && (
                 <div
                     className={`
-                      ${styles.sheetBarOptions}
-                      ${styles.sheetBarOptionsDivider}
+                      univer-relative univer-flex univer-items-center univer-px-2
+                      after:univer-absolute after:univer-right-0 after:univer-top-1/2 after:univer-h-4 after:univer-w-px
+                      after:-univer-translate-y-1/2 after:univer-bg-gray-200 after:univer-content-[""]
                     `}
                 >
                     <SheetBarButton disabled={leftScrollState} onClick={handleScrollLeft}>
-                        <MoreSingle style={{ transform: 'rotateZ(180deg)' }} />
+                        <MoreSingle className="univer-rotate-180" />
                     </SheetBarButton>
                     <SheetBarButton disabled={rightScrollState} onClick={handleScrollRight}>
                         <MoreSingle />

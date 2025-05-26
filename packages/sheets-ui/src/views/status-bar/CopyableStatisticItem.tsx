@@ -15,13 +15,11 @@
  */
 
 import type { IFunctionNames } from '@univerjs/engine-formula';
+import type { FC } from 'react';
 import { LocaleService, numfmt } from '@univerjs/core';
 import { MessageType, Tooltip } from '@univerjs/design';
 import { FUNCTION_NAMES_MATH, FUNCTION_NAMES_STATISTICAL, FUNCTION_NAMES_TEXT } from '@univerjs/engine-formula';
 import { IClipboardInterfaceService, IMessageService, useDependency } from '@univerjs/ui';
-import React from 'react';
-
-import styles from './index.module.less';
 
 export interface IStatisticItem {
     name: IFunctionNames;
@@ -38,7 +36,7 @@ const allowPatternFunctions: IFunctionNames[] = [
     FUNCTION_NAMES_STATISTICAL.MAX,
 ];
 
-export const functionDisplayNames: FunctionNameMap = {
+export const functionDisplayNames: IFunctionNameMap = {
     [FUNCTION_NAMES_MATH.SUM]: 'statusbar.sum',
     [FUNCTION_NAMES_STATISTICAL.AVERAGE]: 'statusbar.average',
     [FUNCTION_NAMES_STATISTICAL.MIN]: 'statusbar.min',
@@ -47,11 +45,12 @@ export const functionDisplayNames: FunctionNameMap = {
     [FUNCTION_NAMES_STATISTICAL.COUNTA]: 'statusbar.countA',
     [FUNCTION_NAMES_TEXT.CONCATENATE]: 'concatenate',
 };
-interface FunctionNameMap {
+
+interface IFunctionNameMap {
     [key: string]: string;
 }
 
-export const CopyableStatisticItem: React.FC<IStatisticItem> = (item: IStatisticItem) => {
+export const CopyableStatisticItem: FC<IStatisticItem> = (item: IStatisticItem) => {
     const localeService = useDependency(LocaleService);
     const messageService = useDependency(IMessageService);
     const clipboardService = useDependency(IClipboardInterfaceService);
@@ -67,7 +66,14 @@ export const CopyableStatisticItem: React.FC<IStatisticItem> = (item: IStatistic
     };
     return (
         <Tooltip title={localeService.t('statusbar.clickToCopy')} placement="top">
-            <div key={item.name} className={styles.statisticItem} onClick={copyToClipboard}>
+            <div
+                key={item.name}
+                className={`
+                  univer-flex univer-max-w-24 univer-cursor-default univer-truncate univer-text-center univer-text-xs
+                  univer-text-gray-400
+                `}
+                onClick={copyToClipboard}
+            >
                 <span>
                     {`${localeService.t(
                         functionDisplayNames?.[item.name as string] || (item.name as string)

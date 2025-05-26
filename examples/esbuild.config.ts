@@ -19,6 +19,7 @@ import { execSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { ignoreGlobalCssPlugin, removeClassnameNewlinesPlugin } from '@univerjs-infra/shared/esbuild';
 import detect from 'detect-port';
 import esbuild from 'esbuild';
 import aliasPlugin from 'esbuild-plugin-alias';
@@ -26,15 +27,12 @@ import cleanPlugin from 'esbuild-plugin-clean';
 import copyPlugin from 'esbuild-plugin-copy';
 import vue from 'esbuild-plugin-vue3';
 import stylePlugin from 'esbuild-style-plugin';
-import glob from 'fast-glob';
-import fs from 'fs-extra';
 import minimist from 'minimist';
 import React from 'react';
 import tailwindcss from 'tailwindcss';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const LINK_TO_LIB = process.env.LINK_TO_LIB === 'true';
 const nodeModules = path.resolve(process.cwd(), './node_modules');
 
 const args = minimist(process.argv.slice(2));
@@ -49,101 +47,6 @@ const monacoEditorEntryPoints = [
     'vs/language/typescript/ts.worker.js',
     'vs/editor/editor.worker.js',
 ];
-
-/**
- * fix `import '@univerjs/xxx/lib/index.css'` not work on source code dev mode
- *
- * The `stylePlugin` must be loaded after the `skipLibCssEsbuildPlugin`.
- */
-const skipLibCssEsbuildPlugin = {
-    name: 'skip-lib-css-esbuild-plugin',
-    setup(build) {
-        console.log('[skip-lib-css-esbuild-plugin] enabled, resolve will skip `import \'@univerjs/xxx/lib/**/*.css\'`');
-
-        build.onResolve({ filter: /\/lib\/.*\.css$/ }, async (args) => {
-            if (args.path.includes('@univerjs/')) {
-                return {
-                    path: args.path,
-                    namespace: 'univer-lib-css',
-                };
-            }
-        });
-
-        build.onLoad({ filter: /.*/, namespace: 'univer-lib-css' }, async () => {
-            // return virtual css content
-            return {
-                contents: '',
-                loader: 'css',
-            };
-        });
-    },
-};
-
-/**
- * Add this function to generate aliases
- */
-function generateAliases() {
-    const aliases = {};
-    const packagesRoots = ['packages', 'packages-experimental'].map((dir) =>
-        path.resolve(__dirname, '..', dir)
-    );
-
-    for (const packagesRoot of packagesRoots) {
-        if (!fs.existsSync(packagesRoot)) continue;
-
-        // Find all package.json files in subdirectories
-        const packageJsonPaths = glob.sync('*/package.json', { cwd: packagesRoot });
-
-        for (const packageJsonPath of packageJsonPaths) {
-            const pkgDir = path.join(packagesRoot, path.dirname(packageJsonPath));
-            const pkgJson = fs.readJSONSync(path.join(packagesRoot, packageJsonPath));
-            const exportsConfig = pkgJson.publishConfig?.exports;
-
-            if (!exportsConfig) continue;
-
-            // Add main package alias
-            if (exportsConfig['.']) {
-                aliases[pkgJson.name] = path.resolve(pkgDir, exportsConfig['.'].import);
-            }
-
-            const getValue = (val: { import: string } | string) => {
-                if (typeof val === 'string') {
-                    return val;
-                }
-                return val.import;
-            };
-            // Add subpath aliases
-            Object.entries(exportsConfig as Record<string, { import: string } | string>).forEach(([key, value]) => {
-                try {
-                    if (key === '.') {
-                        aliases[pkgJson.name] = path.resolve(pkgDir, exportsConfig['.'].import);
-                    } else if (key === './lib/*') {
-                        const cssFile = path.resolve(pkgDir, getValue(value).replace('*', 'index.css'));
-                        if (fs.existsSync(cssFile)) {
-                            aliases[`${pkgJson.name}/lib/index.css`] = cssFile;
-                        }
-                    } else if (key === './*') {
-                        // do nothing
-                    } else if (key === './locale/*') {
-                        const locales = ['en-US', 'fr-FR', 'ru-RU', 'zh-CN', 'zh-TW', 'vi-VN', 'fa-IR'];
-                        locales.forEach((lang) => {
-                            aliases[`${pkgJson.name}/locale/${lang}`] = path.resolve(pkgDir, getValue(value).replace('*', lang));
-                        });
-                    } else {
-                        const aliasKey = `${pkgJson.name}/${key.replace('./', '')}`;
-                        const aliasPath = path.resolve(pkgDir, getValue(value));
-                        aliases[aliasKey] = aliasPath;
-                    }
-                } catch (e) {
-                    console.error(`Error generating aliases for ${pkgJson.name}: ${e.message}`);
-                    process.exit(1);
-                }
-            });
-        }
-    }
-
-    return aliases;
-}
 
 function nodeBuildTask() {
     return esbuild.build({
@@ -214,6 +117,9 @@ const entryPoints = [
     // sheets-uniscript
     './src/sheets-uniscript/main.ts',
 
+    // sheets-webcomponent
+    './src/sheets-webcomponent/main.tsx',
+
     // docs
     './src/docs/main.ts',
 
@@ -243,40 +149,17 @@ const config: SameShape<BuildOptions, BuildOptions> = {
     minify: false,
     target: 'chrome70',
     plugins: [
-        {
-            name: 'ignore-global-css',
-            setup(build) {
-                build.onResolve({ filter: /\/global\.css$/ }, (args) => {
-                    if (args.importer.includes('packages')) {
-                        return {
-                            path: args.path,
-                            namespace: 'ignore-global-css',
-                            pluginData: {
-                                importer: args.importer,
-                            },
-                        };
-                    }
-                });
-
-                build.onLoad({ filter: /\/global\.css$/, namespace: 'ignore-global-css' }, () => {
-                    return { contents: '' };
-                });
-            },
-        },
+        ignoreGlobalCssPlugin(),
+        removeClassnameNewlinesPlugin(),
         copyPlugin({
             assets: {
                 from: ['./public/**/*'],
                 to: ['./'],
             },
         }),
-        ...(LINK_TO_LIB ? [] : [skipLibCssEsbuildPlugin]),
         stylePlugin({
             postcss: {
                 plugins: [tailwindcss as any],
-            },
-            cssModulesOptions: {
-                localsConvention: 'camelCaseOnly',
-                generateScopedName: 'univer-[local]',
             },
             renderOptions: {
                 lessOptions: {
@@ -289,7 +172,6 @@ const config: SameShape<BuildOptions, BuildOptions> = {
     entryPoints,
     outdir: './local',
     define,
-    alias: LINK_TO_LIB ? generateAliases() : {},
 };
 
 if (isReact16) {

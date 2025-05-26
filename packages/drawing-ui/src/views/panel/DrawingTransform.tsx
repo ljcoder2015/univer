@@ -24,7 +24,6 @@ import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
 import { MIN_DRAWING_HEIGHT_LIMIT, MIN_DRAWING_WIDTH_LIMIT, RANGE_DRAWING_ROTATION_LIMIT } from '../../utils/config';
 import { getUpdateParams } from '../../utils/get-update-params';
-import styles from './index.module.less';
 
 export interface IDrawingTransformProps {
     transformShow: boolean;
@@ -362,106 +361,62 @@ export const DrawingTransform = (props: IDrawingTransformProps) => {
         transformer.keepRatio = val as boolean;
     };
 
-    const gridDisplay = (isShow: boolean) => {
-        return isShow ? 'block' : 'none';
-    };
-
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: gridDisplay(transformShow) }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('image-panel.transform.title')}</div>
+        <div
+            className={clsx('univer-grid univer-gap-2 univer-py-2 univer-text-gray-400', {
+                'univer-hidden': !transformShow,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-panel.transform.title')}</div>
+            </header>
+
+            <div
+                className={`
+                  univer-grid univer-grid-cols-3 univer-gap-2
+                  [&>div]:univer-grid [&>div]:univer-gap-2
+                `}
+            >
+                <div>
+                    <span>{localeService.t('image-panel.transform.width')}</span>
+                    <InputNumber precision={1} value={width} onChange={(val) => { handleWidthChange(val); }} />
+                </div>
+                <div>
+                    <span>{localeService.t('image-panel.transform.height')}</span>
+                    <InputNumber precision={1} value={height} onChange={(val) => { handleHeightChange(val); }} />
+                </div>
+                <div>
+                    <span>{localeService.t('image-panel.transform.lock')}</span>
+                    <div className="univer-text-center">
+                        <Checkbox checked={lockRatio} onChange={handleLockRatioChange} />
+                    </div>
                 </div>
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.width')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber precision={1} value={width} onChange={(val) => { handleWidthChange(val); }} className={styles.imageCommonPanelInput} />
-                            </div>
-                        </div>
-                    </label>
+
+            <div
+                className={`
+                  univer-grid univer-grid-cols-3 univer-gap-2
+                  [&>div]:univer-grid [&>div]:univer-gap-2
+                `}
+            >
+                <div>
+                    <span>{localeService.t('image-panel.transform.x')}</span>
+                    <InputNumber precision={1} value={xPosition} onChange={(val) => { handleXChange(val); }} />
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.height')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber precision={1} value={height} onChange={(val) => { handleHeightChange(val); }} className={styles.imageCommonPanelInput} />
-                            </div>
-                        </div>
-                    </label>
+                <div>
+                    <span>{localeService.t('image-panel.transform.y')}</span>
+                    <InputNumber precision={1} value={yPosition} onChange={(val) => { handleYChange(val); }} />
                 </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.lock')}
-                            </div>
-                        </div>
-                        <div className={clsx(styles.imageCommonPanelRow, styles.imageCommonPanelRowVertical)}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <Checkbox checked={lockRatio} onChange={handleLockRatioChange} />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-            </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.x')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber precision={1} value={xPosition} onChange={(val) => { handleXChange(val); }} className={styles.imageCommonPanelInput} />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.y')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber precision={1} value={yPosition} onChange={(val) => { handleYChange(val); }} className={styles.imageCommonPanelInput} />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan3)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-panel.transform.rotate')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber precision={1} value={rotation} onChange={handleRotationChange} className={styles.imageCommonPanelInput} />
-                            </div>
-                        </div>
-                    </label>
+                <div>
+                    <span>{localeService.t('image-panel.transform.rotate')}</span>
+                    <InputNumber precision={1} value={rotation} onChange={handleRotationChange} />
                 </div>
             </div>
         </div>
-
     );
 };

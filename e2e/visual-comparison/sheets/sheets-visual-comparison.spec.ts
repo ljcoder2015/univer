@@ -38,8 +38,37 @@ test('diff default sheet toolbar', async () => {
     const filename = generateSnapshotName('default-sheet-fullpage');
     const screenshot = await page.screenshot({
         mask: [
-            page.locator('.univer-headerbar'),
-            page.locator('.univer-defined-name'),
+            page.locator('[data-u-comp=headerbar]'),
+            page.locator('[data-u-comp=defined-name]'),
+        ],
+        fullPage: true,
+    });
+    expect(screenshot).toMatchSnapshot(filename, { maxDiffPixels: 100 });
+});
+
+test('diff sheet dark mode', async () => {
+    const browser = await chromium.launch({
+        headless: isCI, // Set to false to see the browser window
+    });
+    const context = await browser.newContext({
+        viewport: { width: 1280, height: 720 },
+        deviceScaleFactor: 2, // Set your desired DPR
+    });
+    const page = await context.newPage();
+    await page.goto('http://localhost:3000/sheets/');
+    await page.waitForTimeout(2000);
+
+    await page.evaluate(() => window.E2EControllerAPI.loadDefaultSheet());
+    await page.waitForTimeout(1000);
+
+    await page.evaluate(() => window.E2EControllerAPI.setDarkMode(true));
+    await page.waitForTimeout(1000);
+
+    const filename = generateSnapshotName('dark-mode');
+    const screenshot = await page.screenshot({
+        mask: [
+            page.locator('[data-u-comp=headerbar]'),
+            page.locator('[data-u-comp=defined-name]'),
         ],
         fullPage: true,
     });
@@ -230,6 +259,25 @@ test('diff set force string cell', async () => {
         activeWorkbook.startEditing();
         await window.univerAPI.getActiveDocument().appendText("'1");
         activeWorkbook.endEditing(true);
+
+        activeSheet.getRange('I1').setValue({
+            v: '001',
+            t: 1,
+            s: {
+                ff: 'Arial CE',
+                fs: 11,
+                bl: 1,
+                cl: {
+                    rgb: '#000080',
+                    th: 0,
+                },
+                n: {
+                    pattern: 'General',
+                },
+                ht: 1,
+                tb: 3,
+            },
+        });
     });
 
     const filename = generateSnapshotName('set-force-string-cell');

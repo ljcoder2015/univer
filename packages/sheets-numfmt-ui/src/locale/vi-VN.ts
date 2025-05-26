@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     sheet: {
         numfmt: {
-            percent: 'Phần trăm',
             title: 'Định dạng số',
             numfmtType: 'Loại định dạng',
             cancel: 'Hủy bỏ',
@@ -28,6 +27,8 @@ const locale: typeof zhCN = {
             accounting: 'Kế toán',
             text: 'Văn bản',
             number: 'Số',
+            percent: 'Phần trăm',
+            scientific: 'Chính xác',
             currency: 'Tiền tệ',
             date: 'Ngày',
             time: 'Thời gian',

@@ -17,13 +17,33 @@
 import type enUS from './en-US';
 
 const locale: typeof enUS = {
+    toolbar: {
+        heading: {
+            normal: 'Normal',
+            title: 'Titre',
+            subTitle: 'Sous-titre',
+            1: 'Titre 1',
+            2: 'Titre 2',
+            3: 'Titre 3',
+            4: 'Titre 4',
+            5: 'Titre 5',
+            6: 'Titre 6',
+            tooltip: 'Définir un titre',
+        },
+    },
     ribbon: {
         start: 'Démarrer',
+        startDesc: 'Initialiser la feuille de calcul et définir les paramètres de base.',
         insert: 'Insérer',
+        insertDesc: 'Insérer des lignes, des colonnes, des graphiques et divers autres éléments.',
         formulas: 'Formules',
+        formulasDesc: 'Utiliser des fonctions et des formules pour les calculs de données.',
         data: 'Données',
+        dataDesc: 'Gérer les données, y compris l\'importation, le tri et le filtrage.',
         view: 'Vue',
+        viewDesc: 'Changer les modes d\'affichage et ajuster l\'effet d\'affichage.',
         others: 'Autres',
+        othersDesc: 'Autres fonctions et paramètres.',
         more: 'Plus',
     },
     fontFamily: {

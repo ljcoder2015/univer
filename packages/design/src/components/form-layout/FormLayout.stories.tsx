@@ -16,8 +16,8 @@
 
 import type { Meta } from '@storybook/react';
 
-import { Input } from '../input';
-import { Select } from '../select';
+import { Input } from '../input/Input';
+import { Select } from '../select/Select';
 import { FormLayout } from './FormLayout';
 
 const meta: Meta = {

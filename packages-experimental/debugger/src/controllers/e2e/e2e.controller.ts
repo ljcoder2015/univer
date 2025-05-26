@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { awaitTime, Disposable, ICommandService, IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
-
+import type { Univer } from '@univerjs/core';
+import type { FUniver } from '@univerjs/core/facade';
+import { awaitTime, Disposable, Inject, IUniverInstanceService, ThemeService, UniverInstanceType } from '@univerjs/core';
 import { DEFAULT_WORKBOOK_DATA_DEMO, DEFAULT_WORKBOOK_DATA_DEMO_DEFAULT_STYLE } from '@univerjs/mockdata';
-import { DisposeUniverCommand } from '../../commands/commands/unit.command';
 import { getDefaultDocData } from './data/default-doc';
 import { getDefaultWorkbookData } from './data/default-sheet';
 
@@ -33,6 +33,7 @@ export interface IE2EControllerAPI {
     loadMergeCellSheet(loadTimeout?: number): Promise<void>;
     loadDefaultStyleSheet(loadTimeout?: number): Promise<void>;
     loadDefaultDoc(loadTimeout?: number,): Promise<void>;
+    setDarkMode(darkMode: boolean): void;
     disposeUniver(): Promise<void>;
     disposeCurrSheetUnit(disposeTimeout?: number): Promise<void>;
 }
@@ -41,6 +42,8 @@ declare global {
     // eslint-disable-next-line ts/naming-convention
     interface Window {
         E2EControllerAPI: IE2EControllerAPI;
+        univer?: Univer;
+        univerAPI?: FUniver;
     }
 }
 
@@ -50,7 +53,7 @@ declare global {
 export class E2EController extends Disposable {
     constructor(
         @IUniverInstanceService private readonly _univerInstanceService: IUniverInstanceService,
-        @ICommandService private readonly _commandService: ICommandService
+        @Inject(ThemeService) private readonly _themeService: ThemeService
     ) {
         super();
 
@@ -70,9 +73,14 @@ export class E2EController extends Disposable {
             loadMergeCellSheet: () => this._loadMergeCellSheet(2000),
             loadDefaultStyleSheet: (loadTimeout) => this._loadDefaultStyleSheet(loadTimeout),
             disposeCurrSheetUnit: (disposeTimeout?: number) => this._disposeDefaultSheetUnit(disposeTimeout),
+            setDarkMode: (darkMode) => this._setDarkMode(darkMode),
             loadDefaultDoc: (loadTimeout) => this._loadDefaultDoc(loadTimeout),
             disposeUniver: () => this._disposeUniver(),
         };
+    }
+
+    private _setDarkMode(darkMode: boolean): void {
+        this._themeService.setDarkMode(darkMode);
     }
 
     private async _loadAndRelease(releaseId: number, loadingTimeout: number = AWAIT_LOADING_TIMEOUT, disposingTimeout: number = AWAIT_DISPOSING_TIMEOUT): Promise<void> {
@@ -119,7 +127,9 @@ export class E2EController extends Disposable {
     }
 
     private async _disposeUniver(): Promise<void> {
-        await this._commandService.executeCommand(DisposeUniverCommand.id);
+        window.univer?.dispose();
+        window.univer = undefined;
+        window.univerAPI = undefined;
     }
 
     private async _disposeDefaultSheetUnit(disposingTimeout: number = AWAIT_DISPOSING_TIMEOUT): Promise<void> {

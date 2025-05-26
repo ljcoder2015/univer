@@ -75,6 +75,8 @@ export class InputManager extends Disposable {
         clearTimeout(this._delayedTimeout);
         clearTimeout(this._delayedTripeTimeout);
 
+        this._onClick = null as unknown as (evt: IMouseEvent) => void;
+        this._onDblClick = null as unknown as (evt: IMouseEvent) => void;
         this._onPointerMove = null as unknown as (evt: IMouseEvent) => void;
         this._onPointerDown = null as unknown as (evt: IPointerEvent) => void;
         this._onPointerUp = null as unknown as (evt: IPointerEvent) => void;
@@ -114,6 +116,53 @@ export class InputManager extends Disposable {
             this._currentMouseEnterPicked = o;
             previousPicked?.triggerDragLeave(evt);
             o?.triggerDragEnter(evt);
+        }
+    }
+
+    private _clickTimeout: ReturnType<typeof setTimeout> | null = null;
+    private _clickCount = 0;
+    _onClick(evt: IPointerEvent) {
+        if (evt.pointerId === undefined) {
+            (evt as unknown as PointerEvent).pointerId = 0;
+        }
+
+        this._clickCount++;
+        if (!this._clickTimeout) {
+            this._clickTimeout = setTimeout(() => {
+                if (this._clickCount === 1) {
+                    const currentObject = this._getObjectAtPos(evt.offsetX, evt.offsetY);
+                    const isStop = currentObject?.triggerSingleClick(evt);
+                    if (!isStop && this._shouldDispatchEventToScene(currentObject)) {
+                        this._scene.onPointerDown$.emitEvent(evt);
+                    }
+                } else if (this._clickCount === 2) {
+                    // ....
+                }
+                // reset click state
+                clearTimeout(this._clickTimeout as ReturnType<typeof setTimeout>);
+                this._clickTimeout = null;
+                this._clickCount = 0;
+            }, 300);
+        }
+
+        const currentObject = this._getObjectAtPos(evt.offsetX, evt.offsetY);
+        const isStop = currentObject?.triggerClick(evt);
+
+        if (!isStop && this._shouldDispatchEventToScene(currentObject)) {
+            this._scene.onPointerDown$.emitEvent(evt);
+        }
+    }
+
+    _onDblClick(evt: IPointerEvent) {
+        if (evt.pointerId === undefined) {
+            (evt as unknown as PointerEvent).pointerId = 0;
+        }
+
+        const currentObject = this._getObjectAtPos(evt.offsetX, evt.offsetY);
+        const isStop = currentObject?.triggerDblclick(evt);
+
+        if (!isStop && this._shouldDispatchEventToScene(currentObject)) {
+            this._scene.onPointerDown$.emitEvent(evt);
         }
     }
 
@@ -210,12 +259,12 @@ export class InputManager extends Disposable {
     }
 
     _onKeyDown(evt: IKeyboardEvent) {
-        // currently nobody using this. use `fromGlobalEvent('keydown')` from rx.js instead.
+        // currently nobody using this. use `fromEvent('keydown')` from rx.js instead.
         this._scene.onKeyDown$.emitEvent(evt);
     }
 
     _onKeyUp(evt: IKeyboardEvent) {
-        // currently nobody using this. use `fromGlobalEvent('keyup')` from rx.js instead.
+        // currently nobody using this. use `fromEvent('keyup')` from rx.js instead.
         this._scene.onKeyUp$.emitEvent(evt);
     }
 
@@ -287,6 +336,9 @@ export class InputManager extends Disposable {
                         if (enableWheel) {
                             this._onMouseWheel(evt as IWheelEvent);
                         }
+                        break;
+                    case 'click':
+                        this._onClick(evt as IPointerEvent);
                         break;
                     case 'pointerout':
                         this._onPointerOut(evt as IPointerEvent);

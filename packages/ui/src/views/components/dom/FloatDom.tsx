@@ -15,16 +15,16 @@
  */
 
 import type { IFloatDom } from '../../../services/dom/canvas-dom-layer.service';
-import { IUniverInstanceService } from '@univerjs/core';
+import { DocumentDataModel, IUniverInstanceService } from '@univerjs/core';
 import React, { memo, useEffect, useMemo, useRef } from 'react';
 import { distinctUntilChanged, first } from 'rxjs';
 import { ComponentManager } from '../../../common';
 import { CanvasFloatDomService } from '../../../services/dom/canvas-dom-layer.service';
 import { useDependency, useObservable } from '../../../utils/di';
 
-const FloatDomSingle = memo((props: { layer: IFloatDom; id: string }) => {
+export const FloatDomSingle = memo((props: { layer: IFloatDom; id: string }) => {
     const { layer, id } = props;
-    const componentManager = useDependency(ComponentManager);
+
     const size$ = useMemo(() => layer.position$.pipe(
         distinctUntilChanged(
             (prev, curr) => prev.absolute.left === curr.absolute.left &&
@@ -33,7 +33,7 @@ const FloatDomSingle = memo((props: { layer: IFloatDom; id: string }) => {
                 prev.endY - prev.startY === curr.endY - curr.startY
         )
     ), [layer.position$]);
-
+    const univerInstanceService = useDependency(IUniverInstanceService);
     const position = useObservable(useMemo(() => layer.position$.pipe(first()), [layer.position$]));
     const domRef = useRef<HTMLDivElement>(null);
     const innerDomRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,7 @@ const FloatDomSingle = memo((props: { layer: IFloatDom; id: string }) => {
     const innerStyle = useRef<React.CSSProperties>({
 
     });
-    const Component = typeof layer.componentKey === 'string' ? componentManager.get(layer.componentKey) : layer.componentKey;
+    const Component = typeof layer.componentKey === 'string' ? useDependency(ComponentManager).get(layer.componentKey) : layer.componentKey;
     const layerProps: any = useMemo(() => ({
         data: layer.data,
         ...layer.props,
@@ -94,7 +94,22 @@ const FloatDomSingle = memo((props: { layer: IFloatDom; id: string }) => {
         };
     }, [layer.position$, size$]);
 
-    const component = useMemo(() => Component ? <Component {...layerProps} /> : null, [Component, layerProps]);
+    const instance = univerInstanceService.getUnit(layer.unitId);
+    const docDisabled = instance instanceof DocumentDataModel ? instance.getDisabled() : undefined;
+    const component = useMemo(() => Component
+        ? (
+            <Component
+                {...layerProps}
+                unitId={layer.unitId}
+                unit={instance}
+                floatDomId={layer.id}
+                context={{
+                    docDisabled,
+                    root: innerDomRef,
+                }}
+            />
+        )
+        : null, [Component, layerProps]);
 
     if (!position) {
         return null;
@@ -132,8 +147,8 @@ const FloatDomSingle = memo((props: { layer: IFloatDom; id: string }) => {
             <div
                 id={id}
                 ref={innerDomRef}
-                className="univer-overflow-hidden"
-                style={{ position: 'absolute', ...innerStyle.current }}
+                className="univer-absolute univer-overflow-hidden"
+                style={{ ...innerStyle.current }}
             >
                 {component}
             </div>
@@ -145,7 +160,8 @@ export const FloatDom = ({ unitId }: { unitId?: string }) => {
     const instanceService = useDependency(IUniverInstanceService);
     const domLayerService = useDependency(CanvasFloatDomService);
     const layers = useObservable(domLayerService.domLayers$);
-    const currentUnitId = unitId || instanceService.getFocusedUnit()?.getUnitId();
+    const focusUnit = useObservable(instanceService.focused$);
+    const currentUnitId = unitId || focusUnit;
 
     return layers?.filter((layer) => layer[1].unitId === currentUnitId)?.map((layer) => (
         <FloatDomSingle

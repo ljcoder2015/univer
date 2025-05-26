@@ -16,20 +16,21 @@
 
 import type { IUser, UniverInstanceType } from '@univerjs/core';
 import type { IAddCommentCommandParams, IThreadComment, IUpdateCommentCommandParams } from '@univerjs/thread-comment';
+import type { IUniverUIConfig } from '@univerjs/ui';
 import type { IThreadCommentEditorInstance } from '../thread-comment-editor';
 import { generateRandomId, ICommandService, LocaleService, UserManagerService } from '@univerjs/core';
-import { clsx, Dropdown, Tooltip } from '@univerjs/design';
+import { borderClassName, clsx, Dropdown, Tooltip } from '@univerjs/design';
 import { DeleteSingle, MoreHorizontalSingle, ReplyToCommentSingle, ResolvedSingle, SolveSingle } from '@univerjs/icons';
 import { AddCommentCommand, DeleteCommentCommand, DeleteCommentTreeCommand, getDT, ResolveCommentCommand, ThreadCommentModel, UpdateCommentCommand } from '@univerjs/thread-comment';
-import { useDependency, useObservable } from '@univerjs/ui';
+import { UI_PLUGIN_CONFIG_KEY, useConfigValue, useDependency, useObservable } from '@univerjs/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { debounceTime } from 'rxjs';
 import { SetActiveCommentOperation } from '../../commands/operations/comment.operations';
 import { ThreadCommentEditor } from '../thread-comment-editor';
 import { transformDocument2TextNodes, transformTextNodes2Document } from '../thread-comment-editor/util';
-import styles from './index.module.less';
 
 export interface IThreadCommentTreeProps {
+    full?: boolean;
     id?: string;
     unitId: string;
     subUnitId: string;
@@ -47,6 +48,7 @@ export interface IThreadCommentTreeProps {
     onAddComment?: (comment: IThreadComment) => boolean;
     onDeleteComment?: (comment: IThreadComment) => boolean;
     onResolve?: (resolved: boolean) => void;
+    style?: React.CSSProperties;
 }
 
 export interface IThreadCommentItemProps {
@@ -77,6 +79,8 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
     const isCommentBySelf = currentUser?.userID === item.personId;
     const isMock = item.id === MOCK_ID;
     const [showReply, setShowReply] = useState(false);
+    const uiConfig = useConfigValue<IUniverUIConfig>(UI_PLUGIN_CONFIG_KEY);
+    const avatarFallback = uiConfig?.avatarFallback;
 
     const handleDeleteItem = () => {
         if (onDeleteComment?.(item) === false) {
@@ -97,65 +101,101 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
     };
 
     return (
-        <div className={styles.threadCommentItem} onMouseLeave={() => setShowReply(false)} onMouseEnter={() => setShowReply(true)}>
-            <img className={styles.threadCommentItemHead} src={user?.avatar} />
-            <div className={styles.threadCommentItemTitle}>
-                <div className={styles.threadCommentUsername}>
-                    {user?.name || ' '}
-                </div>
-                <div>
-                    {(isMock || resolved)
-                        ? null
-                        : (
-                            showReply
+        <div className="univer-relative univer-mb-3 univer-pl-[30px]" onMouseLeave={() => setShowReply(false)} onMouseEnter={() => setShowReply(true)}>
+            <div
+                className={`
+                  univer-absolute univer-left-0 univer-top-0 univer-h-6 univer-w-6 univer-rounded-full univer-bg-cover
+                  univer-bg-center univer-bg-no-repeat
+                `}
+                style={{
+                    backgroundImage: `url(${user?.avatar || avatarFallback})`,
+                }}
+            />
+            {user
+                ? (
+                    <div className="univer-mb-1 univer-flex univer-h-6 univer-items-center univer-justify-between">
+                        <div className="univer-text-sm univer-font-medium univer-leading-5">
+                            {user?.name || ' '}
+                        </div>
+                        <div>
+                            {(isMock || resolved)
+                                ? null
+                                : (
+                                    showReply && user
+                                        ? (
+                                            <div
+                                                className={`
+                                                  univer-ml-1 univer-inline-flex univer-h-6 univer-w-6
+                                                  univer-cursor-pointer univer-items-center univer-justify-center
+                                                  univer-rounded-sm univer-text-base
+                                                  hover:univer-bg-gray-50
+                                                `}
+                                                onClick={() => onReply(user)}
+                                            >
+                                                <ReplyToCommentSingle />
+                                            </div>
+                                        )
+                                        : null
+                                )}
+                            {isCommentBySelf && !isMock && !resolved
                                 ? (
-                                    <div className={styles.threadCommentIcon} onClick={() => onReply(user)}>
-                                        <ReplyToCommentSingle />
-                                    </div>
-                                )
-                                : null
-                        )}
-                    {isCommentBySelf && !isMock && !resolved
-                        ? (
-                            <Dropdown
-                                overlay={(
-                                    <div className="univer-rounded-lg univer-p-4 univer-theme">
-                                        <ul
+                                    <Dropdown
+                                        overlay={(
+                                            <div className="univer-rounded-lg">
+                                                <ul
+                                                    className={`
+                                                      univer-m-0 univer-box-border univer-grid univer-list-none
+                                                      univer-p-1.5 univer-text-sm
+                                                      [&_a]:univer-block [&_a]:univer-cursor-pointer
+                                                      [&_a]:univer-rounded [&_a]:univer-px-2 [&_a]:univer-py-1.5
+                                                      [&_a]:univer-transition-colors
+                                                    `}
+                                                >
+                                                    <li>
+                                                        <a
+                                                            className="hover:univer-bg-gray-200"
+                                                            onClick={() => onEditingChange?.(true)}
+                                                        >
+                                                            {localeService.t('threadCommentUI.item.edit')}
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a
+                                                            className="hover:univer-bg-gray-200"
+                                                            onClick={handleDeleteItem}
+                                                        >
+                                                            {localeService.t('threadCommentUI.item.delete')}
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                    >
+                                        <div
                                             className={`
-                                              univer-m-0 univer-grid univer-list-none univer-gap-2 univer-p-0
-                                              univer-text-sm
-                                              [&_a]:univer-cursor-pointer [&_a]:univer-rounded [&_a]:univer-p-1
+                                              univer-ml-1 univer-inline-flex univer-h-6 univer-w-6 univer-cursor-pointer
+                                              univer-items-center univer-justify-center univer-rounded-sm
+                                              univer-text-base
+                                              hover:univer-bg-gray-50
                                             `}
                                         >
-                                            <li>
-                                                <a
-                                                    className="hover:univer-bg-gray-200"
-                                                    onClick={() => onEditingChange?.(true)}
-                                                >
-                                                    {localeService.t('threadCommentUI.item.edit')}
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    className="hover:univer-bg-gray-200"
-                                                    onClick={handleDeleteItem}
-                                                >
-                                                    {localeService.t('threadCommentUI.item.delete')}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                )}
-                            >
-                                <div className={styles.threadCommentIcon}>
-                                    <MoreHorizontalSingle />
-                                </div>
-                            </Dropdown>
-                        )
-                        : null}
-                </div>
-            </div>
-            <div className={styles.threadCommentItemTime}>{item.dT}</div>
+                                            <MoreHorizontalSingle />
+                                        </div>
+                                    </Dropdown>
+                                )
+                                : null}
+                        </div>
+                    </div>
+                )
+                : null}
+            <time
+                className={`
+                  univer-mb-1 univer-text-xs/normal univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                {item.dT}
+            </time>
             {editing
                 ? (
                     <ThreadCommentEditor
@@ -184,14 +224,19 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                     />
                 )
                 : (
-                    <div className={styles.threadCommentItemContent}>
+                    <div
+                        className={`
+                          univer-text-sm univer-text-gray-900
+                          dark:!univer-text-white
+                        `}
+                    >
                         {transformDocument2TextNodes(item.text).map((paragraph, i) => (
-                            <div key={i}>
+                            <div key={i} className="univer-break-words">
                                 {paragraph.map((item, i) => {
                                     switch (item.type) {
                                         case 'mention':
                                             return (
-                                                <a className={styles.threadCommentItemAt} key={i}>
+                                                <a className="univer-text-primary-600" key={i}>
                                                     {item.content.label}
                                                     {' '}
                                                 </a>
@@ -227,6 +272,8 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
         onDeleteComment,
         onResolve,
         type,
+        style,
+        full,
     } = props;
     const threadCommentModel = useDependency(ThreadCommentModel);
     const [isHover, setIsHover] = useState(false);
@@ -308,11 +355,17 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
 
     return (
         <div
-            className={clsx(styles.threadComment, {
-                [styles.threadCommentActive]: !resolved && (showHighlight || isHover || prefix === 'cell'),
-            })}
-            onClick={onClick}
             id={`${prefix}-${unitId}-${subUnitId}-${id}`}
+            className={clsx(`
+              univer-relative univer-box-border univer-rounded-md univer-bg-white univer-p-4
+              dark:!univer-bg-gray-900 dark:!univer-text-white
+            `, borderClassName, {
+                'univer-w-[278px]': !full,
+                'univer-w-full': full,
+                'univer-shadow': !resolved && (showHighlight || isHover || prefix === 'cell'),
+            })}
+            style={style}
+            onClick={onClick}
             onMouseEnter={() => {
                 onMouseEnter?.();
                 setIsHover(true);
@@ -322,42 +375,78 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
                 setIsHover(false);
             }}
         >
-            {!resolved && showHighlight ? <div className={styles.threadCommentHighlight} /> : null}
-            <div className={styles.threadCommentTitle}>
-                <div className={styles.threadCommentTitlePosition}>
-                    <div className={styles.threadCommentTitleHighlight} />
+            {!resolved && showHighlight && (
+                <div
+                    className={`
+                      univer-absolute univer-left-0 univer-right-0 univer-top-0 univer-h-1.5 univer-rounded-t-md
+                      univer-bg-yellow-400
+                    `}
+                />
+            )}
+            <div
+                className={`
+                  univer-mb-4 univer-flex univer-flex-row univer-items-center univer-justify-between univer-text-sm
+                  univer-leading-5
+                `}
+            >
+                <div className="univer-flex univer-flex-1 univer-flex-row univer-items-center univer-overflow-hidden">
+                    <div
+                        className={`
+                          univer-mr-2 univer-h-3.5 univer-w-[3px] univer-flex-shrink-0 univer-flex-grow-0
+                          univer-rounded-sm univer-bg-yellow-500
+                        `}
+                    />
                     <Tooltip showIfEllipsis title={title}>
-                        <div className={styles.threadCommentTitlePositionText}>
+                        <div
+                            className="univer-flex-1 univer-truncate"
+                        >
                             {title}
                         </div>
                     </Tooltip>
                 </div>
-                {comments
-                    ? (
-                        <div className={styles.threadCommentIconContainer}>
-                            <div
-                                onClick={handleResolve}
-                                className={styles.threadCommentIcon}
-                                style={{ color: resolved ? 'rgb(var(--green-500))' : '' }}
-                            >
-                                {resolved ? <ResolvedSingle /> : <SolveSingle />}
-                            </div>
-                            {currentUser?.userID === comments.root.personId
-                                ? (
-                                    <div className={styles.threadCommentIcon} onClick={handleDeleteRoot}>
-                                        <DeleteSingle />
-                                    </div>
-                                )
-                                : null}
+                {!!comments && (
+                    <div className="univer-flex univer-flex-shrink-0 univer-flex-grow-0 univer-flex-row">
+                        <div
+                            className={clsx(
+                                `
+                                  univer-ml-1 univer-inline-flex univer-h-6 univer-w-6 univer-cursor-pointer
+                                  univer-items-center univer-justify-center univer-rounded-[3px] univer-text-base
+                                  dark:hover:!univer-bg-gray-800
+                                  hover:univer-bg-gray-50
+                                `,
+                                {
+                                    'univer-text-green-500': resolved,
+                                }
+                            )}
+                            onClick={handleResolve}
+                        >
+                            {resolved ? <ResolvedSingle /> : <SolveSingle />}
                         </div>
-                    )
-                    : null}
+                        {currentUser?.userID === comments.root.personId
+                            ? (
+                                <div
+                                    className={`
+                                      univer-ml-1 univer-inline-flex univer-h-6 univer-w-6 univer-cursor-pointer
+                                      univer-items-center univer-justify-center univer-rounded-[3px] univer-text-base
+                                      dark:hover:!univer-bg-gray-800
+                                      hover:univer-bg-gray-50
+                                    `}
+                                    onClick={handleDeleteRoot}
+                                >
+                                    <DeleteSingle />
+                                </div>
+                            )
+                            : null}
+                    </div>
+                )}
             </div>
-            <div className={styles.threadCommentContent} ref={scroller}>
+            <div
+                ref={scroller}
+                className="univer-max-h-80 univer-overflow-y-auto univer-overflow-x-hidden"
+            >
                 {renderComments.map(
                     (item) => (
                         <ThreadCommentItem
-                            onClose={onClose}
                             unitId={unitId}
                             subUnitId={subUnitId}
                             item={item}
@@ -366,6 +455,7 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
                             editing={editingId === item.id}
                             resolved={comments?.root.resolved}
                             type={type}
+                            onClose={onClose}
                             onEditingChange={(editing) => {
                                 if (editing) {
                                     setEditingId(item.id);
@@ -378,13 +468,19 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
                                     return;
                                 }
                                 requestAnimationFrame(() => {
-                                    editorRef.current?.reply(transformTextNodes2Document([{
-                                        type: 'mention',
-                                        content: {
-                                            id: user.userID,
-                                            label: user.name,
+                                    editorRef.current?.reply(transformTextNodes2Document([
+                                        {
+                                            type: 'mention',
+                                            content: {
+                                                id: user.userID,
+                                                label: `@${user.name}`,
+                                            },
                                         },
-                                    }]));
+                                        {
+                                            type: 'text',
+                                            content: ' ',
+                                        },
+                                    ]));
                                 });
                             }}
                             onAddComment={onAddComment}
@@ -393,55 +489,53 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
                     )
                 )}
             </div>
-            {editorVisible
-                ? (
-                    <div>
-                        <ThreadCommentEditor
-                            key={`${autoFocus}`}
-                            ref={editorRef}
-                            type={type}
-                            unitId={unitId}
-                            subUnitId={subUnitId}
-                            onSave={async ({ text, attachments }) => {
-                                const comment: IThreadComment = {
-                                    text,
-                                    attachments,
-                                    dT: getDT(),
-                                    id: generateRandomId(),
-                                    ref: refStr!,
-                                    personId: currentUser?.userID!,
-                                    parentId: comments?.root.id,
+            {editorVisible && (
+                <div>
+                    <ThreadCommentEditor
+                        key={`${autoFocus}`}
+                        ref={editorRef}
+                        type={type}
+                        unitId={unitId}
+                        subUnitId={subUnitId}
+                        onSave={async ({ text, attachments }) => {
+                            const comment: IThreadComment = {
+                                text,
+                                attachments,
+                                dT: getDT(),
+                                id: generateRandomId(),
+                                ref: refStr!,
+                                personId: currentUser?.userID!,
+                                parentId: comments?.root.id,
+                                unitId,
+                                subUnitId,
+                                threadId: comments?.root.threadId!,
+                            };
+
+                            if (onAddComment?.(comment) === false) {
+                                return;
+                            }
+
+                            await commandService.executeCommand(
+                                AddCommentCommand.id,
+                                {
                                     unitId,
                                     subUnitId,
-                                    threadId: comments?.root.threadId!,
-                                };
-
-                                if (onAddComment?.(comment) === false) {
-                                    return;
-                                }
-
-                                await commandService.executeCommand(
-                                    AddCommentCommand.id,
-                                    {
-                                        unitId,
-                                        subUnitId,
-                                        comment,
-                                    } as IAddCommentCommandParams
-                                );
-                                if (scroller.current) {
-                                    scroller.current.scrollTop = scroller.current.scrollHeight;
-                                }
-                            }}
-                            autoFocus={autoFocus || (!comments)}
-                            onCancel={() => {
-                                if (!comments) {
-                                    onClose?.();
-                                }
-                            }}
-                        />
-                    </div>
-                )
-                : null}
+                                    comment,
+                                } as IAddCommentCommandParams
+                            );
+                            if (scroller.current) {
+                                scroller.current.scrollTop = scroller.current.scrollHeight;
+                            }
+                        }}
+                        autoFocus={autoFocus || (!comments)}
+                        onCancel={() => {
+                            if (!comments) {
+                                onClose?.();
+                            }
+                        }}
+                    />
+                </div>
+            )}
         </div>
     );
 };

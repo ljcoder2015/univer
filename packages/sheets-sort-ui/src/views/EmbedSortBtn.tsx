@@ -16,12 +16,12 @@
 
 import type { IRange } from '@univerjs/core';
 import { IUniverInstanceService, LocaleService } from '@univerjs/core';
+import { Button, ButtonGroup } from '@univerjs/design';
 import { AscendingSingle, DescendingSingle } from '@univerjs/icons';
 import { getSheetCommandTarget } from '@univerjs/sheets';
 import { useDependency } from '@univerjs/ui';
 import React, { useCallback } from 'react';
 import { SheetsSortUIService } from '../services/sheets-sort-ui.service';
-import styles from './index.module.less';
 
 export interface IEmbedSortBtnProps {
     range: IRange;
@@ -29,8 +29,8 @@ export interface IEmbedSortBtnProps {
     onClose: () => void;
 }
 
-export default function EmbedSortBtn(props: any) {
-    const { range, colIndex, onClose } = props as IEmbedSortBtnProps;
+export default function EmbedSortBtn(props: IEmbedSortBtnProps) {
+    const { range, colIndex, onClose } = props;
 
     const sheetsSortUIService = useDependency(SheetsSortUIService);
     const univerInstanceService = useDependency(IUniverInstanceService);
@@ -42,33 +42,24 @@ export default function EmbedSortBtn(props: any) {
             const noTitleRange = { ...range, startRow: range.startRow + 1 };
             sheetsSortUIService.triggerSortDirectly(asc, false, { unitId, subUnitId, range: noTitleRange, colIndex });
         } else {
-            console.warn(`Cannot find the target to sort. unitId: ${unitId}, subUnitId: ${subUnitId}, range: ${range}, colIndex: ${colIndex}`);
+            throw new Error(`Cannot find the target to sort. unitId: ${unitId}, subUnitId: ${subUnitId}, range: ${range}, colIndex: ${colIndex}`);
         }
+
         onClose();
     }, [range, colIndex, sheetsSortUIService, univerInstanceService, onClose]);
 
     return (
-        <div className={styles.embedSortBtnContainer}>
-            <div
-                className={`
-                  ${styles.embedSortBtn}
-                  ${styles.embedSortBtnAsc}
-                `}
-                onClick={() => apply(true)}
-            >
-                <AscendingSingle className={styles.embedSortBtnIcon} />
+        <ButtonGroup
+            className="univer-mb-3 univer-grid univer-w-full univer-grid-flow-col univer-grid-cols-2 univer-gap-2"
+        >
+            <Button onClick={() => apply(true)}>
+                <AscendingSingle />
                 {localeService.t('sheets-sort.general.sort-asc')}
-            </div>
-            <div
-                className={`
-                  ${styles.embedSortBtn}
-                  ${styles.embedSortBtnDesc}
-                `}
-                onClick={() => apply(false)}
-            >
-                <DescendingSingle className={styles.embedSortBtnIcon} />
+            </Button>
+            <Button onClick={() => apply(false)}>
+                <DescendingSingle />
                 {localeService.t('sheets-sort.general.sort-desc')}
-            </div>
-        </div>
+            </Button>
+        </ButtonGroup>
     );
 }

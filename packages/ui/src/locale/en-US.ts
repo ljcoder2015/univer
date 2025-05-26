@@ -14,16 +14,34 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
-
-const locale: typeof zhCN = {
+const locale = {
+    toolbar: {
+        heading: {
+            normal: 'Normal',
+            title: 'Title',
+            subTitle: 'Sub Title',
+            1: 'Heading 1',
+            2: 'Heading 2',
+            3: 'Heading 3',
+            4: 'Heading 4',
+            5: 'Heading 5',
+            6: 'Heading 6',
+            tooltip: 'Set Heading',
+        },
+    },
     ribbon: {
         start: 'Start',
+        startDesc: 'Initiate the worksheet and set basic parameters.',
         insert: 'Insert',
+        insertDesc: 'Insert rows, columns, charts and various other elements.',
         formulas: 'Formulas',
+        formulasDesc: 'Use functions and formulas for data calculations.',
         data: 'Data',
+        dataDesc: 'Manage data, including import, sorting and filtering.',
         view: 'View',
+        viewDesc: 'Switch view modes and adjust the display effect.',
         others: 'Others',
+        othersDesc: 'Other functions and settings.',
         more: 'More',
     },
     fontFamily: {

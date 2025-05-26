@@ -18,17 +18,16 @@ import type { IUnitRangeName, Nullable } from '@univerjs/core';
 import type { Editor, IRichTextEditorProps } from '@univerjs/docs-ui';
 import type { ISelectionWithStyle, ISetSelectionsOperationParams } from '@univerjs/sheets';
 import { ICommandService, LocaleService, RichTextBuilder } from '@univerjs/core';
-import { Button, Dialog, Input, Tooltip } from '@univerjs/design';
+import { Button, clsx, Dialog, Input, scrollbarClassName, Tooltip } from '@univerjs/design';
 import { IEditorService, RichTextEditor } from '@univerjs/docs-ui';
 import { deserializeRangeWithSheet, LexerTreeBuilder, matchToken, sequenceNodeType, serializeRange, serializeRangeWithSheet } from '@univerjs/engine-formula';
-import { CloseSingle, DeleteSingle, IncreaseSingle, SelectRangeSingle } from '@univerjs/icons';
+import { DeleteSingle, IncreaseSingle, SelectRangeSingle } from '@univerjs/icons';
 import { SetSelectionsOperation } from '@univerjs/sheets';
 import { useDependency, useEvent } from '@univerjs/ui';
 import { useEffect, useRef, useState } from 'react';
 import { useStateRef } from '../formula-editor/hooks/use-state-ref';
 import { useRangesHighlight } from './hooks/use-ranges-highlight';
 import { useRangeSelectorSelectionChange } from './hooks/use-selection-change';
-import styles from './index.module.less';
 import { verifyRange } from './util';
 import { rangePreProcess } from './utils/range-pre-process';
 
@@ -68,7 +67,17 @@ export interface IRangeSelectorDialogProps {
 }
 
 export function RangeSelectorDialog(props: IRangeSelectorDialogProps) {
-    const { visible, initialValue, unitId, subUnitId, maxRangeCount = Infinity, supportAcrossSheet, onConfirm, onClose, onShowBySelection } = props;
+    const {
+        visible,
+        initialValue,
+        unitId,
+        subUnitId,
+        maxRangeCount = Infinity,
+        supportAcrossSheet,
+        onConfirm,
+        onClose,
+        onShowBySelection,
+    } = props;
     const localeService = useDependency(LocaleService);
     const lexerTreeBuilder = useDependency(LexerTreeBuilder);
     const [ranges, setRanges] = useState<string[]>([]);
@@ -142,15 +151,16 @@ export function RangeSelectorDialog(props: IRangeSelectorDialogProps) {
     return (
         <Dialog
             width="328px"
-            visible={visible}
+            open={visible}
             title={localeService.t('rangeSelector.title')}
             draggable
-            closeIcon={<CloseSingle />}
+            mask={false}
+            maskClosable={false}
             footer={(
-                <footer>
+                <footer className="univer-flex univer-gap-2">
                     <Button onClick={onClose}>{localeService.t('rangeSelector.cancel')}</Button>
                     <Button
-                        style={{ marginLeft: 10 }}
+                        variant="primary"
                         onClick={() => {
                             onConfirm(
                                 ranges
@@ -161,7 +171,6 @@ export function RangeSelectorDialog(props: IRangeSelectorDialogProps) {
                                     .map((text) => deserializeRangeWithSheet(text)).map((unitRange) => ({ ...unitRange, range: rangePreProcess(unitRange.range) }))
                             );
                         }}
-                        type="primary"
                     >
                         {localeService.t('rangeSelector.confirm')}
                     </Button>
@@ -169,23 +178,35 @@ export function RangeSelectorDialog(props: IRangeSelectorDialogProps) {
             )}
             onClose={onClose}
         >
-            <div ref={scrollbarRef} className={styles.sheetRangeSelectorDialog}>
+            <div
+                ref={scrollbarRef}
+                className={clsx('-univer-mx-6 univer-max-h-60 univer-overflow-y-auto univer-px-6', scrollbarClassName)}
+            >
                 {ranges.map((text, index) => (
-                    <div key={index} className={styles.sheetRangeSelectorDialogItem}>
+                    <div
+                        key={index}
+                        className="univer-mb-2 univer-flex univer-items-center univer-gap-4"
+                    >
                         <Input
-                            affixWrapperStyle={{ width: '100%' }}
+                            className={clsx('univer-w-full', {
+                                'univer-border-primary-600': focusIndex === index,
+                            })}
                             placeholder={localeService.t('rangeSelector.placeHolder')}
                             onFocus={() => setFocusIndex(index)}
                             value={text}
                             onChange={(value) => handleRangeInput(index, value)}
-                            style={{ borderColor: focusIndex === index ? 'rgb(var(--primary-color))' : undefined }}
                         />
-                        {ranges.length > 1 && <DeleteSingle className={styles.sheetRangeSelectorDialogItemDelete} onClick={() => handleRangeRemove(index)} />}
+                        {ranges.length > 1 && (
+                            <DeleteSingle
+                                className="univer-cursor-pointer"
+                                onClick={() => handleRangeRemove(index)}
+                            />
+                        )}
                     </div>
                 ))}
                 {ranges.length < maxRangeCount && (
                     <div>
-                        <Button type="link" size="small" onClick={handleRangeAdd}>
+                        <Button variant="link" onClick={handleRangeAdd}>
                             <IncreaseSingle />
                             <span>{localeService.t('rangeSelector.addAnotherRange')}</span>
                         </Button>
@@ -309,7 +330,13 @@ export function RangeSelector(props: IRangeSelectorProps) {
                         }}
                         icon={(
                             <Tooltip title={localeService.t('rangeSelector.buttonTooltip')} placement="bottom">
-                                <SelectRangeSingle className={styles.sheetRangeSelectorIcon} onClick={handleOpenModal} />
+                                <SelectRangeSingle
+                                    className={`
+                                      univer-cursor-pointer
+                                      dark:!univer-text-gray-300
+                                    `}
+                                    onClick={handleOpenModal}
+                                />
                             </Tooltip>
                         )}
                     />

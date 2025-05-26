@@ -45,6 +45,7 @@ export interface ISceneInputControlOptions {
     enableEnter: boolean;
     enableLeave: boolean;
 }
+
 export class Scene extends Disposable {
     private _sceneKey: string = '';
     /**
@@ -82,6 +83,8 @@ export class Scene extends Disposable {
     onDragOver$ = new EventSubject<IDragEvent>();
     onDragLeave$ = new EventSubject<IDragEvent>();
     onDrop$ = new EventSubject<IDragEvent>();
+    onClick$ = new EventSubject<IPointerEvent | IMouseEvent>();
+    onSingleClick$ = new EventSubject<IPointerEvent | IMouseEvent>();
     onDblclick$ = new EventSubject<IPointerEvent | IMouseEvent>();
     onTripleClick$ = new EventSubject<IPointerEvent | IMouseEvent>();
     onMouseWheel$ = new EventSubject<IWheelEvent>();
@@ -483,7 +486,10 @@ export class Scene extends Disposable {
                 return layer;
             }
         }
-        return this._createDefaultLayer(zIndex);
+
+        const defaultLayer = new Layer(this, [], zIndex);
+        this.addLayer(defaultLayer);
+        return defaultLayer;
     }
 
     findLayerByZIndex(zIndex: number = 1): Nullable<Layer> {
@@ -939,7 +945,7 @@ export class Scene extends Disposable {
         this._transformer = null;
 
         this.onFileLoaded$.complete();
-
+        this.onClick$.complete();
         this.onPointerDown$.complete();
         this.onPointerMove$.complete();
         this.onPointerUp$.complete();
@@ -953,6 +959,7 @@ export class Scene extends Disposable {
         this.onDragLeave$.complete();
         this.onDrop$.complete();
 
+        this.onSingleClick$.complete();
         this.onDblclick$.complete();
         this.onTripleClick$.complete();
         this.onMouseWheel$.complete();
@@ -1069,12 +1076,23 @@ export class Scene extends Disposable {
         return true;
     }
 
-    triggerPointerMove(evt: IPointerEvent | IMouseEvent) {
+    triggerSingleClick(evt: IPointerEvent | IMouseEvent) {
         if (
-            !this.onPointerMove$.emitEvent(evt)?.stopPropagation &&
+            !this.onSingleClick$.emitEvent(evt)?.stopPropagation &&
             this._parent.classType === RENDER_CLASS_TYPE.SCENE_VIEWER
         ) {
-            (this._parent as SceneViewer)?.triggerPointerMove(evt);
+            (this._parent as SceneViewer)?.triggerSingleClick(evt);
+            return false;
+        }
+        return true;
+    }
+
+    triggerClick(evt: IPointerEvent | IMouseEvent) {
+        if (
+            !this.onClick$.emitEvent(evt)?.stopPropagation &&
+            this._parent.classType === RENDER_CLASS_TYPE.SCENE_VIEWER
+        ) {
+            (this._parent as SceneViewer)?.triggerClick(evt);
             return false;
         }
         return true;
@@ -1097,6 +1115,17 @@ export class Scene extends Disposable {
             this._parent.classType === RENDER_CLASS_TYPE.SCENE_VIEWER
         ) {
             (this._parent as SceneViewer)?.triggerTripleClick(evt);
+            return false;
+        }
+        return true;
+    }
+
+    triggerPointerMove(evt: IPointerEvent | IMouseEvent) {
+        if (
+            !this.onPointerMove$.emitEvent(evt)?.stopPropagation &&
+            this._parent.classType === RENDER_CLASS_TYPE.SCENE_VIEWER
+        ) {
+            (this._parent as SceneViewer)?.triggerPointerMove(evt);
             return false;
         }
         return true;
@@ -1206,12 +1235,6 @@ export class Scene extends Disposable {
             return false;
         }
         return true;
-    }
-
-    private _createDefaultLayer(zIndex: number = 1) {
-        const defaultLayer = new Layer(this, [], zIndex);
-        this.addLayer(defaultLayer);
-        return defaultLayer;
     }
 
     /**

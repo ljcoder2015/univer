@@ -20,7 +20,7 @@ import type { IOpenFilterPanelOperationParams } from '../../commands/operations/
 import type { IFilterConditionFormParams } from '../../models/conditions';
 import type { IFilterByValueWithTreeItem } from '../sheets-filter-panel.service';
 import { CommandType, ICommandService, Inject, Injector, LocaleService, Plugin, Univer, UniverInstanceType } from '@univerjs/core';
-import { ActiveDirtyManagerService, IActiveDirtyManagerService } from '@univerjs/engine-formula';
+import { ActiveDirtyManagerService, IActiveDirtyManagerService, ISheetRowFilteredService, SheetRowFilteredService } from '@univerjs/engine-formula';
 import { RefRangeService, SheetInterceptorService, SheetsSelectionsService } from '@univerjs/sheets';
 import { CustomFilterOperator, SheetsFilterService, UniverSheetsFilterPlugin } from '@univerjs/sheets-filter';
 import { SetSheetsFilterCriteriaCommand } from '@univerjs/sheets-filter/commands/commands/sheets-filter.command.js';
@@ -96,6 +96,7 @@ function createSheetsFilterPanelServiceTestBed(workbookData: IWorkbookData) {
                 [SheetInterceptorService],
                 [SheetsFilterPanelService],
                 [IActiveDirtyManagerService, { useClass: ActiveDirtyManagerService }],
+                [ISheetRowFilteredService, { useClass: SheetRowFilteredService }],
             ] as Dependency[]).forEach((d) => this._injector.add(d));
         }
     }
@@ -322,17 +323,10 @@ describe('test "SheetsFilterPanelService"', () => {
             const filterItems = filterByModel.filterItems;
             expect(filterItems).toEqual([
                 {
-                    title: 'sheets-filter.panel.empty',
-                    count: 3,
+                    title: 'a',
                     leaf: true,
                     checked: true,
-                    key: 'empty',
-                },
-                {
-                    title: 'c',
-                    leaf: true,
-                    checked: true,
-                    key: 'c',
+                    key: 'a',
                     count: 1,
                 },
                 {
@@ -343,11 +337,18 @@ describe('test "SheetsFilterPanelService"', () => {
                     count: 1,
                 },
                 {
-                    title: 'a',
+                    title: 'c',
                     leaf: true,
                     checked: true,
-                    key: 'a',
+                    key: 'c',
                     count: 1,
+                },
+                {
+                    title: 'sheets-filter.panel.empty',
+                    count: 3,
+                    leaf: true,
+                    checked: true,
+                    key: 'empty',
                 },
             ]);
         });
@@ -368,11 +369,11 @@ describe('test "SheetsFilterPanelService"', () => {
             const filterItems = filterByModel.filterItems;
             expect(filterItems).toEqual([
                 {
-                    title: 'sheets-filter.panel.empty',
-                    count: 3,
+                    title: '3',
                     leaf: true,
                     checked: true,
-                    key: 'empty',
+                    key: '3',
+                    count: 2,
                 },
                 {
                     title: 'e',
@@ -382,11 +383,11 @@ describe('test "SheetsFilterPanelService"', () => {
                     count: 1,
                 },
                 {
-                    title: '3',
+                    title: 'sheets-filter.panel.empty',
+                    count: 3,
                     leaf: true,
                     checked: true,
-                    key: '3',
-                    count: 2,
+                    key: 'empty',
                 },
             ]);
         });
@@ -432,7 +433,7 @@ describe('test "SheetsFilterPanelService"', () => {
             expect(await filterByModel.apply()).toBeTruthy();
 
             const filterModel = sheetsFilterService.activeFilterModel;
-            expect(filterModel!.filteredOutRows).toEqual(new Set([2, 3, 4, 5, 6, 7, 8, 9, 10]));
+            expect(filterModel!.filteredOutRows).toEqual(new Set([1, 10, 2, 4, 5, 6, 7, 8, 9, 10]));
         });
 
         describe('with searching', async () => {

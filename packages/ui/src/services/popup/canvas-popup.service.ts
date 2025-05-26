@@ -21,7 +21,7 @@ import type { IRectPopupProps } from '../../views/components/popup/RectPopup';
 import { createIdentifier, Disposable, Tools } from '@univerjs/core';
 import { BehaviorSubject } from 'rxjs';
 
-export interface IPopup extends Omit<IRectPopupProps, 'children' | 'hidden' | 'excludeRects' | 'anchorRect$'> {
+export interface IPopup<T = Record<string, unknown>> extends Omit<IRectPopupProps, 'children' | 'hidden' | 'excludeRects' | 'anchorRect$'> {
     anchorRect$: Observable<IBoundRectNoAngle>;
     anchorRect?: IBoundRectNoAngle;
     excludeRects$?: Observable<IBoundRectNoAngle[]>;
@@ -36,7 +36,9 @@ export interface IPopup extends Omit<IRectPopupProps, 'children' | 'hidden' | 'e
     hideOnInvisible?: boolean;
     hiddenType?: 'hide' | 'destroy';
     hiddenRects$?: Observable<IBoundRectNoAngle[]>;
-
+    extraProps?: T;
+    customActive?: boolean;
+    onActiveChange?: (active: boolean) => void;
 }
 
 export interface ICanvasPopupService {
@@ -83,16 +85,18 @@ export class CanvasPopupService extends Disposable implements ICanvasPopupServic
         const id = Tools.generateRandomId();
         this._popupMap.set(id, {
             ...item,
-            onPointerEnter: () => {
-                this._activePopupId = id;
-            },
-            onPointerLeave: () => {
-                if (this._activePopupId === id) {
-                    this._activePopupId = null;
+            onActiveChange: (active: boolean) => {
+                if (active) {
+                    this._activePopupId = id;
+                } else {
+                    if (this._activePopupId === id) {
+                        this._activePopupId = null;
+                    }
                 }
             },
         });
         this._update();
+
         return id;
     }
 

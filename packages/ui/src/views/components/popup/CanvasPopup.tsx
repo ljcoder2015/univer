@@ -27,7 +27,7 @@ interface ISingleCanvasPopupProps {
     children?: React.ReactNode;
 }
 
-const SingleCanvasPopup = ({ popup, children }: ISingleCanvasPopupProps) => {
+export const SingleCanvasPopup = ({ popup, children }: ISingleCanvasPopupProps) => {
     const [hidden, setHidden] = useState(false);
     const anchorRect$ = useMemo(() => popup.anchorRect$.pipe(
         throttleTime(0, animationFrameScheduler),
@@ -74,20 +74,28 @@ const SingleCanvasPopup = ({ popup, children }: ISingleCanvasPopupProps) => {
 
         return () => anchorRectSub.unsubscribe();
     }, [canvasElement, hideOnInvisible, anchorRect$, hiddenRects$]);
+
     if ((hidden && hiddenType === 'destroy')) {
         return null;
     }
 
     return (
         <RectPopup
+            {...popup}
             hidden={hidden}
             anchorRect$={anchorRect$}
             direction={popup.direction}
             onClickOutside={popup.onClickOutside}
             excludeOutside={popup.excludeOutside}
             excludeRects={excludeRectsRef}
-            onPointerEnter={popup.onPointerEnter}
-            onPointerLeave={popup.onPointerLeave}
+            {
+                ...popup.customActive
+                    ? null
+                    : {
+                        onPointerEnter: () => popup.onActiveChange?.(true),
+                        onPointerLeave: () => popup.onActiveChange?.(false),
+                    }
+            }
             onClick={popup.onClick}
             onContextMenu={popup.onContextMenu}
         >
@@ -104,6 +112,7 @@ export function CanvasPopup() {
     return popups.map((item) => {
         const [key, popup] = item;
         const Component = componentManager.get(popup.componentKey);
+
         return (
             <SingleCanvasPopup
                 key={key}

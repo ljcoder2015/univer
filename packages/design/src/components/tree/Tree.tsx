@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
+import type { CSSProperties, ReactNode } from 'react';
 import { DropdownSingle } from '@univerjs/icons';
 import VirtualList from 'rc-virtual-list';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { clsx } from '../../helper/clsx';
-import { Checkbox } from '../checkbox';
-import { Tooltip } from '../tooltip';
-import styles from './index.module.less';
+import { Checkbox } from '../checkbox/Checkbox';
+import { Tooltip } from '../tooltip/Tooltip';
 import { createCacheWithFindNodePathFromTree, isIntermediated } from './util';
+import './index.css';
 
 export enum TreeSelectionMode {
     ONLY_LEAF_NODE,
@@ -58,11 +59,11 @@ export interface ITreeProps {
 
     itemHeight?: number;
 
-    attachRender?: (node: ITreeItemProps) => React.ReactNode;
+    attachRender?: (node: ITreeItemProps) => ReactNode;
 
     treeNodeClassName?: string;
 
-    style?: React.CSSProperties;
+    style?: CSSProperties;
 
     defaultCache?: Map<string, string[]>;
 }
@@ -115,10 +116,6 @@ export function Tree(props: ITreeProps) {
 
     const flatData = useMemo(() => flattenTree(data, expandKeySet), [data, update, expandKeySet]);
 
-    function handleChange(treeItem: ITreeItemProps) {
-        const path: string[] = findNode.findNodePathFromTreeWithCache(treeItem.key);
-    }
-
     function handleExpendItem(treeItem: ITreeItemProps) {
         if (treeItem.children?.length) {
             if (expandKeySet.has(treeItem.key)) {
@@ -146,18 +143,18 @@ export function Tree(props: ITreeProps) {
         return (
             <div
                 key={key}
-                className={clsx(styles.treeListItem, treeNodeClassName)}
+                className={clsx('univer-tree-list-item', treeNodeClassName)}
                 style={{ paddingLeft: `${level * 20}px` }}
             >
                 <div
-                    className={clsx(styles.treeListItemContent, {
-                        [styles.treeListItemContentSelected]: selected,
+                    className={clsx('univer-tree-list-item-content', {
+                        'univer-tree-list-item-content-selected': selected,
                     })}
                 >
                     {treeItem.children && treeItem.children.length > 0 && (
                         <span
-                            className={clsx(styles.treeIcon, {
-                                [styles.treeIconExpand]: expended,
+                            className={clsx('univer-tree-icon', {
+                                'univer-tree-icon-expand': expended,
                             })}
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -175,14 +172,14 @@ export function Tree(props: ITreeProps) {
                         }}
                     />
                     <div
-                        className={styles.treeListItemTitle}
+                        className="univer-tree-list-item-title"
                         onClick={(e) => {
                             e.stopPropagation();
                             handleExpendItem(treeItem);
                         }}
                     >
                         <Tooltip className="univer-w-full univer-truncate" showIfEllipsis placement="top" title={title}>
-                            <>{title}</>
+                            <span>{title}</span>
                         </Tooltip>
                     </div>
 
@@ -193,8 +190,8 @@ export function Tree(props: ITreeProps) {
     }
 
     return (
-        <section className={styles.tree}>
-            <div className={styles.treeList} style={style}>
+        <section className="univer-tree">
+            <div className="univer-tree-list" style={style}>
                 <VirtualList
                     data={flatData}
                     itemKey={(item) => item.key}
@@ -204,7 +201,6 @@ export function Tree(props: ITreeProps) {
                     {(item: ITreeItemProps) => renderTreeItem(item)}
                 </VirtualList>
             </div>
-
         </section>
     );
 }

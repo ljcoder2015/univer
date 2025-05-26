@@ -15,7 +15,7 @@
  */
 
 import type { IShortcutItem } from '@univerjs/ui';
-import { BreakLineCommand, DeleteLeftCommand } from '@univerjs/docs-ui';
+import { BreakLineCommand, DeleteLeftCommand, DeleteRightCommand } from '@univerjs/docs-ui';
 
 import { DeviceInputEventType } from '@univerjs/engine-render';
 import { KeyCode, MetaKeys } from '@univerjs/ui';
@@ -123,6 +123,18 @@ export const EditorCursorEscShortcut: IShortcutItem = {
     },
 };
 
+export const EditorCursorCtrlEnterShortcut: IShortcutItem = {
+    id: SetCellEditVisibleOperation.id,
+    binding: KeyCode.ENTER | MetaKeys.CTRL_COMMAND,
+    mac: KeyCode.ENTER | MetaKeys.MAC_CTRL,
+    preconditions: (contextService) => whenEditorDidNotInputFormulaActivated(contextService),
+    staticParameters: {
+        visible: false,
+        eventType: DeviceInputEventType.Keyboard,
+        keycode: KeyCode.ENTER | MetaKeys.CTRL_COMMAND,
+    },
+};
+
 export const EditorBreakLineShortcut: IShortcutItem = {
     id: BreakLineCommand.id,
     description: 'shortcut.sheet.break-line',
@@ -136,6 +148,20 @@ export const EditorDeleteLeftShortcut: IShortcutItem = {
     preconditions: (contextService) =>
         whenEditorActivated(contextService) || whenFormulaEditorFocused(contextService),
     binding: KeyCode.BACKSPACE,
+};
+
+export const EditorDeleteRightShortcut: IShortcutItem = {
+    id: DeleteRightCommand.id,
+    preconditions: (contextService) =>
+        whenEditorActivated(contextService) || whenFormulaEditorFocused(contextService),
+    binding: KeyCode.DELETE,
+};
+
+export const ShiftEditorDeleteLeftShortcut: IShortcutItem = {
+    id: DeleteLeftCommand.id,
+    preconditions: (contextService) =>
+        whenEditorActivated(contextService) || whenFormulaEditorFocused(contextService),
+    binding: KeyCode.BACKSPACE | MetaKeys.SHIFT,
 };
 
 export const EditorDeleteLeftShortcutInActive: IShortcutItem = {

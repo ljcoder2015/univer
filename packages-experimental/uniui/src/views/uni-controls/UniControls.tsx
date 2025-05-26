@@ -15,22 +15,26 @@
  */
 
 import type { IProjectNode } from '../../services/unit-grid/unit-grid.service';
-import { clsx, Dropdown, Tooltip } from '@univerjs/design';
+import { borderClassName, Button, clsx, Dropdown, Tooltip } from '@univerjs/design';
 import { CheckMarkSingle, FullscreenSingle, IncreaseSingle, ZoomReduceSingle } from '@univerjs/icons';
 import { ISidebarService, useDependency } from '@univerjs/ui';
 import { useReactFlow } from '@xyflow/react';
 import React, { useCallback, useEffect, useLayoutEffect } from 'react';
 import { IUnitGridService } from '../../services/unit-grid/unit-grid.service';
 import { UniDiv } from '../uni-toolbar/UniFloatToolbar';
-import styles from './index.module.less';
 
 export const UniControlButton = (props: { tooltips: string; children?: React.ReactElement; onClick: () => void; style?: React.CSSProperties }) => {
     const { children, onClick, style, tooltips } = props;
     return (
         <Tooltip title={tooltips}>
-            <div className={styles.uniControlButton} onClick={onClick} style={style}>
+            <Button
+                variant="text"
+                className="univer-p-1.5"
+                onClick={onClick}
+                style={style}
+            >
                 {children}
-            </div>
+            </Button>
         </Tooltip>
 
     );
@@ -47,6 +51,8 @@ export enum UniControlItem {
     AI = 'AI',
 }
 
+// The component on the bottom right corner of the screen, providing zoom in, zoom out, fit view,
+// and AI button and other shared functionalities.
 export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?: (key: UniControlItem) => void }) => {
     const unitGridService = useDependency(IUnitGridService);
     const { zoomIn, zoomOut, fitView, getNodes, setCenter, getZoom } = useReactFlow();
@@ -117,7 +123,13 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
     }, [fitView]);
 
     return (
-        <div className={styles.uniControls} style={{ right: `${rightPadding}px` }}>
+        <div
+            className={clsx(`
+              univer-fixed univer-bottom-3 univer-right-3 univer-flex univer-w-fit univer-items-center univer-gap-3
+              univer-rounded-[10px] univer-bg-white univer-p-2 univer-shadow
+            `, borderClassName)}
+            style={{ right: `${rightPadding}px` }}
+        >
             <UniControlButton tooltips="Full screen" onClick={onFullscreenHandler}>
                 <FullscreenSingle />
             </UniControlButton>
@@ -126,18 +138,37 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
             </UniControlButton>
             <Dropdown
                 overlay={(
-                    <div className={clsx(styles.sliderShortcuts, 'univer-rounded-lg univer-p-4')}>
+                    <div
+                        className={`
+                          univer-box-border univer-grid univer-w-32 univer-items-center univer-gap-1 univer-p-4
+                          univer-text-xs
+                        `}
+                    >
                         {shortcuts?.map((item) => (
                             <a
                                 key={item}
                                 className={clsx(
-                                    styles.sliderShortcut,
-                                    item === zoomPercent ? styles.sliderShortcutActive : ''
+                                    `
+                                      univer-relative univer-box-border univer-cursor-pointer univer-py-1 univer-pl-9
+                                      univer-text-gray-900
+                                      dark:!univer-text-white
+                                    `,
+                                    `
+                                      univer-rounded univer-no-underline univer-transition-colors univer-duration-200
+                                      dark:hover:!univer-bg-gray-700
+                                      hover:univer-bg-gray-100
+                                    `,
+                                    item === zoomPercent ? 'univer-bg-gray-100' : ''
                                 )}
                                 onClick={() => onZoomMenuChange(item)}
                             >
                                 {item === zoomPercent && (
-                                    <span className={styles.sliderShortcutIcon}>
+                                    <span
+                                        className={`
+                                          univer-absolute univer-left-1 univer-top-0 univer-flex univer-h-full
+                                          univer-items-center univer-text-green-600
+                                        `}
+                                    >
                                         <CheckMarkSingle />
                                     </span>
                                 )}
@@ -149,7 +180,17 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
                     </div>
                 )}
             >
-                <a className={styles.sliderValue}>
+                <a
+                    className={clsx(
+                        `
+                          univer-h-7 univer-w-[55px] univer-cursor-pointer univer-rounded univer-text-center
+                          univer-text-xs univer-leading-loose univer-text-gray-700 univer-no-underline
+                          univer-transition-all univer-duration-200
+                          group-data-[open=true]:univer-bg-gray-200
+                          hover:univer-bg-gray-200
+                        `
+                    )}
+                >
                     {zoomPercent}
                     %
                 </a>

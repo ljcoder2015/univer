@@ -17,7 +17,7 @@
 import type { Workbook } from '@univerjs/core';
 import type { ICollaborator } from '@univerjs/protocol';
 import { IAuthzIoService, IUniverInstanceService, LocaleService, UniverInstanceType, UserManagerService } from '@univerjs/core';
-import { Avatar, FormLayout, Radio, RadioGroup, Select } from '@univerjs/design';
+import { Avatar, borderClassName, clsx, FormLayout, Radio, RadioGroup, Select } from '@univerjs/design';
 import { UnitRole } from '@univerjs/protocol';
 import { EditStateEnum, ViewStateEnum } from '@univerjs/sheets';
 import { IDialogService, useDependency, useObservable } from '@univerjs/ui';
@@ -25,9 +25,8 @@ import React, { useEffect } from 'react';
 import { UNIVER_SHEET_PERMISSION_USER_DIALOG, UNIVER_SHEET_PERMISSION_USER_DIALOG_ID } from '../../../consts/permission';
 import { SheetPermissionUserManagerService } from '../../../services/permission/sheet-permission-user-list.service';
 import { UserEmptyBase64 } from '../user-dialog/constant';
-import styles from './index.module.less';
 
-interface IPermissionDetailUserPartProps {
+export interface IPermissionDetailUserPartProps {
     editState: EditStateEnum;
     onEditStateChange: (v: EditStateEnum) => void;
     viewState: ViewStateEnum;
@@ -66,6 +65,7 @@ export const PermissionDetailUserPart = (props: IPermissionDetailUserPartProps) 
             children: { label: UNIVER_SHEET_PERMISSION_USER_DIALOG },
             width: 280,
             destroyOnClose: true,
+            closable: false,
             onClose: () => dialogService.close(UNIVER_SHEET_PERMISSION_USER_DIALOG_ID),
             className: 'sheet-permission-user-dialog',
         });
@@ -96,71 +96,101 @@ export const PermissionDetailUserPart = (props: IPermissionDetailUserPartProps) 
 
     return (
         <>
-            <FormLayout className={styles.sheetPermissionPanelTitle} label={localeService.t('permission.panel.editPermission')}>
+            <FormLayout className="univer-font-medium" label={localeService.t('permission.panel.editPermission')}>
                 <RadioGroup
                     value={editState}
                     onChange={(v) => onEditStateChange(v as EditStateEnum)}
-                    className={styles.radioGroupVertical}
+                    className="univer-flex univer-flex-col"
                 >
                     <Radio value={EditStateEnum.OnlyMe}>
-                        <span className={styles.text}>{localeService.t('permission.panel.onlyICanEdit')}</span>
+                        <span>{localeService.t('permission.panel.onlyICanEdit')}</span>
                     </Radio>
                     <Radio value={EditStateEnum.DesignedUserCanEdit}>
-                        <span className={styles.text}>{localeService.t('permission.panel.designedUserCanEdit')}</span>
+                        <span>{localeService.t('permission.panel.designedUserCanEdit')}</span>
                     </Radio>
                 </RadioGroup>
             </FormLayout>
             {editState === EditStateEnum.DesignedUserCanEdit && (
-                <div className={styles.sheetPermissionDesignPersonPanel}>
-                    <div className={styles.sheetPermissionDesignPersonPanelHeader}>
+                <div
+                    className={clsx(`
+                      univer-mb-2 univer-flex univer-h-[270px] univer-flex-col univer-rounded-lg univer-p-3
+                    `, borderClassName)}
+                >
+                    <div className="univer-flex univer-items-center univer-justify-between">
                         <span>{localeService.t('permission.panel.designedPerson')}</span>
-                        <span className={styles.sheetPermissionDesignPersonPanelHeaderAdd} onClick={handleAddPerson}>{localeService.t('permission.panel.addPerson')}</span>
+                        <span className="univer-cursor-pointer univer-text-primary-600" onClick={handleAddPerson}>{localeService.t('permission.panel.addPerson')}</span>
                     </div>
-                    <div className={styles.sheetPermissionDesignPersonPanelSplit} />
-                    <div className={styles.sheetPermissionDesignPersonPanelContent}>
+                    <div className="univer-my-2 univer-h-px univer-bg-gray-200" />
+                    <div className="univer-flex-1">
                         {selectUserList?.length > 0
                             ? selectUserList.map((item) => {
                                 return (
-                                    <div key={item.subject?.userID} className={styles.sheetPermissionDesignPersonPanelContentItem}>
+                                    <div
+                                        key={item.subject?.userID}
+                                        className={`
+                                          univer-mb-3 univer-flex univer-h-7 univer-items-center univer-leading-7
+                                          last:univer-mb-0
+                                        `}
+                                    >
                                         <Avatar size={24} src={item.subject?.avatar} />
-                                        <span className={styles.sheetPermissionDesignPersonPanelContentItemName}>{item.subject?.name}</span>
+                                        <span
+                                            className={`
+                                              univer-ml-1.5 univer-w-[130px] univer-truncate univer-text-gray-900
+                                              dark:!univer-text-white
+                                            `}
+                                        >
+                                            {item.subject?.name}
+                                        </span>
                                         <Select
-                                            className={styles.sheetPermissionDesignPersonPanelContentItemSelect}
+                                            className="!univer-w-[90px] univer-min-w-0 univer-cursor-pointer"
+                                            borderless
                                             value="edit"
+                                            options={[
+                                                { label: `${localeService.t('permission.panel.canEdit')}`, value: 'edit' },
+                                                { label: `${localeService.t('permission.panel.delete')}`, value: 'delete' },
+                                            ]}
                                             onChange={(v) => {
                                                 if (v === 'delete') {
                                                     sheetPermissionUserManagerService.setSelectUserList(selectUserList.filter((i) => i.subject?.userID !== item.subject?.userID));
                                                 }
                                             }}
-                                            options={[
-                                                { label: `${localeService.t('permission.panel.canEdit')}`, value: 'edit' },
-                                                { label: `${localeService.t('permission.panel.delete')}`, value: 'delete' },
-                                            ]}
                                         />
                                     </div>
                                 );
                             })
                             : (
-                                <div className={styles.sheetPermissionUserListEmpty}>
+                                <div
+                                    className={`
+                                      univer-flex univer-h-full univer-flex-col univer-items-center
+                                      univer-justify-center
+                                    `}
+                                >
                                     <img width={240} height={120} src={UserEmptyBase64} alt="" />
-                                    <p className={styles.sheetPermissionUserListEmptyText}>{localeService.t('permission.dialog.userEmpty')}</p>
+                                    <p
+                                        className="univer-w-60 univer-break-words univer-text-sm univer-text-gray-400"
+                                    >
+                                        {localeService.t('permission.dialog.userEmpty')}
+                                    </p>
                                 </div>
                             )}
                     </div>
 
                 </div>
             )}
-            <FormLayout className={styles.sheetPermissionPanelTitle} label={localeService.t('permission.panel.viewPermission')}>
+            <FormLayout className="univer-font-medium" label={localeService.t('permission.panel.viewPermission')}>
                 <RadioGroup
                     value={viewState}
                     onChange={(v) => onViewStateChange(v as ViewStateEnum)}
-                    className={styles.radioGroupVertical}
+                    className={`
+                      univer-flex univer-flex-col
+                      last:univer-mb-0
+                    `}
                 >
                     <Radio value={ViewStateEnum.OthersCanView}>
-                        <span className={styles.text}>{localeService.t('permission.panel.othersCanView')}</span>
+                        <span>{localeService.t('permission.panel.othersCanView')}</span>
                     </Radio>
                     <Radio value={ViewStateEnum.NoOneElseCanView}>
-                        <span className={styles.text}>{localeService.t('permission.panel.noOneElseCanView')}</span>
+                        <span>{localeService.t('permission.panel.noOneElseCanView')}</span>
                     </Radio>
                 </RadioGroup>
             </FormLayout>

@@ -21,10 +21,12 @@ import type {
     Workbook,
 } from '@univerjs/core';
 import type { ISetNumfmtMutationParams, ISetRangeValuesMutationParams } from '@univerjs/sheets';
+import type { IUniverSheetsNumfmtConfig } from './config.schema';
 import {
     CellValueType,
     Disposable,
     ICommandService,
+    IConfigService,
     Inject,
     InterceptorEffectEnum,
     IUniverInstanceService,
@@ -39,6 +41,7 @@ import { isTextFormat } from '@univerjs/engine-numfmt';
 import { checkCellValueType, InterceptCellContentPriority, INTERCEPTOR_POINT, INumfmtService, SetNumfmtMutation, SetRangeValuesMutation, SheetInterceptorService } from '@univerjs/sheets';
 import { BehaviorSubject, merge, of, skip, switchMap } from 'rxjs';
 import { getPatternPreviewIgnoreGeneral } from '../utils/pattern';
+import { SHEETS_NUMFMT_PLUGIN_CONFIG_KEY } from './config.schema';
 
 const TEXT_FORMAT_MARK = {
     tl: {
@@ -55,8 +58,8 @@ export class SheetsNumfmtCellContentController extends Disposable {
         @Inject(ThemeService) private _themeService: ThemeService,
         @Inject(ICommandService) private _commandService: ICommandService,
         @Inject(INumfmtService) private _numfmtService: INumfmtService,
-        @Inject(LocaleService) private _localeService: LocaleService
-
+        @Inject(LocaleService) private _localeService: LocaleService,
+        @IConfigService private readonly _configService: IConfigService
     ) {
         super();
         this._initInterceptorCellContent();
@@ -103,6 +106,8 @@ export class SheetsNumfmtCellContentController extends Disposable {
 
         this.disposeWithMe(this._sheetInterceptorService.intercept(INTERCEPTOR_POINT.CELL_CONTENT, {
             effect: InterceptorEffectEnum.Value | InterceptorEffectEnum.Style,
+
+            // eslint-disable-next-line complexity
             handler: (cell, location, next) => {
                 const unitId = location.unitId;
                 const sheetId = location.subUnitId;
@@ -127,14 +132,22 @@ export class SheetsNumfmtCellContentController extends Disposable {
                     return next(cell);
                 }
 
-                const type = checkCellValueType(originCellValue.v);
+                const type = cell.t || checkCellValueType(originCellValue.v);
                 // just handle number
                 if (type !== CellValueType.NUMBER) {
                     return next(cell);
                 }
 
-                 // Add error marker to text format number
+                // Add error marker to text format number
                 if (isTextFormat(numfmtValue.pattern)) {
+                    // If the user has disabled the text format mark, do not show it
+                    if (this._configService.getConfig<IUniverSheetsNumfmtConfig>(SHEETS_NUMFMT_PLUGIN_CONFIG_KEY)?.disableTextFormatMark) {
+                        return next({
+                            ...cell,
+                            t: CellValueType.STRING,
+                        });
+                    }
+
                     return next({
                         ...cell,
                         t: CellValueType.STRING,
@@ -150,7 +163,9 @@ export class SheetsNumfmtCellContentController extends Disposable {
                 if (cache && cache.parameters === `${originCellValue.v}_${numfmtValue.pattern}`) {
                     return next({ ...cell, ...cache.result });
                 }
-
+                if (originCellValue.v === undefined || originCellValue.v === null) {
+                    return next(cell);
+                }
                 const info = getPatternPreviewIgnoreGeneral(numfmtValue.pattern, Number(originCellValue.v), this.local);
                 numfmtRes = info.result;
                 if (!numfmtRes) {
@@ -159,7 +174,7 @@ export class SheetsNumfmtCellContentController extends Disposable {
 
                 const res: ICellDataForSheetInterceptor = { v: numfmtRes, t: CellValueType.NUMBER };
                 if (info.color) {
-                    const color = this._themeService.getCurrentTheme()[`${info.color}500`];
+                    const color = this._themeService.getColorFromTheme(`${info.color}.500`);
 
                     if (color) {
                         res.interceptorStyle = { cl: { rgb: color } };

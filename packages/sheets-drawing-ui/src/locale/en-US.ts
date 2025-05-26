@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
-
-const locale: typeof zhCN = {
+const locale = {
     sheetImage: {
         title: 'Image',
 
@@ -48,15 +46,10 @@ const locale: typeof zhCN = {
         exceedMaxCount: 'Only {0} images can be uploaded at a time',
         invalidImage: 'Invalid image',
     },
-    'sheet-drawing-view': 'Drawing',
-    shortcut: {
-        sheet: {
-            'drawing-move-down': 'Move Drawing down',
-            'drawing-move-up': 'Move Drawing up',
-            'drawing-move-left': 'Move Drawing left',
-            'drawing-move-right': 'Move Drawing right',
-            'drawing-delete': 'Delete Drawing',
-        },
+    'cell-image': {
+        pasteTitle: 'Paste as cell image',
+        pasteContent: 'Pasting a cell image will overwrite the existing content of the cell, continue pasting',
+        pasteError: 'Sheet cell image copy paste is not supported in this unit',
     },
 };
 

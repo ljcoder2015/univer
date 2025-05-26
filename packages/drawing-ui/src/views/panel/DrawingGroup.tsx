@@ -25,8 +25,6 @@ import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
 import { getUpdateParams } from '../../utils/get-update-params';
 
-import styles from './index.module.less';
-
 export interface IDrawingGroupProps {
     drawings: IDrawingParam[];
     hasGroup: boolean;
@@ -43,10 +41,6 @@ export const DrawingGroup = (props: IDrawingGroupProps) => {
 
     const [groupBtnShow, setGroupBtnShow] = useState(true);
     const [ungroupBtnShow, setUngroupBtnShow] = useState(true);
-
-    const gridDisplay = (isShow: boolean) => {
-        return isShow ? 'block' : 'none';
-    };
 
     const onGroupBtnClick = () => {
         const focusDrawings = drawingManagerService.getFocusDrawings();
@@ -187,29 +181,39 @@ export const DrawingGroup = (props: IDrawingGroupProps) => {
     }, []);
 
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: gridDisplay(hasGroup === true ? groupShow : false) }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('image-panel.group.title')}</div>
-                </div>
-            </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2, styles.imageCommonPanelColumnCenter)}>
-                    <Button size="small" onClick={() => { onGroupBtnClick(); }} style={{ display: gridDisplay(groupBtnShow) }}>
-                        <span className={styles.imageCommonPanelInline}>
-                            <GroupSingle />
-                            {localeService.t('image-panel.group.group')}
-                        </span>
-                    </Button>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2, styles.imageCommonPanelColumnCenter)}>
-                    <Button size="small" onClick={() => { onUngroupBtnClick(); }} style={{ display: gridDisplay(ungroupBtnShow) }}>
-                        <span className={styles.imageCommonPanelInline}>
-                            <UngroupSingle />
-                            {localeService.t('image-panel.group.unGroup')}
-                        </span>
-                    </Button>
-                </div>
+        <div
+            className={clsx('univer-grid univer-gap-2 univer-py-2 univer-text-gray-400', {
+                'univer-hidden': (hasGroup === true && groupShow === false) || hasGroup === false,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-panel.group.title')}</div>
+            </header>
+
+            <div className="univer-flex univer-items-center univer-justify-center univer-gap-2">
+                <Button
+                    className={clsx({
+                        'univer-hidden': !groupBtnShow,
+                    })}
+                    onClick={onGroupBtnClick}
+                >
+                    <GroupSingle />
+                    {localeService.t('image-panel.group.group')}
+                </Button>
+                <Button
+                    className={clsx({
+                        'univer-hidden': !ungroupBtnShow,
+                    })}
+                    onClick={onUngroupBtnClick}
+                >
+                    <UngroupSingle />
+                    {localeService.t('image-panel.group.unGroup')}
+                </Button>
             </div>
         </div>
     );

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     toolbar: {
         undo: 'Hoàn tác',
         redo: 'Làm lại',
@@ -53,6 +53,7 @@ const locale: typeof zhCN = {
         headerFooter: 'Đầu trang và chân trang',
         checklist: 'Task list',
         documentFlavor: 'Modern Mode',
+        pageSetup: 'Cài đặt trang',
     },
     table: {
         insert: 'Insert',
@@ -97,6 +98,44 @@ const locale: typeof zhCN = {
             multiSpace: 'Multi Space',
             fixedValue: 'Fixed Value(px)',
         },
+    },
+    rightClick: {
+        copy: 'Sao chép',
+        cut: 'Cắt',
+        paste: 'Dán',
+        delete: 'Xóa',
+        bulletList: 'Danh sách không thứ tự',
+        orderList: 'Danh sách có thứ tự',
+        checkList: 'Danh sách công việc',
+        insertBellow: 'Chèn dưới',
+    },
+    'page-settings': {
+        'document-setting': 'Cài đặt tài liệu',
+        'paper-size': 'Kích thước giấy',
+        'page-size': {
+            main: 'Kích thước giấy',
+            a4: 'A4',
+            a3: 'A3',
+            a5: 'A5',
+            b4: 'B4',
+            b5: 'B5',
+            letter: 'Giấy thư Mỹ',
+            legal: 'Giấy pháp lý Mỹ',
+            tabloid: 'Khổ báo',
+            statement: 'Giấy tuyên bố',
+            executive: 'Giấy hành chính',
+            folio: 'Giấy folio',
+        },
+        orientation: 'Hướng',
+        portrait: 'Dọc',
+        landscape: 'Ngang',
+        'custom-paper-size': 'Kích thước giấy tùy chỉnh',
+        top: 'Trên',
+        bottom: 'Dưới',
+        left: 'Trái',
+        right: 'Phải',
+        cancel: 'Hủy',
+        confirm: 'Xác nhận',
     },
 };
 

@@ -16,15 +16,26 @@
 
 import type { ICommandInfo, IDrawingParam, Nullable } from '@univerjs/core';
 import type { IDocDrawing } from '@univerjs/docs-drawing';
-import { BooleanNumber, ICommandService, IUniverInstanceService, LocaleService, PositionedObjectLayoutType, WrapTextType } from '@univerjs/core';
+import {
+    BooleanNumber,
+    ICommandService,
+    IUniverInstanceService,
+    LocaleService,
+    PositionedObjectLayoutType,
+    WrapTextType,
+} from '@univerjs/core';
 import { clsx, InputNumber, Radio, RadioGroup } from '@univerjs/design';
 import { RichTextEditingMutation } from '@univerjs/docs';
 import { IDrawingManagerService } from '@univerjs/drawing';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useState } from 'react';
-import { TextWrappingStyle, UpdateDocDrawingDistanceCommand, UpdateDocDrawingWrappingStyleCommand, UpdateDocDrawingWrapTextCommand } from '../../commands/commands/update-doc-drawing.command';
-import styles from './index.module.less';
+import {
+    TextWrappingStyle,
+    UpdateDocDrawingDistanceCommand,
+    UpdateDocDrawingWrappingStyleCommand,
+    UpdateDocDrawingWrapTextCommand,
+} from '../../commands/commands/update-doc-drawing.command';
 
 const MIN_MARGIN = 0;
 const MAX_MARGIN = 100;
@@ -263,140 +274,122 @@ export const DocDrawingTextWrap = (props: IDocDrawingTextWrapProps) => {
     }, []);
 
     return (
-        <div className={clsx(styles.imageCommonPanelGrid, styles.imageCommonPanelBorder)} style={{ display: showPanel ? 'block' : 'none' }}>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelTitle)}>
-                    <div>{localeService.t('image-text-wrap.title')}</div>
-                </div>
+        <div
+            className={clsx('univer-grid univer-gap-2 univer-py-2 univer-text-gray-400', {
+                'univer-hidden': !showPanel,
+            })}
+        >
+            <header
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-text-wrap.title')}</div>
+            </header>
+
+            <div
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-text-wrap.wrappingStyle')}</div>
             </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSubtitle)}>
-                    <div>{localeService.t('image-text-wrap.wrappingStyle')}</div>
-                </div>
+
+            <div>
+                <RadioGroup value={wrappingStyle} onChange={handleWrappingStyleChange} direction="vertical">
+                    <Radio value={TextWrappingStyle.INLINE}>{localeService.t('image-text-wrap.inline')}</Radio>
+                    <Radio value={TextWrappingStyle.WRAP_SQUARE}>{localeService.t('image-text-wrap.square')}</Radio>
+                    <Radio value={TextWrappingStyle.WRAP_TOP_AND_BOTTOM}>{localeService.t('image-text-wrap.topAndBottom')}</Radio>
+                    <Radio value={TextWrappingStyle.BEHIND_TEXT}>{localeService.t('image-text-wrap.behindText')}</Radio>
+                    <Radio value={TextWrappingStyle.IN_FRONT_OF_TEXT}>{localeService.t('image-text-wrap.inFrontText')}</Radio>
+                </RadioGroup>
             </div>
-            <div className={clsx(styles.imageCommonPanelRow)}>
-                <div className={clsx(styles.imageCommonPanelColumn)}>
-                    <RadioGroup value={wrappingStyle} onChange={handleWrappingStyleChange} direction="vertical">
-                        <Radio value={TextWrappingStyle.INLINE}>{localeService.t('image-text-wrap.inline')}</Radio>
-                        <Radio value={TextWrappingStyle.WRAP_SQUARE}>{localeService.t('image-text-wrap.square')}</Radio>
-                        <Radio value={TextWrappingStyle.WRAP_TOP_AND_BOTTOM}>{localeService.t('image-text-wrap.topAndBottom')}</Radio>
-                        <Radio value={TextWrappingStyle.BEHIND_TEXT}>{localeService.t('image-text-wrap.behindText')}</Radio>
-                        <Radio value={TextWrappingStyle.IN_FRONT_OF_TEXT}>{localeService.t('image-text-wrap.inFrontText')}</Radio>
-                    </RadioGroup>
+
+            <div
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-text-wrap.wrapText')}</div>
+            </div>
+
+            <div>
+                <RadioGroup disabled={disableWrapText} value={wrapText} onChange={handleWrapTextChange} direction="horizontal">
+                    <Radio value={WrapTextType.BOTH_SIDES}>{localeService.t('image-text-wrap.bothSide')}</Radio>
+                    <Radio value={WrapTextType.LEFT}>{localeService.t('image-text-wrap.leftOnly')}</Radio>
+                    <Radio value={WrapTextType.RIGHT}>{localeService.t('image-text-wrap.rightOnly')}</Radio>
+                </RadioGroup>
+            </div>
+
+            <div
+                className={`
+                  univer-text-gray-600
+                  dark:!univer-text-gray-200
+                `}
+            >
+                <div>{localeService.t('image-text-wrap.distanceFromText')}</div>
+            </div>
+
+            <div
+                className={`
+                  univer-grid univer-grid-cols-2 univer-gap-2
+                  [&>div]:univer-grid [&>div]:univer-gap-2
+                `}
+            >
+                <div>
+                    <span>{localeService.t('image-text-wrap.top')}</span>
+                    <InputNumber
+                        min={MIN_MARGIN}
+                        max={MAX_MARGIN}
+                        disabled={disableDistTB}
+                        precision={1}
+                        value={distToText.distT}
+                        onChange={(val) => { handleDistToTextChange(val, 'distT'); }}
+                    />
+                </div>
+                <div>
+                    <span>{localeService.t('image-text-wrap.left')}</span>
+                    <InputNumber
+                        min={MIN_MARGIN}
+                        max={MAX_MARGIN}
+                        disabled={disableDistLR}
+                        precision={1}
+                        value={distToText.distL}
+                        onChange={(val) => { handleDistToTextChange(val, 'distL'); }}
+                    />
                 </div>
             </div>
 
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSubtitle)}>
-                    <div>{localeService.t('image-text-wrap.wrapText')}</div>
+            <div
+                className={`
+                  univer-grid univer-grid-cols-2 univer-gap-2
+                  [&>div]:univer-grid [&>div]:univer-gap-2
+                `}
+            >
+                <div>
+                    <span>{localeService.t('image-text-wrap.bottom')}</span>
+                    <InputNumber
+                        min={MIN_MARGIN}
+                        max={MAX_MARGIN}
+                        disabled={disableDistTB}
+                        precision={1}
+                        value={distToText.distB}
+                        onChange={(val) => { handleDistToTextChange(val, 'distB'); }}
+                    />
                 </div>
-            </div>
-            <div className={clsx(styles.imageCommonPanelRow)}>
-                <div className={clsx(styles.imageCommonPanelColumn)}>
-                    <RadioGroup disabled={disableWrapText} value={wrapText} onChange={handleWrapTextChange} direction="horizontal">
-                        <Radio value={WrapTextType.BOTH_SIDES}>{localeService.t('image-text-wrap.bothSide')}</Radio>
-                        <Radio value={WrapTextType.LEFT}>{localeService.t('image-text-wrap.leftOnly')}</Radio>
-                        <Radio value={WrapTextType.RIGHT}>{localeService.t('image-text-wrap.rightOnly')}</Radio>
-                    </RadioGroup>
-                </div>
-            </div>
-
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSubtitle)}>
-                    <div>{localeService.t('image-text-wrap.distanceFromText')}</div>
-                </div>
-            </div>
-
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-text-wrap.top')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber
-                                    min={MIN_MARGIN}
-                                    max={MAX_MARGIN}
-                                    disabled={disableDistTB}
-                                    precision={1}
-                                    value={distToText.distT}
-                                    onChange={(val) => { handleDistToTextChange(val, 'distT'); }}
-                                    className={styles.imageCommonPanelInput}
-                                />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-text-wrap.left')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber
-                                    min={MIN_MARGIN}
-                                    max={MAX_MARGIN}
-                                    disabled={disableDistLR}
-                                    precision={1}
-                                    value={distToText.distL}
-                                    onChange={(val) => { handleDistToTextChange(val, 'distL'); }}
-                                    className={styles.imageCommonPanelInput}
-                                />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-            </div>
-            <div className={styles.imageCommonPanelRow}>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-text-wrap.bottom')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber
-                                    min={MIN_MARGIN}
-                                    max={MAX_MARGIN}
-                                    disabled={disableDistTB}
-                                    precision={1}
-                                    value={distToText.distB}
-                                    onChange={(val) => { handleDistToTextChange(val, 'distB'); }}
-                                    className={styles.imageCommonPanelInput}
-                                />
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div className={clsx(styles.imageCommonPanelColumn, styles.imageCommonPanelSpan2)}>
-                    <label>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                {localeService.t('image-text-wrap.right')}
-                            </div>
-                        </div>
-                        <div className={styles.imageCommonPanelRow}>
-                            <div className={styles.imageCommonPanelColumn}>
-                                <InputNumber
-                                    min={MIN_MARGIN}
-                                    max={MAX_MARGIN}
-                                    disabled={disableDistLR}
-                                    precision={1}
-                                    value={distToText.distR}
-                                    onChange={(val) => { handleDistToTextChange(val, 'distR'); }}
-                                    className={styles.imageCommonPanelInput}
-                                />
-                            </div>
-                        </div>
-                    </label>
+                <div>
+                    <span>{localeService.t('image-text-wrap.right')}</span>
+                    <InputNumber
+                        min={MIN_MARGIN}
+                        max={MAX_MARGIN}
+                        disabled={disableDistLR}
+                        precision={1}
+                        value={distToText.distR}
+                        onChange={(val) => { handleDistToTextChange(val, 'distR'); }}
+                    />
                 </div>
             </div>
         </div>

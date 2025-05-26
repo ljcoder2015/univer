@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
-
-const locale: typeof zhCN = {
+const locale = {
     'image-popup': {
         replace: 'Replace',
         delete: 'Delete',
@@ -68,6 +66,14 @@ const locale: typeof zhCN = {
             vertical: 'Distribute Vertically ',
         },
         null: 'No Object Selection',
+    },
+    'drawing-view': 'Drawing',
+    shortcut: {
+        'drawing-move-down': 'Move Drawing down',
+        'drawing-move-up': 'Move Drawing up',
+        'drawing-move-left': 'Move Drawing left',
+        'drawing-move-right': 'Move Drawing right',
+        'drawing-delete': 'Delete Drawing',
     },
 };
 

@@ -5,7 +5,7 @@ exports[`ColorPicker > should render correctly 1`] = `
   <div
     class="
               univer-w-[292px] univer-cursor-default univer-space-y-4 univer-rounded-lg univer-bg-white
-              dark:univer-bg-gray-700
+              dark:!univer-bg-gray-700
             "
   >
     <div
@@ -30,7 +30,6 @@ exports[`ColorPicker > should render correctly 1`] = `
         class="
                   univer-relative univer-h-2 univer-w-full univer-cursor-pointer univer-rounded-full univer-shadow-inner
                 "
-        style=""
       >
         <div
           class="
@@ -49,18 +48,18 @@ exports[`ColorPicker > should render correctly 1`] = `
               [&_input]:univer-rounded [&_input]:univer-border [&_input]:univer-border-solid
               [&_input]:univer-border-gray-200 [&_input]:univer-bg-transparent [&_input]:univer-px-1.5
               [&_input]:univer-text-sm [&_input]:univer-text-gray-700 [&_input]:univer-outline-none
-              dark:[&_input]:univer-border-gray-600 dark:[&_input]:univer-text-white
+              dark:![&_input]:univer-border-gray-600 dark:![&_input]:univer-text-white
             "
     >
       <a
-        aria-controls="radix-:r0:"
+        aria-controls="radix-«r0»"
         aria-expanded="false"
         aria-haspopup="dialog"
         class="
                       univer-box-border univer-flex univer-h-8 univer-w-32 univer-cursor-pointer univer-items-center
                       univer-justify-between univer-gap-1 univer-rounded univer-border univer-border-solid
                       univer-border-gray-200 univer-px-1.5 univer-text-sm univer-text-gray-700
-                      dark:univer-border-gray-600 dark:univer-text-white
+                      dark:!univer-border-gray-600 dark:!univer-text-white
                     "
         data-slot="popover-trigger"
         data-state="closed"
@@ -90,7 +89,7 @@ exports[`ColorPicker > should render correctly 1`] = `
         <input
           class="
                   univer-w-full univer-px-2 !univer-pl-4 univer-uppercase
-                  focus:univer-border-blue-500 focus:univer-outline-none
+                  focus:univer-border-primary-500 focus:univer-outline-none
                 "
           maxlength="6"
           spellcheck="false"
@@ -309,7 +308,7 @@ exports[`ColorPicker > should render correctly 1`] = `
         class="univer-grid univer-grid-flow-col univer-items-center univer-justify-between univer-gap-2"
       >
         <button
-          class="univer-box-border univer-h-5 univer-w-5 univer-cursor-pointer univer-rounded-full univer-border univer-border-solid univer-border-transparent univer-bg-gray-300 univer-transition-shadow univer-ring-2 univer-ring-offset-2 univer-ring-offset-white dark:univer-ring-primary-600 dark:univer-ring-offset-gray-600"
+          class="univer-box-border univer-h-5 univer-w-5 univer-cursor-pointer univer-rounded-full univer-border univer-border-solid univer-border-transparent univer-bg-gray-300 univer-transition-shadow univer-ring-2 univer-ring-offset-2 univer-ring-offset-white dark:!univer-ring-primary-600 dark:!univer-ring-offset-gray-600"
           style="background-color: #000000;"
           type="button"
         />
@@ -364,7 +363,7 @@ exports[`ColorPicker > should render with showAlpha 1`] = `
   <div
     class="
               univer-w-[292px] univer-cursor-default univer-space-y-4 univer-rounded-lg univer-bg-white
-              dark:univer-bg-gray-700
+              dark:!univer-bg-gray-700
             "
   >
     <div
@@ -389,7 +388,6 @@ exports[`ColorPicker > should render with showAlpha 1`] = `
         class="
                   univer-relative univer-h-2 univer-w-full univer-cursor-pointer univer-rounded-full univer-shadow-inner
                 "
-        style=""
       >
         <div
           class="
@@ -412,7 +410,6 @@ exports[`ColorPicker > should render with showAlpha 1`] = `
         class="
                   univer-relative univer-h-2 univer-w-full univer-cursor-pointer univer-rounded-full univer-shadow-inner
                 "
-        style=""
       >
         <div
           class="
@@ -431,18 +428,18 @@ exports[`ColorPicker > should render with showAlpha 1`] = `
               [&_input]:univer-rounded [&_input]:univer-border [&_input]:univer-border-solid
               [&_input]:univer-border-gray-200 [&_input]:univer-bg-transparent [&_input]:univer-px-1.5
               [&_input]:univer-text-sm [&_input]:univer-text-gray-700 [&_input]:univer-outline-none
-              dark:[&_input]:univer-border-gray-600 dark:[&_input]:univer-text-white
+              dark:![&_input]:univer-border-gray-600 dark:![&_input]:univer-text-white
             "
     >
       <a
-        aria-controls="radix-:r2:"
+        aria-controls="radix-«r2»"
         aria-expanded="false"
         aria-haspopup="dialog"
         class="
                       univer-box-border univer-flex univer-h-8 univer-w-32 univer-cursor-pointer univer-items-center
                       univer-justify-between univer-gap-1 univer-rounded univer-border univer-border-solid
                       univer-border-gray-200 univer-px-1.5 univer-text-sm univer-text-gray-700
-                      dark:univer-border-gray-600 dark:univer-text-white
+                      dark:!univer-border-gray-600 dark:!univer-text-white
                     "
         data-slot="popover-trigger"
         data-state="closed"
@@ -472,7 +469,7 @@ exports[`ColorPicker > should render with showAlpha 1`] = `
         <input
           class="
                   univer-w-full univer-px-2 !univer-pl-4 univer-uppercase
-                  focus:univer-border-blue-500 focus:univer-outline-none
+                  focus:univer-border-primary-500 focus:univer-outline-none
                 "
           maxlength="6"
           spellcheck="false"
@@ -710,7 +707,7 @@ exports[`ColorPicker > should render with showAlpha 1`] = `
         class="univer-grid univer-grid-flow-col univer-items-center univer-justify-between univer-gap-2"
       >
         <button
-          class="univer-box-border univer-h-5 univer-w-5 univer-cursor-pointer univer-rounded-full univer-border univer-border-solid univer-border-transparent univer-bg-gray-300 univer-transition-shadow univer-ring-2 univer-ring-offset-2 univer-ring-offset-white dark:univer-ring-primary-600 dark:univer-ring-offset-gray-600"
+          class="univer-box-border univer-h-5 univer-w-5 univer-cursor-pointer univer-rounded-full univer-border univer-border-solid univer-border-transparent univer-bg-gray-300 univer-transition-shadow univer-ring-2 univer-ring-offset-2 univer-ring-offset-white dark:!univer-ring-primary-600 dark:!univer-ring-offset-gray-600"
           style="background-color: #000000;"
           type="button"
         />
@@ -765,7 +762,7 @@ exports[`ColorPicker > should render with value 1`] = `
   <div
     class="
               univer-w-[292px] univer-cursor-default univer-space-y-4 univer-rounded-lg univer-bg-white
-              dark:univer-bg-gray-700
+              dark:!univer-bg-gray-700
             "
   >
     <div
@@ -790,7 +787,6 @@ exports[`ColorPicker > should render with value 1`] = `
         class="
                   univer-relative univer-h-2 univer-w-full univer-cursor-pointer univer-rounded-full univer-shadow-inner
                 "
-        style=""
       >
         <div
           class="
@@ -809,18 +805,18 @@ exports[`ColorPicker > should render with value 1`] = `
               [&_input]:univer-rounded [&_input]:univer-border [&_input]:univer-border-solid
               [&_input]:univer-border-gray-200 [&_input]:univer-bg-transparent [&_input]:univer-px-1.5
               [&_input]:univer-text-sm [&_input]:univer-text-gray-700 [&_input]:univer-outline-none
-              dark:[&_input]:univer-border-gray-600 dark:[&_input]:univer-text-white
+              dark:![&_input]:univer-border-gray-600 dark:![&_input]:univer-text-white
             "
     >
       <a
-        aria-controls="radix-:r1:"
+        aria-controls="radix-«r1»"
         aria-expanded="false"
         aria-haspopup="dialog"
         class="
                       univer-box-border univer-flex univer-h-8 univer-w-32 univer-cursor-pointer univer-items-center
                       univer-justify-between univer-gap-1 univer-rounded univer-border univer-border-solid
                       univer-border-gray-200 univer-px-1.5 univer-text-sm univer-text-gray-700
-                      dark:univer-border-gray-600 dark:univer-text-white
+                      dark:!univer-border-gray-600 dark:!univer-text-white
                     "
         data-slot="popover-trigger"
         data-state="closed"
@@ -850,7 +846,7 @@ exports[`ColorPicker > should render with value 1`] = `
         <input
           class="
                   univer-w-full univer-px-2 !univer-pl-4 univer-uppercase
-                  focus:univer-border-blue-500 focus:univer-outline-none
+                  focus:univer-border-primary-500 focus:univer-outline-none
                 "
           maxlength="6"
           spellcheck="false"

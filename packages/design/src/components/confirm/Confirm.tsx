@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import React, { useContext } from 'react';
+import type { ILocale } from '../../locale/interface';
 
+import React, { useContext } from 'react';
 import { Button } from '../button/Button';
 import { ConfigContext } from '../config-provider/ConfigProvider';
 import { Dialog } from '../dialog/Dialog';
-import type { ILocale } from '../../locale/interface';
-import styles from './index.module.less';
 
 export interface IConfirmProps {
     children: React.ReactNode;
@@ -67,9 +66,9 @@ function Footer(props: { locale: ILocale['design']; cancelText?: string; confirm
     const { locale, cancelText, confirmText, onClose, onConfirm } = props;
 
     return (
-        <footer className={styles.confirmFooter}>
+        <footer className="univer-flex univer-items-center univer-justify-end univer-gap-2">
             <Button onClick={onClose}>{cancelText ?? locale?.Confirm.cancel}</Button>
-            <Button type="primary" onClick={onConfirm}>
+            <Button variant="primary" onClick={onConfirm}>
                 {confirmText ?? locale?.Confirm.confirm}
             </Button>
         </footer>
@@ -78,13 +77,13 @@ function Footer(props: { locale: ILocale['design']; cancelText?: string; confirm
 
 export function Confirm(props: IConfirmProps) {
     const { children, visible = false, title, cancelText, confirmText, width, onClose, onConfirm } = props;
-
     const { locale } = useContext(ConfigContext);
 
     return (
         <Dialog
-            visible={visible}
+            open={visible}
             title={title}
+            maskClosable={false}
             footer={(
                 <Footer
                     locale={locale!}

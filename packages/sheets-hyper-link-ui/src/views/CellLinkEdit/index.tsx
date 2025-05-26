@@ -16,8 +16,25 @@
 
 import type { DocumentDataModel, Nullable, Workbook } from '@univerjs/core';
 import type { ISelectionWithStyle, ISetSelectionsOperationParams } from '@univerjs/sheets';
-import { BuildTextUtils, ColorKit, CustomRangeType, DataStreamTreeTokenType, DisposableCollection, DOCS_ZEN_EDITOR_UNIT_ID_KEY, FOCUSING_SHEET, generateRandomId, ICommandService, IContextService, isValidRange, IUniverInstanceService, LocaleService, ThemeService, Tools, UniverInstanceType } from '@univerjs/core';
-import { Button, FormLayout, Input, Select } from '@univerjs/design';
+import {
+    BuildTextUtils,
+    ColorKit,
+    CustomRangeType,
+    DataStreamTreeTokenType,
+    DisposableCollection,
+    DOCS_ZEN_EDITOR_UNIT_ID_KEY,
+    FOCUSING_SHEET,
+    generateRandomId,
+    ICommandService,
+    IContextService,
+    isValidRange,
+    IUniverInstanceService,
+    LocaleService,
+    ThemeService,
+    Tools,
+    UniverInstanceType,
+} from '@univerjs/core';
+import { borderClassName, Button, clsx, FormLayout, Input, Select } from '@univerjs/design';
 import { DocSelectionManagerService } from '@univerjs/docs';
 import { DocBackScrollRenderController, DocSelectionRenderService } from '@univerjs/docs-ui';
 import { deserializeRangeWithSheet, IDefinedNamesService, serializeRange, serializeRangeToRefString, serializeRangeWithSheet } from '@univerjs/engine-formula';
@@ -27,14 +44,13 @@ import { RangeSelector } from '@univerjs/sheets-formula-ui';
 import { AddHyperLinkCommand, AddRichHyperLinkCommand, SheetHyperLinkType, SheetsHyperLinkParserService, UpdateHyperLinkCommand, UpdateRichHyperLinkCommand } from '@univerjs/sheets-hyper-link';
 import { IEditorBridgeService, IMarkSelectionService, ScrollToRangeOperation } from '@univerjs/sheets-ui';
 import { IZenZoneService, KeyCode, useDependency, useEvent, useObservable } from '@univerjs/ui';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CloseHyperLinkPopupOperation } from '../../commands/operations/popup.operations';
 import { isLegalLink, serializeUrl } from '../../common/util';
 import { SheetsHyperLinkPopupService } from '../../services/popup.service';
 import { SheetsHyperLinkResolverService } from '../../services/resolver.service';
 import { SheetsHyperLinkSidePanelService } from '../../services/side-panel.service';
 import { HyperLinkEditSourceType } from '../../types/enums/edit-source';
-import styles from './index.module.less';
 
 export const CellLinkEdit = () => {
     const [id, setId] = useState('');
@@ -199,7 +215,7 @@ export const CellLinkEdit = () => {
             const workbook = univerInstanceService.getUnit<Workbook>(editing.unitId, UniverInstanceType.UNIVER_SHEET);
             const worksheet = workbook?.getSheetBySheetId(editing.subUnitId);
             const mergeInfo = worksheet?.getMergedCell(editing.row, editing.col);
-            const color = new ColorKit(themeService.getCurrentTheme().hyacinth500).toRgb();
+            const color = new ColorKit(themeService.getColorFromTheme('primary.600')).toRgb();
             id = markSelectionService.addShape(
                 {
                     range: mergeInfo ?? {
@@ -416,7 +432,12 @@ export const CellLinkEdit = () => {
     }
 
     return (
-        <div className={styles.cellLinkEdit} style={{ display: hide ? 'none' : 'block' }}>
+        <div
+            className={clsx(`
+              univer-box-border univer-w-[296px] univer-rounded-xl univer-bg-white univer-p-4 univer-shadow-md
+              dark:!univer-bg-gray-900
+            `, borderClassName)}
+        >
             {showLabel
                 ? (
                     <FormLayout
@@ -442,6 +463,7 @@ export const CellLinkEdit = () => {
                 : null}
             <FormLayout label={localeService.t('hyperLink.form.type')}>
                 <Select
+                    className="univer-w-full"
                     options={linkTypeOptions}
                     value={type}
                     onChange={(newType) => {
@@ -458,7 +480,7 @@ export const CellLinkEdit = () => {
                         value={payload}
                         onChange={(newLink) => {
                             setPayload(newLink);
-                            if (newLink && (setByPayload.current || !display || display === payload)) {
+                            if (newLink && (setByPayload.current || !display || display === newLink)) {
                                 setDisplay(newLink);
                                 setByPayload.current = true;
                             }
@@ -524,6 +546,7 @@ export const CellLinkEdit = () => {
             {type === SheetHyperLinkType.SHEET && (
                 <FormLayout error={showError && !payload ? localeService.t('hyperLink.form.selectError') : ''}>
                     <Select
+                        className="univer-w-full"
                         options={sheetsOption}
                         value={payload}
                         onChange={(newPayload) => {
@@ -541,6 +564,7 @@ export const CellLinkEdit = () => {
             {type === SheetHyperLinkType.DEFINE_NAME && (
                 <FormLayout error={showError && !payload ? localeService.t('hyperLink.form.selectError') : ''}>
                     <Select
+                        className="univer-w-full"
                         options={definedNames}
                         value={payload}
                         onChange={(newValue) => {
@@ -569,7 +593,7 @@ export const CellLinkEdit = () => {
                     setPayload={setPayload}
                 />
             )}
-            <div className={styles.cellLinkEditButtons}>
+            <div className="univer-flex univer-flex-row univer-justify-end univer-gap-2">
                 <Button
                     onClick={() => {
                         if (editing) {
@@ -581,8 +605,7 @@ export const CellLinkEdit = () => {
                     {localeService.t('hyperLink.form.cancel')}
                 </Button>
                 <Button
-                    type="primary"
-                    style={{ marginLeft: 8 }}
+                    variant="primary"
                     onClick={async () => {
                         handleSubmit();
                     }}

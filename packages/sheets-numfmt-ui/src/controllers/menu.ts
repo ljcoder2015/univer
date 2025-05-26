@@ -32,7 +32,7 @@ import { deriveStateFromActiveSheet$, getCurrentRangeDisable$ } from '@univerjs/
 import { getMenuHiddenObservable, MenuItemType } from '@univerjs/ui';
 import { filter, merge, Observable } from 'rxjs';
 import { OpenNumfmtPanelOperator } from '../commands/operations/open.numfmt.panel.operation';
-import { MORE_NUMFMT_TYPE_KEY, OPTIONS_KEY } from '../views/components/more-numfmt-type/MoreNumfmtType';
+import { MORE_NUMFMT_TYPE_KEY, OPTIONS_KEY } from '../views/components/MoreNumfmtType';
 
 export const MENU_OPTIONS: Array<{ label: string; pattern: string | null } | '|'> = [
     {
@@ -47,6 +47,14 @@ export const MENU_OPTIONS: Array<{ label: string; pattern: string | null } | '|'
     {
         label: 'sheet.numfmt.number',
         pattern: '0',
+    },
+    {
+        label: 'sheet.numfmt.percent',
+        pattern: '0.00%',
+    },
+    {
+        label: 'sheet.numfmt.scientific',
+        pattern: '0.00E+00',
     },
     '|',
     {
@@ -81,11 +89,6 @@ export const MENU_OPTIONS: Array<{ label: string; pattern: string | null } | '|'
     {
         label: 'sheet.numfmt.timeDuration',
         pattern: 'h:mm:ss',
-    },
-    '|',
-    {
-        label: 'sheet.numfmt.percent',
-        pattern: '0.00%',
     },
     '|',
     {

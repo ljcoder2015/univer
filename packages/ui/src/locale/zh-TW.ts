@@ -14,16 +14,36 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
+    toolbar: {
+        heading: {
+            normal: '正文',
+            title: '標題',
+            subTitle: '副標題',
+            1: '標題 1',
+            2: '標題 2',
+            3: '標題 3',
+            4: '標題 4',
+            5: '標題 5',
+            6: '標題 6',
+            tooltip: '設定標題',
+        },
+    },
     ribbon: {
         start: '開始',
+        startDesc: '初始化工作表並設定基本參數。',
         insert: '插入',
+        insertDesc: '插入行、列、圖表和各種其他元素。',
         formulas: '公式',
+        formulasDesc: '使用函數和公式進行數據計算。',
         data: '資料',
+        dataDesc: '管理資料，包括匯入、排序和篩選。',
         view: '視圖',
+        viewDesc: '切換視圖模式並調整顯示效果。',
         others: '其他',
+        othersDesc: '其他功能和設定。',
         more: '更多',
     },
     fontFamily: {

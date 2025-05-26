@@ -15,37 +15,45 @@
  */
 
 import type { Observable } from 'rxjs';
-import type { Nullable } from '../../shared/types';
-
+import { defaultTheme } from '@univerjs/themes';
+import { get } from 'lodash-es';
 import { BehaviorSubject } from 'rxjs';
 import { Disposable, toDisposable } from '../../shared/lifecycle';
 
-export interface IStyleSheet {
-    [key: string]: string;
-}
+export type Theme = typeof defaultTheme;
 
 export class ThemeService extends Disposable {
-    private _currentTheme: Nullable<IStyleSheet>;
+    private readonly _darkMode$ = new BehaviorSubject<boolean>(false);
+    readonly darkMode$: Observable<boolean> = this._darkMode$.asObservable();
+    get darkMode(): boolean { return this._darkMode$.getValue(); }
 
-    private readonly _currentTheme$ = new BehaviorSubject<IStyleSheet>({});
-    readonly currentTheme$: Observable<IStyleSheet> = this._currentTheme$.asObservable();
+    private _currentTheme: Theme = defaultTheme;
+    private readonly _currentTheme$ = new BehaviorSubject<Theme>(this._currentTheme);
+    readonly currentTheme$: Observable<Theme> = this._currentTheme$.asObservable();
 
     constructor() {
         super();
 
-        this.disposeWithMe(toDisposable(() => this._currentTheme$.complete()));
+        this.disposeWithMe(toDisposable(() => {
+            this._currentTheme$.complete();
+            this._darkMode$.complete();
+        }));
     }
 
-    getCurrentTheme(): IStyleSheet {
-        if (!this._currentTheme) {
-            throw new Error('[ThemeService]: current theme is not set!');
-        }
-
+    getCurrentTheme(): Theme {
         return this._currentTheme;
     }
 
-    setTheme(theme: IStyleSheet): void {
+    setTheme(theme: Theme): void {
         this._currentTheme = theme;
         this._currentTheme$.next(theme);
+    }
+
+    setDarkMode(darkMode: boolean): void {
+        this._darkMode$.next(darkMode);
+    }
+
+    getColorFromTheme(color: string): string {
+        return get(this._currentTheme, color);
     }
 }

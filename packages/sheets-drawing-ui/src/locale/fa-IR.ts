@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type zhCN from './zh-CN';
+import type enUS from './en-US';
 
-const locale: typeof zhCN = {
+const locale: typeof enUS = {
     sheetImage: {
         title: 'تصویر',
 
@@ -48,15 +48,10 @@ const locale: typeof zhCN = {
         exceedMaxCount: 'فقط {0} تصویر می‌توانند همزمان آپلود شوند',
         invalidImage: 'تصویر نامعتبر است',
     },
-    'sheet-drawing-view': 'طراحی',
-    shortcut: {
-        sheet: {
-            'drawing-move-down': 'جابه‌جایی طراحی به پایین',
-            'drawing-move-up': 'جابه‌جایی طراحی به بالا',
-            'drawing-move-left': 'جابه‌جایی طراحی به چپ',
-            'drawing-move-right': 'جابه‌جایی طراحی به راست',
-            'drawing-delete': 'حذف طراحی',
-        },
+    'cell-image': {
+        pasteTitle: 'چسباندن به عنوان تصویر سلول',
+        pasteContent: 'چسباندن تصویر سلول محتوای موجود سلول را پاک خواهد کرد، ادامه چسباندن',
+        pasteError: 'کپی و چسباندن تصویر سلول در این واحد پشتیبانی نمی‌شود',
     },
 };
 

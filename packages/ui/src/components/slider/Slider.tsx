@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import type { IDropdownProps } from '@univerjs/design';
+import type { IDropdownMenuProps } from '@univerjs/design';
 import { LocaleService } from '@univerjs/core';
 import { Button, clsx, DropdownMenu, Tooltip } from '@univerjs/design';
 import { IncreaseSingle, ReduceSingle } from '@univerjs/icons';
-import { useDependency } from '@wendellhu/redi/react-bindings';
 import React, { useMemo, useRef, useState } from 'react';
-import styles from './index.module.less';
+import { useDependency } from '../../utils/di';
 
 export interface ISliderProps {
     /** The value of slider. When range is false, use number, otherwise, use [number, number] */
@@ -56,6 +55,8 @@ export interface ISliderProps {
     /** (value) => void */
     onChange?: (value: number) => void;
 }
+
+const SLIDER_WIDTH = 116;
 
 /**
  * Slider Component
@@ -97,7 +98,7 @@ export function Slider(props: ISliderProps) {
         }
     }, [min, max, resetPoint, value]);
 
-    function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+    function handleMouseDown(e: React.MouseEvent<HTMLButtonElement>) {
         if (disabled) return;
         e.preventDefault();
 
@@ -112,11 +113,11 @@ export function Slider(props: ISliderProps) {
 
                 if (offsetX <= 0) {
                     offsetX = 0;
-                } else if (offsetX >= +styles.sliderWidth) {
-                    offsetX = +styles.sliderWidth;
+                } else if (offsetX >= SLIDER_WIDTH) {
+                    offsetX = SLIDER_WIDTH;
                 }
 
-                const ratio = offsetX / +styles.sliderWidth;
+                const ratio = offsetX / SLIDER_WIDTH;
 
                 let result = 0;
                 if (ratio <= 0.5) {
@@ -151,7 +152,7 @@ export function Slider(props: ISliderProps) {
         onChange && onChange(value);
     }
 
-    const items: IDropdownProps['items'] = [{
+    const items: IDropdownMenuProps['items'] = [{
         type: 'radio',
         value: value.toString(),
         options: shortcuts.map((item) => ({ value: item.toString(), label: `${item}%` })),
@@ -160,16 +161,30 @@ export function Slider(props: ISliderProps) {
 
     return (
         <div
-            className={clsx(styles.slider, {
-                [styles.sliderDisabled]: disabled,
+            className={clsx('univer-flex univer-select-none univer-items-center univer-gap-1', {
+                'univer-cursor-not-allowed': disabled,
             })}
         >
-            <Button type="text" size="small" disabled={value <= min || disabled} onClick={() => handleStep(-10)}>
+            <Button
+                className="univer-size-6 univer-p-0"
+                size="small"
+                variant="text"
+                disabled={value <= min || disabled}
+                onClick={() => handleStep(-10)}
+            >
                 <ReduceSingle />
             </Button>
 
-            <div className={styles.sliderRail}>
-                <div ref={sliderInnerRailRef} role="track" className={styles.sliderInnerRail}>
+            <div
+                className={`
+                  univer-relative univer-hidden univer-h-0.5 univer-rounded-2xl univer-bg-gray-400 univer-px-1.5
+                  sm:univer-block
+                `}
+                style={{
+                    width: `${SLIDER_WIDTH}px`,
+                }}
+            >
+                <div ref={sliderInnerRailRef} role="track" className="univer-relative univer-h-0.5">
                     <Tooltip title={`${localeService.t('zoom-slider.resetTo')} ${resetPoint}%`} placement="top" asChild>
                         <a
                             key="reset-button"
@@ -183,9 +198,16 @@ export function Slider(props: ISliderProps) {
                         />
                     </Tooltip>
 
-                    <div
-                        className={styles.sliderHandle}
+                    <button
+                        className={clsx(`
+                          univer-absolute univer-top-[calc(50%-6px)] univer-size-3 -univer-translate-x-1/2
+                          univer-rounded-full univer-border-none univer-bg-white univer-shadow univer-transition-colors
+                        `, {
+                            'univer-cursor-pointer hover:univer-gray-200': !disabled,
+                            'univer-cursor-not-allowed': disabled,
+                        })}
                         role="handle"
+                        type="button"
                         style={{
                             left: `${offset}%`,
                         }}
@@ -194,7 +216,13 @@ export function Slider(props: ISliderProps) {
                 </div>
             </div>
 
-            <Button type="text" size="small" disabled={value >= max || disabled} onClick={() => handleStep(10)}>
+            <Button
+                className="univer-size-6 univer-p-0"
+                size="small"
+                variant="text"
+                disabled={value >= max || disabled}
+                onClick={() => handleStep(10)}
+            >
                 <IncreaseSingle />
             </Button>
 
@@ -204,16 +232,13 @@ export function Slider(props: ISliderProps) {
                 open={zoomListVisible}
                 onOpenChange={setZoomListVisible}
             >
-                <a
-                    className={`
-                      univer-flex univer-h-7 univer-w-[55px] univer-cursor-pointer univer-items-center
-                      univer-justify-center univer-rounded univer-text-sm univer-text-gray-800 univer-transition-all
-                      hover:univer-bg-gray-100
-                    `}
+                <Button
+                    size="small"
+                    variant="text"
                 >
                     {value}
                     %
-                </a>
+                </Button>
             </DropdownMenu>
         </div>
     );
