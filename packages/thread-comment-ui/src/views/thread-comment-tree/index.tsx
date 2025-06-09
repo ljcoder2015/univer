@@ -19,9 +19,17 @@ import type { IAddCommentCommandParams, IThreadComment, IUpdateCommentCommandPar
 import type { IUniverUIConfig } from '@univerjs/ui';
 import type { IThreadCommentEditorInstance } from '../thread-comment-editor';
 import { generateRandomId, ICommandService, LocaleService, UserManagerService } from '@univerjs/core';
-import { borderClassName, clsx, Dropdown, Tooltip } from '@univerjs/design';
-import { DeleteSingle, MoreHorizontalSingle, ReplyToCommentSingle, ResolvedSingle, SolveSingle } from '@univerjs/icons';
-import { AddCommentCommand, DeleteCommentCommand, DeleteCommentTreeCommand, getDT, ResolveCommentCommand, ThreadCommentModel, UpdateCommentCommand } from '@univerjs/thread-comment';
+import { borderClassName, clsx, Dropdown, scrollbarClassName, Tooltip } from '@univerjs/design';
+import { DeleteIcon, MoreHorizontalIcon, ReplyToCommentIcon, ResolvedIcon, SolveIcon } from '@univerjs/icons';
+import {
+    AddCommentCommand,
+    DeleteCommentCommand,
+    DeleteCommentTreeCommand,
+    getDT,
+    ResolveCommentCommand,
+    ThreadCommentModel,
+    UpdateCommentCommand,
+} from '@univerjs/thread-comment';
 import { UI_PLUGIN_CONFIG_KEY, useConfigValue, useDependency, useObservable } from '@univerjs/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { debounceTime } from 'rxjs';
@@ -132,7 +140,7 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                                                 `}
                                                 onClick={() => onReply(user)}
                                             >
-                                                <ReplyToCommentSingle />
+                                                <ReplyToCommentIcon />
                                             </div>
                                         )
                                         : null
@@ -179,7 +187,7 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                                               hover:univer-bg-gray-50
                                             `}
                                         >
-                                            <MoreHorizontalSingle />
+                                            <MoreHorizontalIcon />
                                         </div>
                                     </Dropdown>
                                 )
@@ -407,20 +415,17 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
                 {!!comments && (
                     <div className="univer-flex univer-flex-shrink-0 univer-flex-grow-0 univer-flex-row">
                         <div
-                            className={clsx(
-                                `
-                                  univer-ml-1 univer-inline-flex univer-h-6 univer-w-6 univer-cursor-pointer
-                                  univer-items-center univer-justify-center univer-rounded-[3px] univer-text-base
-                                  dark:hover:!univer-bg-gray-800
-                                  hover:univer-bg-gray-50
-                                `,
-                                {
-                                    'univer-text-green-500': resolved,
-                                }
-                            )}
+                            className={clsx(`
+                              univer-ml-1 univer-inline-flex univer-h-6 univer-w-6 univer-cursor-pointer
+                              univer-items-center univer-justify-center univer-rounded-[3px] univer-text-base
+                              dark:hover:!univer-bg-gray-800
+                              hover:univer-bg-gray-50
+                            `, {
+                                'univer-text-green-500': resolved,
+                            })}
                             onClick={handleResolve}
                         >
-                            {resolved ? <ResolvedSingle /> : <SolveSingle />}
+                            {resolved ? <ResolvedIcon /> : <SolveIcon />}
                         </div>
                         {currentUser?.userID === comments.root.personId
                             ? (
@@ -433,7 +438,7 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
                                     `}
                                     onClick={handleDeleteRoot}
                                 >
-                                    <DeleteSingle />
+                                    <DeleteIcon />
                                 </div>
                             )
                             : null}
@@ -442,7 +447,7 @@ export const ThreadCommentTree = (props: IThreadCommentTreeProps) => {
             </div>
             <div
                 ref={scroller}
-                className="univer-max-h-80 univer-overflow-y-auto univer-overflow-x-hidden"
+                className={clsx('univer-max-h-80 univer-overflow-y-auto univer-overflow-x-hidden', scrollbarClassName)}
             >
                 {renderComments.map(
                     (item) => (

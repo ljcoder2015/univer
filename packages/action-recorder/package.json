@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/action-recorder",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "private": false,
     "description": "",
     "author": "DreamNum <developer@univer.ai>",
@@ -68,7 +68,7 @@
     "dependencies": {
         "@univerjs/core": "workspace:*",
         "@univerjs/design": "workspace:*",
-        "@univerjs/icons": "^0.3.24",
+        "@univerjs/icons": "^0.4.4",
         "@univerjs/sheets": "workspace:*",
         "@univerjs/sheets-filter": "workspace:*",
         "@univerjs/sheets-ui": "workspace:*",

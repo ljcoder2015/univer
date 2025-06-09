@@ -211,6 +211,7 @@ export function useDocHight(_leadingCharacter: string = '') {
                     e.st = e.st + leadingCharacterLength;
                 });
             }
+
             cloneBody.textRuns = [{ st: 0, ed: 1, ts: { fs: 11 } }, ...textRuns];
             const text = sequenceNodes.reduce((pre, cur) => {
                 if (typeof cur === 'string') {
@@ -265,13 +266,12 @@ export function useColor(): IColorMap {
             themeService.getColorFromTheme('loop-color.10'),
             themeService.getColorFromTheme('loop-color.11'),
             themeService.getColorFromTheme('loop-color.12'),
-        ];
+        ].map((color) => themeService.isValidThemeColor(color) ? themeService.getColorFromTheme(color) : color);
         const numberColor = themeService.getColorFromTheme('blue.700');
         const stringColor = themeService.getColorFromTheme('jiqing.800');
         const plainTextColor = themeService.getColorFromTheme('black');
         return { formulaRefColors, numberColor, stringColor, plainTextColor };
     }, [theme]);
-
     return result;
 }
 

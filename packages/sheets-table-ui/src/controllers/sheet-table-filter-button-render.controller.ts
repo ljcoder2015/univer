@@ -150,13 +150,16 @@ export class SheetsTableFilterButtonRenderController extends RxDisposable implem
                     return next(cell);
                 }
 
-                return next({
-                    ...cell,
-                    fontRenderExtension: {
-                        ...cell?.fontRenderExtension,
-                        rightOffset: FILTER_ICON_SIZE,
-                    },
-                });
+                if (!cell || cell === pos.rawData) {
+                    cell = { ...pos.rawData };
+                }
+
+                cell.fontRenderExtension = {
+                    ...cell?.fontRenderExtension,
+                    rightOffset: FILTER_ICON_SIZE,
+                };
+
+                return next(cell);
             },
             priority: 10,
         });

@@ -16,7 +16,7 @@
 
 import { HorizontalAlign, LocaleService, SpacingRule } from '@univerjs/core';
 import { borderClassName, clsx, InputNumber, Select, Tooltip } from '@univerjs/design';
-import { AlignTextBothSingle, HorizontallySingle, LeftJustifyingSingle, RightJustifyingSingle } from '@univerjs/icons';
+import { AlignTextBothIcon, HorizontallyIcon, LeftJustifyingIcon, RightJustifyingIcon } from '@univerjs/icons';
 import { useDependency } from '@univerjs/ui';
 import { useMemo, useRef } from 'react';
 import {
@@ -66,24 +66,24 @@ export function ParagraphSetting() {
     const localeService = useDependency(LocaleService);
 
     const alignmentOptions = useMemo(() => [
-        { label: localeService.t('toolbar.alignLeft'), value: String(HorizontalAlign.LEFT), icon: <LeftJustifyingSingle /> },
-        { label: localeService.t('toolbar.alignCenter'), value: String(HorizontalAlign.CENTER), icon: <HorizontallySingle /> },
-        { label: localeService.t('toolbar.alignRight'), value: String(HorizontalAlign.RIGHT), icon: <RightJustifyingSingle /> },
-        { label: localeService.t('toolbar.alignJustify'), value: String(HorizontalAlign.JUSTIFIED), icon: <AlignTextBothSingle /> },
+        { label: localeService.t('toolbar.alignLeft'), value: String(HorizontalAlign.LEFT), icon: <LeftJustifyingIcon /> },
+        { label: localeService.t('toolbar.alignCenter'), value: String(HorizontalAlign.CENTER), icon: <HorizontallyIcon /> },
+        { label: localeService.t('toolbar.alignRight'), value: String(HorizontalAlign.RIGHT), icon: <RightJustifyingIcon /> },
+        { label: localeService.t('toolbar.alignJustify'), value: String(HorizontalAlign.JUSTIFIED), icon: <AlignTextBothIcon /> },
     ], []);
 
     const currentParagraph = useCurrentParagraph();
-    const [horizontalAlignValue, horizontalAlignSet] = useFirstParagraphHorizontalAlign(currentParagraph, alignmentOptions[0].value);
+    const [horizontalAlignValue, setHorizontalAlign] = useFirstParagraphHorizontalAlign(currentParagraph, alignmentOptions[0].value);
 
-    const [indentStart, indentStartSet] = useFirstParagraphIndentStart(currentParagraph);
-    const [indentEnd, indentEndSet] = useFirstParagraphIndentEnd(currentParagraph);
-    const [indentFirstLine, indentFirstLineSet] = useFirstParagraphIndentFirstLine(currentParagraph);
+    const [indentStart, setIndentStart] = useFirstParagraphIndentStart(currentParagraph);
+    const [indentEnd, setIndentEnd] = useFirstParagraphIndentEnd(currentParagraph);
+    const [indentFirstLine, setIndentFirstLine] = useFirstParagraphIndentFirstLine(currentParagraph);
 
-    const [hanging, hangingSet] = useFirstParagraphIndentHanging(currentParagraph);
+    const [hanging, setHanging] = useFirstParagraphIndentHanging(currentParagraph);
 
-    const [spaceAbove, spaceAboveSet] = useFirstParagraphIndentSpaceAbove(currentParagraph);
-    const [spaceBelow, spaceBelowSet] = useFirstParagraphSpaceBelow(currentParagraph);
-    const { lineSpacing: [lineSpacing, lineSpacingSet], spacingRule: [spacingRule, spacingRuleSet] } = useFirstParagraphLineSpacing(currentParagraph);
+    const [spaceAbove, setSpaceAbove] = useFirstParagraphIndentSpaceAbove(currentParagraph);
+    const [spaceBelow, setSpaceBelow] = useFirstParagraphSpaceBelow(currentParagraph);
+    const { lineSpacing: [lineSpacing, setLineSpacing], spacingRule: [spacingRule, setSpacingRule] } = useFirstParagraphLineSpacing(currentParagraph);
 
     const lineSpaceConfig = useMemo(() => {
         if (spacingRule === SpacingRule.AUTO) {
@@ -112,7 +112,7 @@ export function ParagraphSetting() {
                                 `, {
                                     'univer-bg-blend-color-dodge/90': horizontalAlignValue === item.value,
                                 })}
-                                onClick={() => horizontalAlignSet(item.value)}
+                                onClick={() => setHorizontalAlign(item.value)}
                             >
                                 {item.icon}
                             </span>
@@ -128,7 +128,7 @@ export function ParagraphSetting() {
                         {localeService.t('doc.paragraphSetting.left')}
                         (px)
                     </div>
-                    <AutoFocusInputNumber className="univer-mt-4" value={indentStart} onChange={(v) => indentStartSet(v ?? 0)} />
+                    <AutoFocusInputNumber className="univer-mt-4" value={indentStart} onChange={(v) => setIndentStart(v ?? 0)} />
                 </div>
                 <div className="univer-flex univer-justify-between univer-item-center">
 
@@ -136,7 +136,7 @@ export function ParagraphSetting() {
                         {localeService.t('doc.paragraphSetting.right')}
                         (px)
                     </div>
-                    <AutoFocusInputNumber className="univer-mt-4" value={indentEnd} onChange={(v) => indentEndSet(v ?? 0)} />
+                    <AutoFocusInputNumber className="univer-mt-4" value={indentEnd} onChange={(v) => setIndentEnd(v ?? 0)} />
                 </div>
                 <div className="univer-flex univer-justify-between univer-item-center">
 
@@ -144,7 +144,7 @@ export function ParagraphSetting() {
                         {localeService.t('doc.paragraphSetting.firstLine')}
                         (px)
                     </div>
-                    <AutoFocusInputNumber className="univer-mt-4" value={indentFirstLine} onChange={(v) => indentFirstLineSet(v ?? 0)} />
+                    <AutoFocusInputNumber className="univer-mt-4" value={indentFirstLine} onChange={(v) => setIndentFirstLine(v ?? 0)} />
                 </div>
                 <div className="univer-flex univer-justify-between univer-item-center">
 
@@ -152,7 +152,7 @@ export function ParagraphSetting() {
                         {localeService.t('doc.paragraphSetting.hanging')}
                         (px)
                     </div>
-                    <AutoFocusInputNumber className="univer-mt-4" value={hanging} onChange={(v) => hangingSet(v ?? 0)} />
+                    <AutoFocusInputNumber className="univer-mt-4" value={hanging} onChange={(v) => setHanging(v ?? 0)} />
                 </div>
             </div>
             <div className="univer-t-4 univer-text-sm univer-font-medium">{localeService.t('doc.paragraphSetting.spacing')}</div>
@@ -163,7 +163,7 @@ export function ParagraphSetting() {
                         {localeService.t('doc.paragraphSetting.before')}
                         (px)
                     </div>
-                    <AutoFocusInputNumber className="univer-mt-4" value={spaceAbove} onChange={(v) => spaceAboveSet(v ?? 0)} />
+                    <AutoFocusInputNumber className="univer-mt-4" value={spaceAbove} onChange={(v) => setSpaceAbove(v ?? 0)} />
                 </div>
                 <div className="univer-flex univer-justify-between univer-item-center">
 
@@ -171,7 +171,7 @@ export function ParagraphSetting() {
                         {localeService.t('doc.paragraphSetting.after')}
                         (px)
                     </div>
-                    <AutoFocusInputNumber className="univer-mt-4" value={spaceBelow} onChange={(v) => spaceBelowSet(v ?? 0)} />
+                    <AutoFocusInputNumber className="univer-mt-4" value={spaceBelow} onChange={(v) => setSpaceBelow(v ?? 0)} />
                 </div>
                 <div className="univer-flex univer-justify-between item-center">
                     <div className="univer-mt-3 univer-text-xs">{localeService.t('doc.paragraphSetting.lineSpace')}</div>
@@ -184,12 +184,12 @@ export function ParagraphSetting() {
                                 { label: localeService.t('doc.paragraphSetting.multiSpace'), value: `${SpacingRule.AUTO}` },
                                 { label: localeService.t('doc.paragraphSetting.fixedValue'), value: `${SpacingRule.AT_LEAST}` },
                             ]}
-                            onChange={(v) => spacingRuleSet(Number(v))}
+                            onChange={(v) => setSpacingRule(Number(v))}
                         />
                         <AutoFocusInputNumber
                             {...lineSpaceConfig}
                             value={lineSpacing}
-                            onChange={(v) => lineSpacingSet(v ?? 0)}
+                            onChange={(v) => setLineSpacing(v ?? 0)}
                         />
                     </div>
 

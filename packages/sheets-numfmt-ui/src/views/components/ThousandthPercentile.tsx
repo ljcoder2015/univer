@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-import type { FC } from 'react';
 import type { IBusinessComponentProps } from './interface';
-import { LocaleService } from '@univerjs/core';
+import { isPatternEqualWithoutDecimal, LocaleService } from '@univerjs/core';
 import { InputNumber, SelectList } from '@univerjs/design';
-import { getDecimalFromPattern, getNumberFormatOptions, isPatternEqualWithoutDecimal, isPatternHasDecimal, setPatternDecimal } from '@univerjs/sheets-numfmt';
+import { getDecimalFromPattern, getNumberFormatOptions, isPatternHasDecimal, setPatternDecimal } from '@univerjs/sheets-numfmt';
 import { useDependency } from '@univerjs/ui';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export const isThousandthPercentilePanel = (pattern: string) =>
     getNumberFormatOptions().some((item) => isPatternEqualWithoutDecimal(item.value, pattern));
 
-export const ThousandthPercentilePanel: FC<IBusinessComponentProps> = (props) => {
+export function ThousandthPercentilePanel(props: IBusinessComponentProps) {
     const localeService = useDependency(LocaleService);
 
     const options = useMemo(getNumberFormatOptions, []);
-    const [decimal, decimalSet] = useState(() => getDecimalFromPattern(props.defaultPattern || '', 0));
+    const [decimal, setDecimal] = useState(() => getDecimalFromPattern(props.defaultPattern || '', 0));
 
-    const [suffix, suffixSet] = useState(() => {
+    const [suffix, setSuffix] = useState(() => {
         const item = options.find((item) => isPatternEqualWithoutDecimal(item.value, props.defaultPattern || ''));
         return item?.value || options[0].value;
     });
@@ -41,15 +40,15 @@ export const ThousandthPercentilePanel: FC<IBusinessComponentProps> = (props) =>
     const isInputDisable = useMemo(() => !isPatternHasDecimal(suffix), [suffix]);
 
     const handleDecimalChange = (decimal: number | null) => {
-        decimalSet(decimal || 0);
+        setDecimal(decimal || 0);
         props.onChange(setPatternDecimal(suffix, Number(decimal || 0)));
     };
     const handleClick = (v: any) => {
         if (v === undefined) {
             return;
         }
-        decimalSet(getDecimalFromPattern(v, 0));
-        suffixSet(v);
+        setDecimal(getDecimalFromPattern(v, 0));
+        setSuffix(v);
         props.onChange(v);
     };
 

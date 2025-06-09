@@ -73,11 +73,15 @@ export class SheetsCfRenderController extends Disposable {
                 }
                 const styleMap = context.workbook.getStyles();
                 const defaultStyle = (typeof cell?.s === 'string' ? styleMap.get(cell?.s) : cell?.s) || {};
-                const s = { ...defaultStyle };
-                const cloneCell = { ...cell, s } as IConditionalFormattingCellData & ICellDataForSheetInterceptor;
+                const cloneCell = (cell === context.rawData ? { ...context.rawData } : cell) as IConditionalFormattingCellData & ICellDataForSheetInterceptor;
                 if (result.style) {
-                    Object.assign(s, result.style);
+                    const activeStyle = {
+                        ...defaultStyle,
+                        ...result.style,
+                    };
+                    Object.assign(cloneCell, { s: activeStyle });
                 }
+
                 if (!cloneCell.fontRenderExtension) {
                     cloneCell.fontRenderExtension = {};
                     if (result.isShowValue !== undefined) {

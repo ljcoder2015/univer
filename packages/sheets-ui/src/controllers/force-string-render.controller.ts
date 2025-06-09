@@ -55,7 +55,7 @@ export class ForceStringRenderController extends RxDisposable implements IRender
                             return next(cell);
                         }
 
-                        const cellRaw = pos.worksheet.getCellRaw(pos.row, pos.col);
+                        const cellRaw = pos.rawData;
 
                         if (!cellRaw || cellRaw.v === null || cellRaw.v === undefined) {
                             return next(cell);
@@ -73,13 +73,13 @@ export class ForceStringRenderController extends RxDisposable implements IRender
                                 return next(cell);
                             }
 
-                            return next({
-                                ...cell,
-                                markers: {
-                                    ...cell?.markers,
-                                    ...FORCE_STRING_MARK,
-                                },
-                            });
+                            if (cell === cellRaw) {
+                                cell = { ...cellRaw };
+                            }
+
+                            cell.markers = { ...cell?.markers, ...FORCE_STRING_MARK };
+
+                            return next(cell);
                         }
 
                         return next(cell);

@@ -497,7 +497,6 @@ export class SheetCanvasPopManagerService extends Disposable {
      * @param _subUnitId
      * @param viewport
      * @param showOnSelectionMoving
-     * @returns
      */
     attachRangePopup(range: IRange, popup: ICanvasPopup, _unitId?: string, _subUnitId?: string, viewport?: Viewport, showOnSelectionMoving = false): Nullable<INeedCheckDisposable> {
         const workbook = this._univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
@@ -582,7 +581,6 @@ export class SheetCanvasPopManagerService extends Disposable {
      * @param currentRender
      * @param skeleton
      * @param activeViewport
-     * @returns
      */
     private _createCellPositionObserver(
         initialRow: number,
@@ -654,6 +652,14 @@ export class SheetCanvasPopManagerService extends Disposable {
         };
 
         const canvasElement = engine.getCanvasElement();
+        if (!canvasElement) {
+            return {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+            };
+        }
         const canvasClientRect = canvasElement.getBoundingClientRect();
 
         // We should take the scale into account when canvas is scaled by CSS.

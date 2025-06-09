@@ -16,15 +16,16 @@
 
 import type { Nullable, Workbook } from '@univerjs/core';
 import type { IDefinedNamesServiceParam } from '@univerjs/engine-formula';
+import type { ComponentType } from 'react';
 import type { IRangeSelectorProps } from '../../basics/editor/range';
 import { AbsoluteRefType, IUniverInstanceService, LocaleService, Tools, UniverInstanceType } from '@univerjs/core';
 import { borderBottomClassName, borderClassName, Button, clsx, Input, Radio, RadioGroup, Select } from '@univerjs/design';
 import { IDefinedNamesService, IFunctionService, isReferenceStrings, isReferenceStringWithEffectiveColumn, LexerTreeBuilder, operatorToken } from '@univerjs/engine-formula';
 import { hasCJKText } from '@univerjs/engine-render';
-import { ErrorSingle } from '@univerjs/icons';
+import { ErrorIcon } from '@univerjs/icons';
 import { SCOPE_WORKBOOK_VALUE_DEFINED_NAME } from '@univerjs/sheets';
 import { ComponentManager, useDependency, useSidebarClick } from '@univerjs/ui';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY, RANGE_SELECTOR_COMPONENT_KEY } from '../../common/keys';
 
 export interface IDefinedNameInputProps extends Omit<IDefinedNamesServiceParam, 'id'> {
@@ -59,7 +60,7 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
     const lexerTreeBuilder = useDependency(LexerTreeBuilder);
     const componentManager = useDependency(ComponentManager);
 
-    const RangeSelector: React.ComponentType<IRangeSelectorProps> = useMemo(() => componentManager.get(RANGE_SELECTOR_COMPONENT_KEY), []) as any;
+    const RangeSelector: ComponentType<IRangeSelectorProps> = useMemo(() => componentManager.get(RANGE_SELECTOR_COMPONENT_KEY), []) as any;
     const FormulaEditor = useMemo(() => componentManager.get(EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY), []);
     if (workbook == null) {
         return;
@@ -197,11 +198,11 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
     };
 
     const formulaEditorRef = useRef<any>(null);
-    const [isFocusFormulaEditor, isFocusFormulaEditorSet] = useState(false);
+    const [isFocusFormulaEditor, setIsFocusFormulaEditor] = useState(false);
 
     useSidebarClick((e: MouseEvent) => {
         const isOutSide = formulaEditorRef.current?.isClickOutSide(e);
-        isOutSide && isFocusFormulaEditorSet(false);
+        isOutSide && setIsFocusFormulaEditor(false);
     });
 
     return (
@@ -262,7 +263,7 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
                                 onVerify={(res: boolean) => {
                                     setValidFormulaOrRange(res);
                                 }}
-                                onFocus={() => isFocusFormulaEditorSet(true)}
+                                onFocus={() => setIsFocusFormulaEditor(true)}
                             />
                         </div>
                     </div>
@@ -292,7 +293,7 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
                 <span>
                     {validString}
                 </span>
-                <ErrorSingle />
+                <ErrorIcon />
             </div>
 
             <div className="univer-flex univer-gap-2">

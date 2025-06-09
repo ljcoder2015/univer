@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/sheets-drawing-ui",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "private": false,
     "description": "",
     "author": "DreamNum <developer@univer.ai>",
@@ -84,7 +84,6 @@
         "@univerjs/drawing": "workspace:*",
         "@univerjs/drawing-ui": "workspace:*",
         "@univerjs/engine-render": "workspace:*",
-        "@univerjs/icons": "^0.3.24",
         "@univerjs/sheets": "workspace:*",
         "@univerjs/sheets-drawing": "workspace:*",
         "@univerjs/sheets-ui": "workspace:*",

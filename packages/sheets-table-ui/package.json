@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/sheets-table-ui",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "private": false,
     "description": "A library for connect and bind data from other sources to Univer Sheets",
     "author": "DreamNum <developer@univer.ai>",
@@ -75,7 +75,7 @@
         "@univerjs/design": "workspace:*",
         "@univerjs/engine-formula": "workspace:*",
         "@univerjs/engine-render": "workspace:*",
-        "@univerjs/icons": "^0.3.24",
+        "@univerjs/icons": "^0.4.4",
         "@univerjs/sheets": "workspace:*",
         "@univerjs/sheets-formula-ui": "workspace:*",
         "@univerjs/sheets-sort": "workspace:*",

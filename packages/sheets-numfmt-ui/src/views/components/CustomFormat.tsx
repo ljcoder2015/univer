@@ -17,10 +17,10 @@
 import type { IBusinessComponentProps } from './interface';
 import { ILocalStorageService, LocaleService } from '@univerjs/core';
 import { borderClassName, clsx, Input } from '@univerjs/design';
-import { CheckMarkSingle } from '@univerjs/icons';
+import { CheckMarkIcon } from '@univerjs/icons';
 import { CURRENCYFORMAT, DATEFMTLISG, NUMBERFORMAT } from '@univerjs/sheets-numfmt';
 import { useDependency } from '@univerjs/ui';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UserHabitController } from '../../controllers/user-habit.controller';
 
 const key = 'customFormat';
@@ -32,7 +32,7 @@ export function CustomFormat(props: IBusinessComponentProps) {
     const localStorageService = useDependency(ILocalStorageService);
     const localeService = useDependency(LocaleService);
 
-    const [pattern, patternSet] = useState(defaultPattern);
+    const [pattern, setPattern] = useState(defaultPattern);
     action.current = () => {
         userHabitController.markHabit(key, pattern);
         localStorageService.getItem<string[]>(historyPatternKey).then((list = []) => {
@@ -41,7 +41,7 @@ export function CustomFormat(props: IBusinessComponentProps) {
         });
         return pattern;
     };
-    const [options, optionsSet] = useState<(string | number)[]>([]);
+    const [options, setOptions] = useState<(string | number)[]>([]);
 
     useEffect(() => {
         localStorageService.getItem<string[]>(historyPatternKey).then((historyList) => {
@@ -53,14 +53,14 @@ export function CustomFormat(props: IBusinessComponentProps) {
             list.push(...(historyList || []));
             userHabitController.addHabit(key, []).finally(() => {
                 userHabitController.getHabit(key, list).then((list) => {
-                    optionsSet([...new Set(list)]);
+                    setOptions([...new Set(list)]);
                 });
             });
         });
     }, []);
 
     const handleClick = (p: string) => {
-        patternSet(p);
+        setPattern(p);
         onChange(p);
     };
 
@@ -75,7 +75,7 @@ export function CustomFormat(props: IBusinessComponentProps) {
                 placeholder={localeService.t('sheet.numfmt.customFormat')}
                 onBlur={handleBlur}
                 value={pattern}
-                onChange={patternSet}
+                onChange={setPattern}
                 className="univer-mt-2 univer-w-full"
             />
             <div
@@ -91,7 +91,7 @@ export function CustomFormat(props: IBusinessComponentProps) {
                         `}
                     >
                         <div className="univer-flex univer-w-4 univer-items-center univer-text-primary-600">
-                            {pattern === p && <CheckMarkSingle />}
+                            {pattern === p && <CheckMarkIcon />}
                         </div>
                         <div>
                             {p}

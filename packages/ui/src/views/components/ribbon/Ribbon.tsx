@@ -20,7 +20,7 @@ import type { RibbonType } from '../../../controllers/ui/ui.controller';
 import type { IMenuSchema } from '../../../services/menu/menu-manager.service';
 import { LocaleService, throttle } from '@univerjs/core';
 import { borderBottomClassName, borderClassName, clsx, divideXClassName, Dropdown, HoverCard } from '@univerjs/design';
-import { DatabaseSingle, EyeSingle, FunctionSingle, HomeSingle, InsertSingle, MoreDownSingle, MoreFunctionSingle } from '@univerjs/icons';
+import { DatabaseIcon, EyeIcon, FunctionIcon, HomeIcon, InsertIcon, MoreDownIcon, MoreFunctionIcon } from '@univerjs/icons';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { combineLatest } from 'rxjs';
 import { IMenuManagerService } from '../../../services/menu/menu-manager.service';
@@ -37,12 +37,12 @@ interface IRibbonProps {
 }
 
 const iconMap = {
-    [RibbonPosition.START]: HomeSingle,
-    [RibbonPosition.INSERT]: InsertSingle,
-    [RibbonPosition.FORMULAS]: FunctionSingle,
-    [RibbonPosition.DATA]: DatabaseSingle,
-    [RibbonPosition.VIEW]: EyeSingle,
-    [RibbonPosition.OTHERS]: MoreFunctionSingle,
+    [RibbonPosition.START]: HomeIcon,
+    [RibbonPosition.INSERT]: InsertIcon,
+    [RibbonPosition.FORMULAS]: FunctionIcon,
+    [RibbonPosition.DATA]: DatabaseIcon,
+    [RibbonPosition.VIEW]: EyeIcon,
+    [RibbonPosition.OTHERS]: MoreFunctionIcon,
 };
 
 export function Ribbon(props: IRibbonProps) {
@@ -64,7 +64,7 @@ export function Ribbon(props: IRibbonProps) {
 
     const containerRef = useRef<HTMLDivElement>(null!);
     const toolbarItemRefs = useRef<Record<string, {
-        width: number;
+        el: HTMLElement;
         key: string;
         order: number;
         groupOrder: number;
@@ -217,7 +217,8 @@ export function Ribbon(props: IRibbonProps) {
                     const gapWidth = (allGroups.length - 1) * 8;
                     totalWidth += gapWidth;
 
-                    for (const { width, key } of sortedToolbarItems) {
+                    for (const { el, key } of sortedToolbarItems) {
+                        const { width } = el.getBoundingClientRect();
                         totalWidth += width + 8;
 
                         if (totalWidth > avaliableWidth) {
@@ -249,7 +250,7 @@ export function Ribbon(props: IRibbonProps) {
                   univer-flex univer-h-10 univer-min-w-min univer-items-center univer-px-3 univer-opacity-0
                 `, {
                     'univer-hidden': !fakeToolbarVisible,
-                }, borderBottomClassName)}
+                }, divideXClassName, borderBottomClassName)}
             >
                 {activeGroup.allGroups.map((groupItem, index) => (groupItem.children?.length || groupItem.item) && (
                     <Fragment key={groupItem.key}>
@@ -262,7 +263,7 @@ export function Ribbon(props: IRibbonProps) {
                                         ref={(ref) => {
                                             if (ref?.el) {
                                                 toolbarItemRefs.current[child.key] = {
-                                                    width: ref.el.getBoundingClientRect().width,
+                                                    el: ref.el,
                                                     key: child.key,
                                                     order: index,
                                                     groupOrder: groupItem.order,
@@ -375,7 +376,7 @@ export function Ribbon(props: IRibbonProps) {
                             onClick={() => setGroupSelectorVisible(true)}
                         >
                             {localeService.t(activatedTab)}
-                            <MoreDownSingle
+                            <MoreDownIcon
                                 className={`
                                   univer-text-gray-200
                                   dark:!univer-text-gray-500
@@ -438,7 +439,7 @@ export function Ribbon(props: IRibbonProps) {
                                 )}
                             >
                                 <a className={toolbarButtonClassName} type="button">
-                                    <MoreFunctionSingle />
+                                    <MoreFunctionIcon />
                                 </a>
                             </Dropdown>
                         </div>

@@ -18,8 +18,8 @@ import type { IRange, Nullable } from '@univerjs/core';
 import type { IOrderRule } from '@univerjs/sheets-sort';
 import type { ICustomSortState } from '../services/sheets-sort-ui.service';
 import { LocaleService, LocaleType, throttle } from '@univerjs/core';
-import { Button, Checkbox, DraggableList, Dropdown, Radio, RadioGroup } from '@univerjs/design';
-import { CheckMarkSingle, DeleteEmptySingle, IncreaseSingle, MoreDownSingle, SequenceSingle } from '@univerjs/icons';
+import { Button, Checkbox, clsx, DraggableList, Dropdown, Radio, RadioGroup, scrollbarClassName } from '@univerjs/design';
+import { CheckMarkIcon, DeleteEmptyIcon, IncreaseIcon, MoreDownIcon, SequenceIcon } from '@univerjs/icons';
 import { SheetsSortService, SortType } from '@univerjs/sheets-sort';
 import { useDependency, useObservable } from '@univerjs/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -125,7 +125,7 @@ function CustomSortPanelImpl({ state }: { state: ICustomSortState }) {
                                 `}
                                 onClick={newItem}
                             >
-                                <IncreaseSingle />
+                                <IncreaseIcon />
                                 <span className="univer-ml-1.5">{localeService.t('sheets-sort.dialog.add-condition')}</span>
                             </div>
                         )
@@ -138,19 +138,19 @@ function CustomSortPanelImpl({ state }: { state: ICustomSortState }) {
                                   disabled:univer-text-gray-800
                                 `}
                             >
-                                <IncreaseSingle />
+                                <IncreaseIcon />
                                 <span className="univer-ml-1.5 univer-text-xs">{localeService.t('sheets-sort.dialog.add-condition')}</span>
                             </div>
                         )}
 
                 </div>
                 <div
-                    className="univer-max-h-[310px] univer-overflow-y-auto univer-overflow-x-hidden"
+                    ref={listEndRef}
+                    className={clsx('univer-max-h-[310px] univer-overflow-y-auto univer-overflow-x-hidden', scrollbarClassName)}
                     onScroll={(e) => {
                         const position = e.currentTarget.scrollTop;
                         setScrollPosition(position);
                     }}
-                    ref={listEndRef}
                 >
                     <DraggableList
                         list={dragList}
@@ -234,7 +234,7 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                       univer-text-gray-700
                     `}
                 >
-                    <SequenceSingle />
+                    <SequenceIcon />
                 </div>
                 <div>
                     {/* TODO@wzhudev: change it to the Select component later. */}
@@ -242,11 +242,11 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                         align="start"
                         overlay={(
                             <ul
-                                className={`
+                                className={clsx(`
                                   univer-my-0 univer-box-border univer-grid univer-max-h-[310px] univer-items-center
                                   univer-gap-1 univer-overflow-y-auto univer-overflow-x-hidden univer-rounded-lg
                                   univer-border univer-bg-white univer-p-1 univer-text-base univer-shadow-lg
-                                `}
+                                `, scrollbarClassName)}
                             >
                                 {availableMenu.map((menuItem) => (
                                     <li
@@ -260,14 +260,12 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                                           hover:univer-bg-gray-100
                                         `}
                                     >
-                                        <span
-                                            className="univer-max-w-[220px] univer-truncate"
-                                        >
+                                        <span className="univer-max-w-[220px] univer-truncate">
                                             {menuItem.label}
                                         </span>
                                         <span>
                                             {menuItem.index === item.colIndex && (
-                                                <CheckMarkSingle />
+                                                <CheckMarkIcon />
                                             )}
                                         </span>
                                     </li>
@@ -290,7 +288,7 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                             >
                                 {itemLabel}
                             </span>
-                            <MoreDownSingle />
+                            <MoreDownIcon />
                         </div>
                     </Dropdown>
                 </div>
@@ -308,7 +306,7 @@ export function SortOptionItem(props: ISortOptionItemProps) {
                 </RadioGroup>
             </div>
             <div className="univer-absolute univer-right-0 univer-cursor-pointer univer-text-sm univer-s-[14px]">
-                {showDelete && <DeleteEmptySingle onClick={() => onChange(null, currentIndex)} />}
+                {showDelete && <DeleteEmptyIcon onClick={() => onChange(null, currentIndex)} />}
             </div>
         </div>
     );

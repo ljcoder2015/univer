@@ -29,10 +29,9 @@ import {
     WrapStrategy,
 } from '@univerjs/core';
 import { borderClassName, clsx } from '@univerjs/design';
-import { CheckMarkSingle, CloseSingle } from '@univerjs/icons';
+import { CheckMarkIcon, CloseIcon } from '@univerjs/icons';
 import { useDependency, useObservable } from '@univerjs/ui';
-
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CloseFormulaPopupOperation, ConfirmFormulaPopupCommand } from '../../commands/operations/operation';
 import { DOC_FORMULA_POPUP_KEY, UniFormulaPopupService } from '../../services/formula-popup.service';
 
@@ -141,35 +140,18 @@ function DocFormula(props: { popupInfo: IUniFormulaPopupInfo }) {
             onMouseEnter={() => onHovered(true)}
             onMouseLeave={() => onHovered(false)}
         >
-            {/* TODO@wzhudev: fix DocFormulaFloat */}
-            {/* <TextEditor
-                id={UNI_FORMULA_EDITOR_ID}
-                className={clsx(styles.docUiFormulaPopupEditor, focused && styles.docUiFormulaPopupEditorActivated)}
-                placeholder={localeService.t('uni-formula.popup.placeholder')}
-                snapshot={snapshotRef.current}
-                cancelDefaultResizeListener
-                value={f ?? ''}
-                isSingle
-                isFormulaEditor
-                onChange={(str) => onFormulaStringChange(str ?? '')}
-                onFocus={() => {
-                    formulaPopupService.lockPopup();
-                    setFocused(true);
-                }}
-                onBlur={() => setFocused(false)}
-            /> */}
             <div className="univer-flex">
                 <span
                     className="univer-flex univer-items-center univer-gap-2 univer-rounded-lg univer-p-1"
                     onClick={onCancel}
                 >
-                    <CloseSingle />
+                    <CloseIcon />
                 </span>
                 <span
                     className="univer-flex univer-items-center univer-gap-2 univer-rounded-lg univer-p-1"
                     onClick={onConfirm}
                 >
-                    <CheckMarkSingle />
+                    <CheckMarkIcon />
                 </span>
             </div>
         </div>

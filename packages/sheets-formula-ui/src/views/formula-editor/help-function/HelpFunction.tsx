@@ -17,8 +17,8 @@
 import type { Editor } from '@univerjs/docs-ui';
 import type { IFunctionParam } from '@univerjs/engine-formula';
 import { LocaleService } from '@univerjs/core';
-import { borderClassName, borderTopClassName, clsx } from '@univerjs/design';
-import { CloseSingle, MoreSingle } from '@univerjs/icons';
+import { borderClassName, borderTopClassName, clsx, scrollbarClassName } from '@univerjs/design';
+import { CloseIcon, MoreIcon } from '@univerjs/icons';
 import { IEditorBridgeService } from '@univerjs/sheets-ui';
 import { RectPopup, useDependency, useEvent, useObservable } from '@univerjs/ui';
 import { useMemo, useState } from 'react';
@@ -153,12 +153,13 @@ export function HelpFunction(props: IHelpFunctionProps) {
                                       univer-items-center univer-justify-center univer-rounded univer-bg-transparent
                                       univer-p-0 univer-text-xs univer-text-gray-500 univer-outline-none
                                       univer-transition-colors
+                                      dark:hover:!univer-bg-gray-600
                                       hover:univer-bg-gray-200
                                     `}
                                     style={{ transform: contentVisible ? 'rotateZ(-90deg)' : 'rotateZ(90deg)' }}
                                     onClick={() => setContentVisible(!contentVisible)}
                                 >
-                                    <MoreSingle />
+                                    <MoreIcon />
                                 </div>
                                 <div
                                     className={`
@@ -166,20 +167,20 @@ export function HelpFunction(props: IHelpFunctionProps) {
                                       univer-items-center univer-justify-center univer-rounded univer-bg-transparent
                                       univer-p-0 univer-text-xs univer-text-gray-600 univer-outline-none
                                       univer-transition-colors
-                                      dark:!univer-text-gray-200
+                                      dark:!univer-text-gray-200 dark:hover:!univer-bg-gray-600
                                       hover:univer-bg-gray-300
                                     `}
                                     onClick={onClose}
                                 >
-                                    <CloseSingle />
+                                    <CloseIcon />
                                 </div>
                             </div>
                         </div>
                         <div
-                            className={`
+                            className={clsx(`
                               univer-box-border univer-max-h-[350px] univer-overflow-y-auto univer-px-4 univer-pb-3
                               univer-pt-0
-                            `}
+                            `, scrollbarClassName)}
                             style={{
                                 height: contentVisible ? 'unset' : 0,
                                 padding: contentVisible ? 'revert-layer' : 0,

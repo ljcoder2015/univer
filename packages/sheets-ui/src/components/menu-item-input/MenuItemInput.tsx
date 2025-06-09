@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import type { KeyboardEvent } from 'react';
 import type { IMenuItemInputProps } from './interface';
 import { LocaleService } from '@univerjs/core';
 import { InputNumber } from '@univerjs/design';
@@ -46,18 +45,18 @@ export const MenuItemInput = (props: IMenuItemInputProps) => {
     }, [contextMenuService.visible]);
 
     useEffect(() => {
-        setInputValue(value);
+        if (+value < min) {
+            setInputValue(min.toString());
+        } else if (+value > max) {
+            setInputValue(max.toString());
+        } else {
+            setInputValue(value);
+        }
     }, [value]);
 
-    function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-        if (e.key === 'Backspace') {
-            e.stopPropagation();
-        }
-        if (e.key === 'Enter') {
-            e.stopPropagation();
-            if (inputValue) {
-                onChange(inputValue);
-            }
+    function handlePressEnter() {
+        if (inputValue) {
+            onChange(inputValue);
         }
     }
 
@@ -71,7 +70,7 @@ export const MenuItemInput = (props: IMenuItemInputProps) => {
                     precision={0}
                     min={min}
                     max={max}
-                    onKeyDown={handleKeyDown}
+                    onPressEnter={handlePressEnter}
                     onChange={handleChange}
                 />
             </div>

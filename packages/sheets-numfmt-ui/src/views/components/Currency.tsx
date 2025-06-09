@@ -16,9 +16,9 @@
 
 import type { FC } from 'react';
 import type { IBusinessComponentProps } from './interface';
-import { LocaleService } from '@univerjs/core';
+import { isPatternEqualWithoutDecimal, LocaleService } from '@univerjs/core';
 import { InputNumber, Select, SelectList } from '@univerjs/design';
-import { getCurrencyFormatOptions, getCurrencyType, getDecimalFromPattern, isPatternEqualWithoutDecimal, setPatternDecimal } from '@univerjs/sheets-numfmt';
+import { getCurrencyFormatOptions, getCurrencyType, getDecimalFromPattern, setPatternDecimal } from '@univerjs/sheets-numfmt';
 import { useDependency } from '@univerjs/ui';
 import { useContext, useMemo, useState } from 'react';
 import { UserHabitCurrencyContext } from '../../controllers/user-habit.controller';
@@ -32,9 +32,9 @@ export const CurrencyPanel: FC<IBusinessComponentProps> = (props) => {
     const localeService = useDependency(LocaleService);
     const t = localeService.t;
     const userHabitCurrency = useContext(UserHabitCurrencyContext);
-    const [suffix, suffixSet] = useState(() => getCurrencyType(props.defaultPattern) || userHabitCurrency[0]);
-    const [decimal, decimalSet] = useState(() => getDecimalFromPattern(props.defaultPattern || '', 2));
-    const [pattern, patternSet] = useState(() => {
+    const [suffix, setSuffix] = useState(() => getCurrencyType(props.defaultPattern) || userHabitCurrency[0]);
+    const [decimal, setDecimal] = useState(() => getDecimalFromPattern(props.defaultPattern || '', 2));
+    const [pattern, setPattern] = useState(() => {
         const negativeOptions = getCurrencyFormatOptions(suffix);
         const pattern =
             negativeOptions.find((item) => isPatternEqualWithoutDecimal(item.value, props.defaultPattern))?.value ||
@@ -51,9 +51,9 @@ export const CurrencyPanel: FC<IBusinessComponentProps> = (props) => {
         if (value === undefined) {
             return;
         }
-        suffixSet(value);
+        setSuffix(value);
         const pattern = getCurrencyFormatOptions(value)[0].value;
-        patternSet(pattern);
+        setPattern(pattern);
         props.onChange(setPatternDecimal(pattern, decimal));
     };
 
@@ -61,12 +61,12 @@ export const CurrencyPanel: FC<IBusinessComponentProps> = (props) => {
         if (value === undefined) {
             return;
         }
-        patternSet(value);
+        setPattern(value);
         props.onChange(setPatternDecimal(value, decimal));
     };
 
     const onDecimalChange = (v: number | null) => {
-        decimalSet(v || 0);
+        setDecimal(v || 0);
         props.onChange(setPatternDecimal(pattern, v || 0));
     };
 

@@ -208,7 +208,8 @@ export interface IStyleData extends IStyleBase {
      */
     tr?: Nullable<ITextRotation>;
     /**
-     * textDirection
+     * textDirection @TODO
+     * @description The `td` property has not been fully implemented yet.
      */
     td?: Nullable<TextDirection>;
     /**
@@ -224,8 +225,8 @@ export interface IStyleData extends IStyleBase {
      */
     tb?: Nullable<WrapStrategy>;
     /**
-     * padding
+     * padding @TODO
+     * @description The `pd` property has not been fully implemented yet.
      */
     pd?: Nullable<IPaddingData>;
-
 }

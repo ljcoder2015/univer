@@ -15,7 +15,7 @@
  */
 
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
-import { MoreUpSingle } from '@univerjs/icons';
+import { MoreUpIcon } from '@univerjs/icons';
 import { createContext, useState } from 'react';
 import { clsx } from '../../helper/clsx';
 
@@ -53,15 +53,13 @@ export const FormLayout = (props: IFormLayoutProps) => {
                         onClick={() => setCollapsed(!collapsed)}
                     >
                         {label}
-                        {collapsable
-                            ? (
-                                <MoreUpSingle
-                                    className={clsx('univer-ml-1 univer-transition-transform', {
-                                        'univer-rotate-180': collapsed,
-                                    })}
-                                />
-                            )
-                            : null}
+                        {collapsable && (
+                            <MoreUpIcon
+                                className={clsx('univer-ml-1 univer-transition-transform', {
+                                    'univer-rotate-180': collapsed,
+                                })}
+                            />
+                        )}
                     </div>
                 )}
                 {collapsed && collapsable

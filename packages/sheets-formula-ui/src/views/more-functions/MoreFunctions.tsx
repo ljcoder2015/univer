@@ -22,7 +22,7 @@ import { DeviceInputEventType } from '@univerjs/engine-render';
 import { getSheetCommandTarget } from '@univerjs/sheets';
 import { IEditorBridgeService, SetCellEditVisibleOperation, useActiveWorkbook } from '@univerjs/sheets-ui';
 import { useDependency } from '@univerjs/ui';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { InputParams } from './input-params/InputParams';
 import { SelectFunction } from './select-function/SelectFunction';
 
@@ -63,12 +63,13 @@ export function MoreFunctions() {
     }
 
     return (
-        <div className="univer-flex univer-h-full univer-flex-col univer-justify-between univer-leading-5">
+        <div
+            data-u-comp="sheets-formula-functions-panel"
+            className="univer-flex univer-h-full univer-flex-col univer-justify-between univer-py-2"
+        >
             {selectFunction && <SelectFunction onChange={setFunctionInfo} />}
             {inputParams && <InputParams functionInfo={functionInfo} onChange={() => {}} />}
-            <div
-                className="univer-flex univer-justify-end"
-            >
+            <div className="univer-flex univer-justify-end">
                 {/* TODO@Dushusir: open input params after range selector refactor */}
                 {inputParams && (
                     <Button

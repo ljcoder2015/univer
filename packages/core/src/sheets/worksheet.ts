@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { IDisposable } from '@wendellhu/redi';
 import type { IInterceptor } from '../common/interceptor';
 import type { IObjectMatrixPrimitiveType, Nullable } from '../shared';
 import type { BooleanNumber, HorizontalAlign, TextDirection, VerticalAlign, WrapStrategy } from '../types/enum';
@@ -22,7 +23,7 @@ import type { Styles } from './styles';
 import type { CustomData, ICellData, ICellDataForSheetInterceptor, ICellDataWithSpanAndDisplay, IFreeze, IRange, ISelectionCell, IWorksheetData } from './typedef';
 import { BuildTextUtils, DocumentDataModel } from '../docs';
 import { convertTextRotation, getFontStyleString } from '../docs/data-model/utils';
-import { composeStyles, ObjectMatrix, Tools } from '../shared';
+import { composeStyles, ObjectMatrix, toDisposable, Tools } from '../shared';
 import { createRowColIter } from '../shared/row-col-iter';
 import { DEFAULT_STYLES } from '../types/const';
 import { CellValueType } from '../types/enum';
@@ -73,7 +74,7 @@ const DEFAULT_CELL_DOCUMENT_MODEL_OPTION = {
 export class Worksheet {
     protected _sheetId: string;
     protected _snapshot: IWorksheetData;
-    protected _cellData: ObjectMatrix<ICellData>;
+    protected _cellData: ObjectMatrix<Nullable<ICellData>>;
 
     protected _rowManager: RowManager;
     protected _columnManager: ColumnManager;
@@ -81,6 +82,13 @@ export class Worksheet {
     protected readonly _viewModel: SheetViewModel;
 
     protected _spanModel: SpanModel;
+
+    /**
+     * Whether the row style precedes the column style.
+     */
+    protected _isRowStylePrecedeColumnStyle: boolean = true;
+
+    private _getCellHeight: Nullable<(row: number, col: number) => number>;
 
     constructor(
         public readonly unitId: string,
@@ -91,7 +99,7 @@ export class Worksheet {
 
         const { columnData, rowData, cellData } = this._snapshot;
         this._sheetId = this._snapshot.id ?? Tools.generateRandomId(6);
-        this._cellData = new ObjectMatrix<ICellData>(cellData as IObjectMatrixPrimitiveType<ICellData>);
+        this._cellData = new ObjectMatrix<Nullable<ICellData>>(cellData as IObjectMatrixPrimitiveType<Nullable<ICellData>>);
 
         // This view model will immediately injected with hooks from SheetViewModel service as Worksheet is constructed.
         this._viewModel = new SheetViewModel((row, col) => this.getCellRaw(row, col));
@@ -108,8 +116,27 @@ export class Worksheet {
         callback(this._viewModel);
     }
 
+    /**
+     * @internal
+     * this is an internal method, please do not use it
+     */
+    __registerGetCellHeight(callback: (row: number, col: number) => number): IDisposable {
+        this._getCellHeight = callback;
+
+        return toDisposable(() => {
+            this._getCellHeight = null;
+        });
+    }
+
     getSnapshot(): IWorksheetData {
         return this._snapshot;
+    }
+
+    getCellHeight(row: number, col: number): number {
+        if (this._getCellHeight) {
+            return this._getCellHeight(row, col);
+        }
+        return this._snapshot.defaultRowHeight;
     }
 
     /**
@@ -123,6 +150,10 @@ export class Worksheet {
 
     getSpanModel(): SpanModel {
         return this._spanModel;
+    }
+
+    setIsRowStylePrecedeColumnStyle(isRowStylePrecedeColumnStyle: boolean): void {
+        this._isRowStylePrecedeColumnStyle = isRowStylePrecedeColumnStyle;
     }
 
     getStyleDataByHash(hash: string): Nullable<IStyleData> {
@@ -224,14 +255,15 @@ export class Worksheet {
      * @param {number} col The column index of the cell
      * @returns {IStyleData} The composed style of the cell
      */
-    getComposedCellStyle(row: number, col: number, rowPriority = true): IStyleData {
-        const cell = this.getCellStyle(row, col);
+    getComposedCellStyle(row: number, col: number, rowPriority?: boolean): IStyleData {
         const defaultStyle = this.getDefaultCellStyleInternal();
         const rowStyle = this.getRowStyle(row);
         const colStyle = this.getColumnStyle(col);
-        return rowPriority
-            ? composeStyles(defaultStyle, rowStyle, colStyle, cell)
-            : composeStyles(defaultStyle, colStyle, rowStyle, cell);
+        const cell = this.getCell(row, col);
+        const cellStyle = this._styles.getStyleByCell(cell);
+        return (rowPriority ?? this._isRowStylePrecedeColumnStyle)
+            ? composeStyles(defaultStyle, colStyle, rowStyle, cell?.themeStyle, cellStyle)
+            : composeStyles(defaultStyle, rowStyle, colStyle, cell?.themeStyle, cellStyle);
     }
 
     /**
@@ -1042,20 +1074,19 @@ export class Worksheet {
      * @param options
      */
     // eslint-disable-next-line complexity, max-lines-per-function
-    private _getCellDocumentModel(
+    getCellDocumentModel(
         cell: Nullable<ICellDataForSheetInterceptor>,
+        style: Nullable<IStyleData>,
         options: ICellDocumentModelOption = DEFAULT_CELL_DOCUMENT_MODEL_OPTION
     ): Nullable<IDocumentLayoutObject> {
+        if (!cell) {
+            return;
+        }
+
         const { isDeepClone, displayRawFormula, ignoreTextRotation } = {
             ...DEFAULT_CELL_DOCUMENT_MODEL_OPTION,
             ...options,
         };
-
-        const style = this._styles.getStyleByCell(cell);
-
-        if (!cell) {
-            return;
-        }
 
         let documentModel: Nullable<DocumentDataModel>;
         let fontString = 'document';
@@ -1187,11 +1218,10 @@ export class Worksheet {
     /**
      * Only used for cell edit, and no need to rotate text when edit cell content!
      */
-    getBlankCellDocumentModel(cell: Nullable<ICellData>): IDocumentLayoutObject {
-        const documentModelObject = this._getCellDocumentModel(cell, { ignoreTextRotation: true });
-
-        const style = this._styles.getStyleByCell(cell);
+    getBlankCellDocumentModel(cell: Nullable<ICellData>, row: number, column: number): IDocumentLayoutObject {
+        const style = this.getComposedCellStyle(row, column);
         const textStyle = getFontFormat(style);
+        const documentModelObject = this.getCellDocumentModel(cell, style, { ignoreTextRotation: true });
 
         if (documentModelObject != null) {
             if (documentModelObject.documentModel == null) {
@@ -1226,8 +1256,9 @@ export class Worksheet {
     }
 
     // Only used for cell edit, and no need to rotate text when edit cell content!
-    getCellDocumentModelWithFormula(cell: ICellData): Nullable<IDocumentLayoutObject> {
-        return this._getCellDocumentModel(cell, {
+    getCellDocumentModelWithFormula(cell: ICellData, row: number, column: number): Nullable<IDocumentLayoutObject> {
+        const style = this.getComposedCellStyle(row, column);
+        return this.getCellDocumentModel(cell, style, {
             isDeepClone: true,
             displayRawFormula: true,
             ignoreTextRotation: true,

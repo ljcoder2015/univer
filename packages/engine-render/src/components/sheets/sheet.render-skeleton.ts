@@ -34,8 +34,6 @@ import type {
     ITextRotation,
     Nullable,
     Styles,
-    VerticalAlign,
-
     Worksheet,
 } from '@univerjs/core';
 import type { IDocumentSkeletonColumn } from '../../basics/i-document-skeleton-cached';
@@ -47,7 +45,6 @@ import {
     addLinkToDocumentModel,
     BooleanNumber,
     CellValueType,
-    composeStyles,
     DEFAULT_STYLES,
     extractPureTextFromCell,
     getColorStyle,
@@ -64,9 +61,11 @@ import {
     searchArray,
     SheetSkeleton,
     Tools,
+    VerticalAlign,
     WrapStrategy,
 } from '@univerjs/core';
 import { distinctUntilChanged, startWith } from 'rxjs';
+import { FontCache } from '../../basics';
 import { BORDER_TYPE as BORDER_LTRB, COLOR_BLACK_RGB, MAXIMUM_COL_WIDTH, MAXIMUM_ROW_HEIGHT, MIN_COL_WIDTH } from '../../basics/const';
 import { getRotateOffsetAndFarthestHypotenuse } from '../../basics/draw';
 import { convertTextRotation, VERTICAL_ROTATE_ANGLE } from '../../basics/text-rotation';
@@ -74,6 +73,7 @@ import {
     degToRad,
     getFontStyleString,
 } from '../../basics/tools';
+import { DocSimpleSkeleton } from '../docs/layout/doc-simple-skeleton';
 import { DocumentSkeleton } from '../docs/layout/doc-skeleton';
 import { columnIterator } from '../docs/layout/tools';
 import { DocumentViewModel } from '../docs/view-model/document-view-model';
@@ -129,6 +129,8 @@ export interface IGetPosByRowColOptions {
     firstMatch?: boolean;
 }
 
+const CACHE_COUNT = 100;
+
 export class SpreadsheetSkeleton extends SheetSkeleton {
     /**
      * Range viewBounds. only update by viewBounds.
@@ -149,19 +151,18 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
     private _stylesCache: IStylesCache = {
         background: {},
         backgroundPositions: new ObjectMatrix<ICellWithCoord>(),
-        font: {} as Record<string, ObjectMatrix<IFontCacheItem>>,
         fontMatrix: new ObjectMatrix<IFontCacheItem>(),
         border: new ObjectMatrix<BorderCache>(),
     };
 
+    private _clearTaskId: Nullable<number> = null;
     /** A matrix to store if a (row, column) position has render cache. */
     private _handleBgMatrix = new ObjectMatrix<boolean>();
     private _handleBorderMatrix = new ObjectMatrix<boolean>();
-    private _handleFontMatrix = new ObjectMatrix<boolean>();
     private _showGridlines: BooleanNumber = BooleanNumber.TRUE;
     private _gridlinesColor: string | undefined = undefined;
-
     private _scene: Nullable<Scene> = null;
+
     constructor(
         worksheet: Worksheet,
         _styles: Styles,
@@ -182,6 +183,10 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 this.makeDirty(true);
             })
         );
+
+        this.disposeWithMe(this.worksheet.__registerGetCellHeight((row, col) => {
+            return this.calculateAutoHeightForCell(row, col) ?? 0;
+        }));
     }
 
     setScene(scene: Scene) {
@@ -248,7 +253,6 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         this._stylesCache = {
             background: {},
             backgroundPositions: new ObjectMatrix<ICellWithCoord>(),
-            font: {} as Record<string, ObjectMatrix<IFontCacheItem>>,
             fontMatrix: new ObjectMatrix<IFontCacheItem>(),
             border: new ObjectMatrix<BorderCache>(),
         };
@@ -311,6 +315,30 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
     }
 
     /**
+     * Clear cache out of visible range when browser are free.
+     */
+    private _clearCacheOutOfVisibleRange(visibleStartRow: number, visibleEndRow: number, visibleStartColumn: number, visibleEndColumn: number) {
+        if (this._clearTaskId) {
+            cancelIdleCallback(this._clearTaskId);
+        }
+
+        this._clearTaskId = requestIdleCallback(() => {
+            this._stylesCache.fontMatrix.forValue((row, col) => {
+                if (
+                    row < (visibleStartRow - CACHE_COUNT) ||
+                    row > (visibleEndRow + CACHE_COUNT) ||
+                    col < (visibleStartColumn - CACHE_COUNT) ||
+                    col > (visibleEndColumn + CACHE_COUNT)
+                ) {
+                    this._stylesCache.fontMatrix.realDeleteValue(row, col);
+                }
+            });
+
+            this._clearTaskId = null;
+        });
+    }
+
+    /**
      * Set border background and font to this._stylesCache by visible range, which derives from bounds)
      * @param vpInfo viewBounds
      */
@@ -323,6 +351,9 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         const rowColumnSegment = this._drawingRange;
         const columnWidthAccumulation = this.columnWidthAccumulation;
         const { startRow: visibleStartRow, endRow: visibleEndRow, startColumn: visibleStartColumn, endColumn: visibleEndColumn } = rowColumnSegment;
+
+        // clear cache out of visible range
+        this._clearCacheOutOfVisibleRange(visibleStartRow, visibleEndRow, visibleStartColumn, visibleEndColumn);
 
         if (visibleEndColumn === -1 || visibleEndRow === -1) return;
 
@@ -364,7 +395,7 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
      * @param ranges
      * @returns {IRowAutoHeightInfo[]} result
      */
-    calculateAutoHeightInRange(ranges: Nullable<IRange[]>): IRowAutoHeightInfo[] {
+    calculateAutoHeightInRange(ranges: Nullable<IRange[]>, currentCellHeights?: ObjectMatrix<number>): IRowAutoHeightInfo[] {
         if (!Tools.isArray(ranges)) {
             return [];
         }
@@ -373,11 +404,12 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         const { rowData } = this._worksheetData;
         const rowObjectArray = rowData;
         const calculatedRows = new Set<number>();
+        const rowCount = this.worksheet.getRowCount();
 
         for (const range of ranges) {
             const { startRow, endRow, startColumn, endColumn } = range;
-
-            for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
+            const end = Math.min(endRow, rowCount);
+            for (let rowIndex = startRow; rowIndex <= end; rowIndex++) {
                 // If the row has already been calculated, it does not need to be calculated
                 if (calculatedRows.has(rowIndex)) {
                     continue;
@@ -391,12 +423,49 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 const hasUnMergedCell = this._hasUnMergedCellInRow(rowIndex, startColumn, endColumn);
 
                 if (hasUnMergedCell) {
-                    const autoHeight = this._calculateRowAutoHeight(rowIndex);
-                    calculatedRows.add(rowIndex);
-                    results.push({
-                        row: rowIndex,
-                        autoHeight,
-                    });
+                    // if `currentCellHeights` is provided, we just need to compare `newHeights` with `currentCellHeights` to figure out if we should update the row height
+                    if (currentCellHeights) {
+                        const currentAutoHeight = this.worksheet.getRowHeight(rowIndex);
+                        let maxPrev = 0;
+                        let maxCurrent = 0;
+                        for (let colIndex = startColumn; colIndex <= endColumn; colIndex++) {
+                            const autoHeight = currentCellHeights.getValue(rowIndex, colIndex) ?? 0;
+                            maxPrev = Math.max(maxPrev, autoHeight);
+                            const currentHeight = this.calculateAutoHeightForCell(rowIndex, colIndex) ?? this._worksheetData.defaultRowHeight;
+                            maxCurrent = Math.max(maxCurrent, currentHeight);
+                        }
+
+                        if (maxPrev < currentAutoHeight) {
+                            calculatedRows.add(rowIndex);
+
+                            results.push({
+                                row: rowIndex,
+                                autoHeight: Math.max(currentAutoHeight, maxCurrent),
+                            });
+                        } else {
+                            if (maxCurrent >= currentAutoHeight) {
+                                calculatedRows.add(rowIndex);
+                                results.push({
+                                    row: rowIndex,
+                                    autoHeight: maxCurrent,
+                                });
+                            } else {
+                                const autoHeight = this._calculateRowAutoHeight(rowIndex);
+                                calculatedRows.add(rowIndex);
+                                results.push({
+                                    row: rowIndex,
+                                    autoHeight,
+                                });
+                            }
+                        }
+                    } else {
+                        const autoHeight = this._calculateRowAutoHeight(rowIndex);
+                        calculatedRows.add(rowIndex);
+                        results.push({
+                            row: rowIndex,
+                            autoHeight,
+                        });
+                    }
                 }
             }
         }
@@ -404,55 +473,61 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         return results;
     }
 
-    // eslint-disable-next-line max-lines-per-function
-    private _calculateRowAutoHeight(rowNum: number): number {
-        const worksheet = this.worksheet;
-        const { columnCount, columnData, defaultRowHeight, defaultColumnWidth } = this._worksheetData;
-        let height = defaultRowHeight;
-
-        for (let i = 0; i < columnCount; i++) {
-            // When calculating the automatic height of a row, if a cell is in a merged cell,
-            // skip the cell directly, which currently follows the logic of Excel
-            const cellMergeInfo = this.worksheet.getCellInfoInMergeData(rowNum, i);
-            if (this._skipAutoHeightForMergedCells) {
-                if (cellMergeInfo.isMerged || cellMergeInfo.isMergedMainCell) {
-                    continue;
-                }
+    // eslint-disable-next-line max-lines-per-function, complexity
+    calculateAutoHeightForCell(row: number, col: number) {
+        const { columnData, defaultColumnWidth } = this._worksheetData;
+        const cellMergeInfo = this.worksheet.getCellInfoInMergeData(row, col);
+        if (this._skipAutoHeightForMergedCells) {
+            if (cellMergeInfo.isMerged || cellMergeInfo.isMergedMainCell) {
+                return undefined;
             }
-            const cell = worksheet.getCell(rowNum, i);
-            if (cell?.interceptorAutoHeight) {
-                const cellHeight = cell.interceptorAutoHeight();
-                if (cellHeight) {
-                    height = Math.max(height, cellHeight);
-                    continue;
-                }
-            }
+        }
 
-            const modelObject = cell && this._getCellDocumentModel(cell);
+        // TODO@weird94: in future, we should use `getCellRaw` instead of `getCell` to improve performance.
+        const cell = this.worksheet.getCell(row, col);
+        const style = this.worksheet.getComposedCellStyle(row, col);
+
+        if (cell?.interceptorAutoHeight) {
+            const cellHeight = cell.interceptorAutoHeight();
+            if (cellHeight) {
+                return cellHeight;
+            }
+        }
+
+        const sideGap = (cell?.fontRenderExtension?.leftOffset ?? 0) + (cell?.fontRenderExtension?.rightOffset ?? 0);
+
+        const { vertexAngle, centerAngle } = convertTextRotation(style?.tr ?? { a: 0 });
+        const isRichText = cell?.p || vertexAngle || centerAngle;
+
+        let colWidth = columnData[col]?.w ?? defaultColumnWidth;
+        if (cellMergeInfo.isMergedMainCell) {
+            const mergeCellStartCol = cellMergeInfo.startColumn;
+            const mergeCellEndCol = cellMergeInfo.endColumn;
+
+            colWidth = Array.from(
+                { length: mergeCellEndCol - mergeCellStartCol + 1 },
+                (_, index) => mergeCellStartCol + index
+            ).reduce((sum, colIndex) => {
+                return sum + (columnData[colIndex]?.w ?? defaultColumnWidth);
+            }, 0);
+        }
+
+        colWidth -= sideGap;
+
+        if (isRichText) {
+            const modelObject = cell && this.worksheet.getCellDocumentModel(cell, style);
             if (modelObject == null) {
-                continue;
+                return undefined;
             }
 
             const { documentModel, textRotation, wrapStrategy } = modelObject;
             if (documentModel == null) {
-                continue;
+                return undefined;
             }
 
             const documentViewModel = new DocumentViewModel(documentModel);
             const { vertexAngle: angle } = convertTextRotation(textRotation);
 
-            let colWidth = columnData[i]?.w ?? defaultColumnWidth;
-            if (cellMergeInfo.isMergedMainCell) {
-                const mergeCellStartCol = cellMergeInfo.startColumn;
-                const mergeCellEndCol = cellMergeInfo.endColumn;
-                const mergeCellWidth = mergeCellEndCol - mergeCellStartCol + 1;
-                colWidth = Array.from(
-                    { length: mergeCellEndCol - mergeCellStartCol + 1 },
-                    (_, index) => mergeCellStartCol + index
-                ).reduce((sum, colIndex) => {
-                    return sum + (columnData[colIndex]?.w ?? defaultColumnWidth);
-                }, 0);
-            }
             if (typeof colWidth === 'number' && wrapStrategy === WrapStrategy.WRAP) {
                 documentModel.updateDocumentDataPageSize(colWidth);
             }
@@ -482,7 +557,40 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                     l * Math.sin(absAngleInRad);
             }
 
-            height = Math.max(height, h);
+            return h;
+        } else {
+            if (cell?.v === undefined || cell?.v === null) {
+                return undefined;
+            }
+
+            if (style?.tb === WrapStrategy.WRAP) {
+                const skeleton = new DocSimpleSkeleton(
+                    `${cell!.v!}`,
+                    getFontStyleString(style).fontCache,
+                    style?.tb === WrapStrategy.WRAP,
+                    colWidth - DEFAULT_PADDING_DATA.l - DEFAULT_PADDING_DATA.r,
+                    Infinity
+                );
+                skeleton.calculate();
+                return skeleton.getTotalHeight();
+            } else {
+                // For same fontStyle, the height of the text is fixed.
+                // So we can use a fixed text to calculate the height to make a speed up.
+                const textSize = FontCache.getMeasureText('A', getFontStyleString(style).fontCache);
+                return textSize.fontBoundingBoxAscent + textSize.fontBoundingBoxDescent + DEFAULT_PADDING_DATA.t + DEFAULT_PADDING_DATA.b;
+            }
+        }
+    }
+
+    private _calculateRowAutoHeight(rowNum: number): number {
+        const { columnCount, defaultRowHeight } = this._worksheetData;
+        let height = defaultRowHeight;
+
+        for (let i = 0; i < columnCount; i++) {
+            const cellHeight = this.calculateAutoHeightForCell(rowNum, i);
+            if (cellHeight) {
+                height = Math.max(height, cellHeight);
+            }
         }
 
         return Math.min(height, MAXIMUM_ROW_HEIGHT);
@@ -510,7 +618,7 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 calculatedCols.add(colIndex);
                 results.push({
                     col: colIndex,
-                    width: autoWidth,
+                    width: Math.max(this._worksheetData.defaultColumnWidth, autoWidth),
                 });
             }
         }
@@ -590,7 +698,7 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 if (row + MEASURE_EXTENT_FOR_PARAGRAPH <= startRowOfViewMain || row - MEASURE_EXTENT_FOR_PARAGRAPH >= endRowOfViewMain) continue;
             }
 
-            let measuredWidth = this._getMeasuredWidthByCell(cell, currColWidth);
+            let measuredWidth = this._getMeasuredWidthByCell(cell, row, colIndex, currColWidth);
             if (cell.fontRenderExtension) {
                 measuredWidth += ((cell.fontRenderExtension?.leftOffset || 0) + (cell.fontRenderExtension?.rightOffset || 0));
             }
@@ -620,7 +728,7 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
      * @param cell
      * @returns {number} currColWidth
      */
-    _getMeasuredWidthByCell(cell: ICellDataForSheetInterceptor, currColWidth: number) {
+    _getMeasuredWidthByCell(cell: ICellDataForSheetInterceptor, row: number, column: number, currColWidth: number) {
         let measuredWidth = 0;
 
         // isSkip means the text in this cell would not rendering.
@@ -630,8 +738,8 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 return cellWidth;
             }
         }
-
-        const modelObject = this._getCellDocumentModel(cell);
+        const style = this.worksheet.getComposedCellStyle(row, column);
+        const modelObject = this.worksheet.getCellDocumentModel(cell, style);
         if (modelObject == null) {
             return measuredWidth;
         }
@@ -643,9 +751,8 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
 
         const documentViewModel = new DocumentViewModel(documentModel);
         const { vertexAngle: angle } = convertTextRotation(textRotation);
-        const cellStyle = this._styles.getStyleByCell(cell);
 
-        if (cellStyle?.tb === WrapStrategy.WRAP) {
+        if (style?.tb === WrapStrategy.WRAP) {
             documentModel.updateDocumentDataPageSize(currColWidth, Infinity);
         } else {
             documentModel.updateDocumentDataPageSize(Infinity, Infinity);
@@ -924,7 +1031,6 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
             if (cell.t === CellValueType.FORCE_STRING && displayRawFormula) {
                 cellText = `'${cellText}`;
             }
-
             documentModel = createDocumentModelWithStyle(cellText, textStyle, {
                 ...cellOtherConfig,
                 textRotation,
@@ -1000,8 +1106,17 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                 return true;
             }
 
-            let contentSize = getDocsSkeletonPageSize(documentSkeleton, vertexAngle);
+            let contentSize;
 
+            if (documentSkeleton) {
+                contentSize = getDocsSkeletonPageSize(documentSkeleton, vertexAngle);
+            } else {
+                const textSize = FontCache.getMeasureText(`${docsConfig.cellData!.v!}`, docsConfig.fontString);
+                contentSize = {
+                    width: textSize.width,
+                    height: textSize.fontBoundingBoxDescent + textSize.fontBoundingBoxAscent,
+                };
+            }
             if (!contentSize) {
                 return true;
             }
@@ -1044,9 +1159,9 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
             );
 
             const cellHeight = endY - startY;
-            documentSkeleton.getViewModel().getDataModel().updateDocumentDataPageSize(cellHeight);
-            documentSkeleton.calculate();
-            const contentSize = getDocsSkeletonPageSize(documentSkeleton, vertexAngle);
+            documentSkeleton!.getViewModel().getDataModel().updateDocumentDataPageSize(cellHeight);
+            documentSkeleton!.calculate();
+            const contentSize = getDocsSkeletonPageSize(documentSkeleton!, vertexAngle);
 
             if (!contentSize) {
                 return true;
@@ -1139,7 +1254,6 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         this._stylesCache = {
             background: {},
             backgroundPositions: new ObjectMatrix<ICellWithCoord>(),
-            font: {},
             fontMatrix: new ObjectMatrix<IFontCacheItem>(),
             border: new ObjectMatrix<BorderCache>(),
         };
@@ -1217,7 +1331,7 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         }
     }
 
-    _setFontStylesCache(row: number, col: number, cellData: Nullable<ICellDataForSheetInterceptor>) {
+    _setFontStylesCache(row: number, col: number, cellData: Nullable<ICellDataForSheetInterceptor>, style: IStyleData) {
         if (isNullCell(cellData)) return;
 
         let config: Partial<IFontCacheItem> = {
@@ -1234,17 +1348,19 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
             this._stylesCache.fontMatrix.setValue(row, col, cacheValue as IFontCacheItem);
             return;
         }
+        const { vertexAngle, centerAngle } = convertTextRotation(style?.tr ?? { a: 0 });
+        const isRichText = cellData?.p || vertexAngle || centerAngle;
 
-        const modelObject = this._getCellDocumentModel(cellData, {
-            displayRawFormula: this._renderRawFormula,
-        });
+        const modelObject = isRichText ?
+            this.worksheet.getCellDocumentModel(cellData, style, { displayRawFormula: this._renderRawFormula })
+            : null;
+
         if (modelObject) {
             const { documentModel } = modelObject;
             if (documentModel) {
-                const { fontString: _fontString, textRotation, wrapStrategy, verticalAlign, horizontalAlign } = modelObject;
+                const { fontString, wrapStrategy, verticalAlign, horizontalAlign } = modelObject;
                 const documentViewModel = new DocumentViewModel(documentModel);
                 if (documentViewModel) {
-                    const { vertexAngle, centerAngle } = convertTextRotation(textRotation);
                     const documentSkeleton = DocumentSkeleton.create(documentViewModel, this._localeService);
                     documentSkeleton.calculate();
 
@@ -1257,15 +1373,29 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
                         wrapStrategy,
                         imageCacheMap: this._imageCacheMap,
                         cellData,
+                        fontString,
+                        style,
                     };
-                    this._calculateOverflowCell(row, col, config as IFontCacheItem);
-                    this._handleFontMatrix.setValue(row, col, true);
                 }
             }
+        } else {
+            const fontString = getFontStyleString(style ?? undefined).fontCache;
+            const { vt: verticalAlign, ht: horizontalAlign, tb: wrapStrategy } = style ?? {};
+            config = {
+                documentSkeleton: undefined,
+                vertexAngle,
+                centerAngle,
+                verticalAlign: verticalAlign ?? VerticalAlign.UNSPECIFIED,
+                horizontalAlign: horizontalAlign ?? HorizontalAlign.UNSPECIFIED,
+                wrapStrategy: wrapStrategy ?? WrapStrategy.OVERFLOW,
+                imageCacheMap: this._imageCacheMap,
+                cellData,
+                fontString,
+                style,
+            };
         }
-
+        this._calculateOverflowCell(row, col, config as IFontCacheItem);
         this._stylesCache.fontMatrix.setValue(row, col, config as IFontCacheItem);
-        this._handleFontMatrix.setValue(row, col, true);
     }
 
     /**
@@ -1293,7 +1423,10 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         }
 
         const { isMerged, isMergedMainCell, startRow, startColumn, endRow, endColumn } = this.worksheet.getCellInfoInMergeData(row, col);
-        options.mergeRange = { startRow, startColumn, endRow, endColumn };
+
+        if (isMerged) {
+            options.mergeRange = { startRow, startColumn, endRow, endColumn };
+        }
 
         const hidden = this.worksheet.getColVisible(col) === false || this.worksheet.getRowVisible(row) === false;
 
@@ -1309,18 +1442,11 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
         }
 
         const cell = this.worksheet.getCell(row, col) || this.worksheet.getCellRaw(row, col);
-        const cellStyle = this._styles.getStyleByCell(cell);
-        const columnStyle = this.worksheet.getColumnStyle(col);
-        const rowStyle = this.worksheet.getRowStyle(row);
-        const defaultStyle = this.worksheet.getDefaultCellStyleInternal();
-
-        const style = this._isRowStylePrecedeColumnStyle
-            ? composeStyles(defaultStyle, columnStyle, rowStyle, (cell as ICellDataForSheetInterceptor)?.themeStyle, cellStyle)
-            : composeStyles(defaultStyle, rowStyle, columnStyle, (cell as ICellDataForSheetInterceptor)?.themeStyle, cellStyle);
+        const style = this.worksheet.getComposedCellStyle(row, col);
 
         this._setBgStylesCache(row, col, style, options);
         this._setBorderStylesCache(row, col, style, options);
-        this._setFontStylesCache(row, col, { ...cell, ...{ s: style } });
+        this._setFontStylesCache(row, col, { ...cell, ...{ s: style } }, style);
     }
 
     /**
@@ -1374,7 +1500,7 @@ export class SpreadsheetSkeleton extends SheetSkeleton {
 
             const themeStyleBackground = cell.themeStyle?.bd;
 
-            const style = this._styles.getStyleByCell(cell);
+            const style = this.worksheet.getComposedCellStyle(row, column);
             if (!style && !themeStyleBackground) {
                 isAddBorders = false;
                 break;

@@ -20,7 +20,7 @@ import type { IFormulaEditorRef } from '@univerjs/sheets-formula-ui';
 import type { IStyleEditorProps } from './type';
 import { get, IUniverInstanceService, LocaleService, set, Tools, UniverInstanceType } from '@univerjs/core';
 import { borderClassName, Checkbox, clsx, Dropdown, InputNumber, Select } from '@univerjs/design';
-import { MoreDownSingle, SlashSingle } from '@univerjs/icons';
+import { MoreDownIcon, SlashIcon } from '@univerjs/icons';
 import {
     CFNumberOperator,
     CFRuleType,
@@ -50,11 +50,11 @@ const TextInput = (props: { id: number; type: CFValueType; value: number | strin
     const subUnitId = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!.getActiveSheet()?.getSheetId();
 
     const formulaEditorRef = useRef<IFormulaEditorRef>(null);
-    const [isFocusFormulaEditor, isFocusFormulaEditorSet] = useState(false);
+    const [isFocusFormulaEditor, setIsFocusFormulaEditor] = useState(false);
 
     useSidebarClick((e: MouseEvent) => {
         const isOutSide = formulaEditorRef.current?.isClickOutSide(e);
-        isOutSide && isFocusFormulaEditorSet(false);
+        isOutSide && setIsFocusFormulaEditor(false);
     });
     return (
         <div className="univer-relative">
@@ -87,7 +87,7 @@ const TextInput = (props: { id: number; type: CFValueType; value: number | strin
                                 const formula = v || '';
                                 onChange(formula);
                             }}
-                            onFocus={() => isFocusFormulaEditorSet(true)}
+                            onFocus={() => setIsFocusFormulaEditor(true)}
                         />
                     </div>
                 )}
@@ -183,7 +183,7 @@ const IconItemList = (props: { onClick: (iconType: IIconType, iconId: string) =>
                 className="univer-mb-2.5 univer-flex univer-cursor-pointer univer-items-center univer-pl-1"
                 onClick={() => handleClick({ iconType: EMPTY_ICON_TYPE as any, iconId: '', base64: '' })}
             >
-                <SlashSingle className="univer-size-5" />
+                <SlashIcon className="univer-size-5" />
                 <span className="univer-ml-2">无单元格图标</span>
             </div>
             <div className="univer-flex univer-w-64 univer-flex-wrap">
@@ -224,7 +224,6 @@ const IconSetRuleEdit = (props: {
         { label: localeService.t(`sheet.cf.valueType.${CFValueType.percent}`), value: CFValueType.percent },
         { label: localeService.t(`sheet.cf.valueType.${CFValueType.percentile}`), value: CFValueType.percentile },
         { label: localeService.t(`sheet.cf.valueType.${CFValueType.formula}`), value: CFValueType.formula },
-
     ];
     const handleValueValueChange = (v: number | string, index: number) => {
         onChange([String(index), 'value', 'value'], v);
@@ -317,11 +316,11 @@ const IconSetRuleEdit = (props: {
                                     {icon
                                         ? <img src={icon} className="univer-size-4" draggable={false} />
                                         : (
-                                            <SlashSingle
+                                            <SlashIcon
                                                 className="univer-size-4"
                                             />
                                         )}
-                                    <MoreDownSingle />
+                                    <MoreDownIcon />
                                 </div>
                             </Dropdown>
                         </div>
@@ -405,8 +404,8 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
     const { interceptorManager } = props;
     const rule = props.rule?.type === CFRuleType.iconSet ? props.rule : undefined;
     const localeService = useDependency(LocaleService);
-    const [errorMap, errorMapSet] = useState<Record<string, string>>({});
-    const [currentIconType, currentIconTypeSet] = useState<IIconType>(() => {
+    const [errorMap, setErrorMap] = useState<Record<string, string>>({});
+    const [currentIconType, setCurrentIconType] = useState<IIconType>(() => {
         const defaultV = Object.keys(iconMap)[0] as IIconType;
         if (rule && rule.config.length) {
             const type = rule.config[0].iconType;
@@ -418,7 +417,7 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
         return defaultV;
     });
 
-    const [configList, configListSet] = useState(() => {
+    const [configList, setConfigList] = useState(() => {
         if (rule && rule.config.length) {
             return Tools.deepClone(rule?.config);
         }
@@ -438,7 +437,7 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
         });
     });
 
-    const [isShowValue, isShowValueSet] = useState(() => {
+    const [isShowValue, setIsShowValue] = useState(() => {
         if (!rule) {
             return true;
         }
@@ -459,7 +458,7 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
                             src={icon}
                         />
                     )
-                    : <SlashSingle className="univer-size-5" key={index} />))}
+                    : <SlashIcon className="univer-size-5" key={index} />))}
             </div>
         );
     }, [configList]);
@@ -509,16 +508,16 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
         const oldV = get(configList, keys);
         if (oldV !== v) {
             set(configList, keys, v);
-            configListSet([...configList]);
-            errorMapSet(checkResult(configList));
+            setConfigList([...configList]);
+            setErrorMap(checkResult(configList));
         }
     };
     const handleClickIconList = (iconType: IIconType) => {
-        currentIconTypeSet(iconType);
+        setCurrentIconType(iconType);
         const list = iconMap[iconType] || [];
         const config = new Array(list.length).fill('').map((_e, index, list) => createDefaultConfigItem(iconType, index, list));
-        configListSet(config);
-        errorMapSet(checkResult(config));
+        setConfigList(config);
+        setErrorMap(checkResult(config));
     };
 
     useEffect(() => {
@@ -553,7 +552,7 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
             item.iconId = newIcon.iconId;
             item.iconType = newIcon.iconType;
         });
-        configListSet([...configList]);
+        setConfigList([...configList]);
     };
     const layoutService = useDependency(ILayoutService);
     const [iconGroupListEl, setIconGroupListEl] = useState<HTMLDivElement>();
@@ -588,7 +587,7 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
                         `, borderClassName)}
                     >
                         {previewIcon}
-                        <MoreDownSingle />
+                        <MoreDownIcon />
                     </div>
                 </Dropdown>
             </div>
@@ -598,7 +597,7 @@ export const IconSet = (props: IStyleEditorProps<unknown, IIconSet>) => {
                     {localeService.t('sheet.cf.iconSet.reverseIconOrder')}
                 </div>
                 <div className="univer-ml-6 univer-flex univer-items-center univer-text-xs">
-                    <Checkbox checked={!isShowValue} onChange={(v) => { isShowValueSet(!v); }} />
+                    <Checkbox checked={!isShowValue} onChange={(v) => { setIsShowValue(!v); }} />
                     {localeService.t('sheet.cf.iconSet.onlyShowIcon')}
                 </div>
             </div>

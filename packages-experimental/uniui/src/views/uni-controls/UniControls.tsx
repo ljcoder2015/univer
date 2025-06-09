@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
+import type { CSSProperties, ReactElement } from 'react';
 import type { IProjectNode } from '../../services/unit-grid/unit-grid.service';
 import { borderClassName, Button, clsx, Dropdown, Tooltip } from '@univerjs/design';
-import { CheckMarkSingle, FullscreenSingle, IncreaseSingle, ZoomReduceSingle } from '@univerjs/icons';
+import { CheckMarkIcon, FullscreenIcon, IncreaseIcon, ZoomReduceIcon } from '@univerjs/icons';
 import { ISidebarService, useDependency } from '@univerjs/ui';
 import { useReactFlow } from '@xyflow/react';
-import React, { useCallback, useEffect, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { IUnitGridService } from '../../services/unit-grid/unit-grid.service';
 import { UniDiv } from '../uni-toolbar/UniFloatToolbar';
 
-export const UniControlButton = (props: { tooltips: string; children?: React.ReactElement; onClick: () => void; style?: React.CSSProperties }) => {
+export const UniControlButton = (props: { tooltips: string; children?: ReactElement; onClick: () => void; style?: CSSProperties }) => {
     const { children, onClick, style, tooltips } = props;
     return (
         <Tooltip title={tooltips}>
@@ -131,10 +132,10 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
             style={{ right: `${rightPadding}px` }}
         >
             <UniControlButton tooltips="Full screen" onClick={onFullscreenHandler}>
-                <FullscreenSingle />
+                <FullscreenIcon />
             </UniControlButton>
             <UniControlButton tooltips="Zoom in" onClick={onZoomInHandler}>
-                <IncreaseSingle />
+                <IncreaseIcon />
             </UniControlButton>
             <Dropdown
                 overlay={(
@@ -147,19 +148,13 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
                         {shortcuts?.map((item) => (
                             <a
                                 key={item}
-                                className={clsx(
-                                    `
-                                      univer-relative univer-box-border univer-cursor-pointer univer-py-1 univer-pl-9
-                                      univer-text-gray-900
-                                      dark:!univer-text-white
-                                    `,
-                                    `
-                                      univer-rounded univer-no-underline univer-transition-colors univer-duration-200
-                                      dark:hover:!univer-bg-gray-700
-                                      hover:univer-bg-gray-100
-                                    `,
-                                    item === zoomPercent ? 'univer-bg-gray-100' : ''
-                                )}
+                                className={clsx(`
+                                  univer-relative univer-box-border univer-cursor-pointer univer-rounded univer-py-1
+                                  univer-pl-9 univer-text-gray-900 univer-no-underline univer-transition-colors
+                                  univer-duration-200
+                                  dark:!univer-text-white dark:hover:!univer-bg-gray-700
+                                  hover:univer-bg-gray-100
+                                `, item === zoomPercent ? 'univer-bg-gray-100' : '')}
                                 onClick={() => onZoomMenuChange(item)}
                             >
                                 {item === zoomPercent && (
@@ -169,7 +164,7 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
                                           univer-items-center univer-text-green-600
                                         `}
                                     >
-                                        <CheckMarkSingle />
+                                        <CheckMarkIcon />
                                     </span>
                                 )}
                                 <span>
@@ -181,22 +176,20 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
                 )}
             >
                 <a
-                    className={clsx(
-                        `
-                          univer-h-7 univer-w-[55px] univer-cursor-pointer univer-rounded univer-text-center
-                          univer-text-xs univer-leading-loose univer-text-gray-700 univer-no-underline
-                          univer-transition-all univer-duration-200
-                          group-data-[open=true]:univer-bg-gray-200
-                          hover:univer-bg-gray-200
-                        `
-                    )}
+                    className={`
+                      univer-h-7 univer-w-[55px] univer-cursor-pointer univer-rounded univer-text-center univer-text-xs
+                      univer-leading-loose univer-text-gray-700 univer-no-underline univer-transition-all
+                      univer-duration-200
+                      group-data-[open=true]:univer-bg-gray-200
+                      hover:univer-bg-gray-200
+                    `}
                 >
                     {zoomPercent}
                     %
                 </a>
             </Dropdown>
             <UniControlButton tooltips="Zoom out" onClick={onZoomOutHandler}>
-                <ZoomReduceSingle />
+                <ZoomReduceIcon />
             </UniControlButton>
             <UniDiv />
             <UniControlButton tooltips="AI" onClick={() => onItemClick?.(UniControlItem.AI)} style={{ background: '#274FEE' }}>
@@ -216,7 +209,7 @@ export const UniControls = ({ zoom, onItemClick }: { zoom: number; onItemClick?:
 
 function useRightSidebarVisible() {
     const sidebarService = useDependency(ISidebarService);
-    const [visible, setVisible] = React.useState(false);
+    const [visible, setVisible] = useState(false);
     useEffect(() => {
         const sidebarSubscription = sidebarService.sidebarOptions$.subscribe((options) => {
             setVisible(!!options.visible);

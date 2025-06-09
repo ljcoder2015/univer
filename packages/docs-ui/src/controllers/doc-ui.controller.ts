@@ -24,7 +24,7 @@ import {
     UniverInstanceType,
 } from '@univerjs/core';
 import { IRenderManagerService } from '@univerjs/engine-render';
-import { CutSingle, DeleteSingle, DocSettingSingle, TodoList } from '@univerjs/icons';
+import { CutIcon, DeleteIcon, DocSettingIcon, TodoListDoubleIcon } from '@univerjs/icons';
 import { BuiltInUIPart, ComponentManager, connectInjector, ILayoutService, IMenuManagerService, IShortcutService, IUIPartsService } from '@univerjs/ui';
 import { CoreHeaderFooterCommand, OpenHeaderFooterPanelCommand } from '../commands/commands/doc-header-footer.command';
 import { SidebarDocHeaderFooterPanelOperation } from '../commands/operations/doc-header-footer-panel.operation';
@@ -69,15 +69,20 @@ export class DocUIController extends Disposable {
     }
 
     private _initCustomComponents(): void {
-        const componentManager = this._componentManager;
-        this.disposeWithMe(componentManager.register(BULLET_LIST_TYPE_COMPONENT, BulletListTypePicker));
-        this.disposeWithMe(componentManager.register(ORDER_LIST_TYPE_COMPONENT, OrderListTypePicker));
-        this.disposeWithMe(componentManager.register('TodoList', TodoList));
-        this.disposeWithMe(componentManager.register('doc.paragraph.menu', ParagraphMenu));
-        this.disposeWithMe(componentManager.register('CutSingle', CutSingle));
-        this.disposeWithMe(componentManager.register('DeleteSingle', DeleteSingle));
-        this.disposeWithMe(componentManager.register(PAGE_SETTING_COMPONENT_ID, PageSettings));
-        this.disposeWithMe(componentManager.register('DocumentSettingSingle', DocSettingSingle));
+        ([
+            [BULLET_LIST_TYPE_COMPONENT, BulletListTypePicker],
+            [ORDER_LIST_TYPE_COMPONENT, OrderListTypePicker],
+            ['TodoListDoubleIcon', TodoListDoubleIcon],
+            ['doc.paragraph.menu', ParagraphMenu],
+            ['CutIcon', CutIcon],
+            ['DeleteIcon', DeleteIcon],
+            [PAGE_SETTING_COMPONENT_ID, PageSettings],
+            ['DocumentSettingIcon', DocSettingIcon],
+        ] as const).forEach(([key, comp]) => {
+            this.disposeWithMe(
+                this._componentManager.register(key, comp)
+            );
+        });
     }
 
     private _initUiParts() {

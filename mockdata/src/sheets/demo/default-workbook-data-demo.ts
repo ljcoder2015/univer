@@ -13974,6 +13974,11 @@ export const DEFAULT_WORKBOOK_DATA_DEMO: IWorkbookData = {
                 },
             },
         },
+        pwABhz: {
+            n: {
+                pattern: 'General',
+            },
+        },
     },
     appVersion: '3.0.0-alpha',
     sheets: {
@@ -14493,6 +14498,14 @@ export const DEFAULT_WORKBOOK_DATA_DEMO: IWorkbookData = {
                             },
                         },
                         s: 'idtqdi',
+                    },
+                },
+                26: {
+                    // example of a cell imported from excel, which should display as 001
+                    0: {
+                        v: '001',
+                        t: 1,
+                        s: 'pwABhz',
                     },
                 },
             },
@@ -24261,6 +24274,10 @@ export const DEFAULT_WORKBOOK_DATA_DEMO: IWorkbookData = {
                     order: ['UPBpL-test'],
                 },
             }),
+        },
+        {
+            name: 'SHEET_CONDITIONAL_FORMATTING_PLUGIN',
+            data: '{"sheet-0011":[{"cfId":"mdFMCQle","ranges":[{"startRow":0,"startColumn":10,"endRow":7,"endColumn":11,"startAbsoluteRefType":0,"endAbsoluteRefType":0,"rangeType":0}],"rule":{"type":"highlightCell","subType":"text","operator":"containsText","style":{"cl":{"rgb":"#2f56ef"},"bg":{"rgb":"#e8ecfc"}},"value":"123"},"stopIfTrue":false}]}',
         },
         {
             name: 'SHEET_RANGE_PROTECTION_PLUGIN',

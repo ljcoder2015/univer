@@ -18,21 +18,18 @@
 
 import type { ILocale } from '@univerjs/design';
 import type { IWorkbenchOptions } from '@univerjs/ui';
-import type {
-    NodeTypes,
-    ReactFlowInstance,
-    Viewport,
-} from '@xyflow/react';
+import type { NodeTypes, ReactFlowInstance, Viewport } from '@xyflow/react';
 import type { IFloatingToolbarRef } from '../uni-toolbar/UniFloatToolbar';
 import { debounce, ICommandService, IContextService, IUniverInstanceService, LocaleService, ThemeService } from '@univerjs/core';
 import { borderClassName, clsx, ConfigContext, ConfigProvider } from '@univerjs/design';
 import { IRenderManagerService } from '@univerjs/engine-render';
-import { MenuSingle } from '@univerjs/icons';
+import { MenuIcon } from '@univerjs/icons';
 import {
     BuiltInUIPart,
     ComponentContainer,
     ContextMenu,
     GlobalZone,
+    ThemeSwitcherService,
     UNI_DISABLE_CHANGING_FOCUS_KEY,
     useComponentsOfPart,
     useDependency,
@@ -45,7 +42,7 @@ import {
     ReactFlowProvider,
     useNodesState,
 } from '@xyflow/react';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { UniFocusUnitOperation } from '../../commands/operations/uni-focus-unit.operation';
 import { FlowManagerService } from '../../services/flow/flow-manager.service';
@@ -80,6 +77,7 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
     const renderManagerService = useDependency(IRenderManagerService);
     const flowManagerService = useDependency(FlowManagerService);
     const commandService = useDependency(ICommandService);
+    const themeSwitcherService = useDependency(ThemeSwitcherService);
 
     const contentRef = useRef<HTMLDivElement>(null);
     const floatingToolbarRef = useRef<IFloatingToolbarRef>(null);
@@ -96,6 +94,16 @@ export function UniWorkbench(props: IUniWorkbenchProps) {
             onRendered?.(contentRef.current);
         }
     }, [onRendered]);
+
+    useLayoutEffect(() => {
+        const sub = themeService.currentTheme$.subscribe((theme) => {
+            themeSwitcherService.injectThemeToHead(theme);
+        });
+
+        return () => {
+            sub.unsubscribe();
+        };
+    }, []);
 
     const [locale, setLocale] = useState<ILocale>(localeService.getLocales() as unknown as ILocale);
     const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);
@@ -316,12 +324,13 @@ function UnitNode({ data }: IUnitNodeProps) {
                   univer-justify-center univer-rounded univer-p-1 univer-shadow-sm
                 `}
             >
-                <MenuSingle />
+                <MenuIcon />
             </div>
 
             <div
                 className={`
-                  univer-absolute -univer-top-6 univer-left-0 univer-text-sm univer-text-gray-600 !univer-text-gray-200
+                  univer-absolute -univer-top-6 univer-left-0 univer-text-sm univer-text-gray-600
+                  dark:!univer-text-gray-200
                 `}
             >
                 {title}

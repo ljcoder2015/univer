@@ -15,14 +15,18 @@
  */
 
 import type { ICommandInfo } from '@univerjs/core';
-import type { ISetArrayFormulaDataMutationParams } from '@univerjs/engine-formula';
-import { CellValueType, Disposable, ICommandService, Inject, InterceptorEffectEnum, isRealNum } from '@univerjs/core';
+import type { IArrayFormulaUnitCellType, ISetArrayFormulaDataMutationParams } from '@univerjs/engine-formula';
+import type { ISetRangeValuesMutationParams } from '@univerjs/sheets';
+import type { IUniverSheetsFormulaBaseConfig } from './config.schema';
+import { CellValueType, Disposable, ICommandService, IConfigService, Inject, InterceptorEffectEnum, isRealNum } from '@univerjs/core';
 import { FormulaDataModel, SetArrayFormulaDataMutation, stripErrorMargin } from '@univerjs/engine-formula';
-import { INTERCEPTOR_POINT, SheetInterceptorService } from '@univerjs/sheets';
+import { INTERCEPTOR_POINT, SetRangeValuesMutation, SheetInterceptorService } from '@univerjs/sheets';
+import { PLUGIN_CONFIG_KEY_BASE } from './config.schema';
 
 export class ArrayFormulaCellInterceptorController extends Disposable {
     constructor(
         @ICommandService private readonly _commandService: ICommandService,
+        @IConfigService private readonly _configService: IConfigService,
         @Inject(SheetInterceptorService) private _sheetInterceptorService: SheetInterceptorService,
         @Inject(FormulaDataModel) private readonly _formulaDataModel: FormulaDataModel
     ) {
@@ -54,8 +58,25 @@ export class ArrayFormulaCellInterceptorController extends Disposable {
                 const { arrayFormulaRange, arrayFormulaCellData } = params;
                 this._formulaDataModel.setArrayFormulaRange(arrayFormulaRange);
                 this._formulaDataModel.setArrayFormulaCellData(arrayFormulaCellData);
+
+                if (this._configService.getConfig<IUniverSheetsFormulaBaseConfig>(PLUGIN_CONFIG_KEY_BASE)?.writeArrayFormulaToSnapshot) {
+                    this._writeArrayFormulaToSnapshot(arrayFormulaCellData);
+                }
             })
         );
+    }
+
+    private _writeArrayFormulaToSnapshot(arrayFormulaCellData: IArrayFormulaUnitCellType) {
+        Array.from(Object.entries(arrayFormulaCellData)).forEach(([unitId, subUnitData]) => {
+            subUnitData && Array.from(Object.entries(subUnitData)).forEach(([subUnitId, rowData]) => {
+                // Keep this local to avoid triggering re-calculate in the worker.
+                this._commandService.executeCommand<ISetRangeValuesMutationParams>(SetRangeValuesMutation.id, {
+                    unitId,
+                    subUnitId,
+                    cellValue: rowData,
+                }, { onlyLocal: true });
+            });
+        });
     }
 
     private _initInterceptorCellContent() {
@@ -63,7 +84,8 @@ export class ArrayFormulaCellInterceptorController extends Disposable {
             this._sheetInterceptorService.intercept(INTERCEPTOR_POINT.CELL_CONTENT, {
                 priority: 100,
                 effect: InterceptorEffectEnum.Value,
-                handler: (cell, location, next) => {
+                handler: (cell_, location, next) => {
+                    let cell = cell_;
                     const { unitId, subUnitId, row, col } = location;
                     const arrayFormulaCellData = this._formulaDataModel.getArrayFormulaCellData();
                     const cellData = arrayFormulaCellData?.[unitId]?.[subUnitId]?.[row]?.[col];
@@ -71,13 +93,15 @@ export class ArrayFormulaCellInterceptorController extends Disposable {
                         return next(cell);
                     }
 
+                    if (!cell || cell === location.rawData) {
+                        cell = { ...location.rawData };
+                    }
+
                     // The cell in the upper left corner of the array formula also triggers the default value determination
                     if (cellData.v == null && cellData.t == null) {
-                        return next({
-                            ...cell,
-                            v: 0, // Default value for empty cell
-                            t: CellValueType.NUMBER,
-                        });
+                        cell.v = 0; // Default value for empty cell
+                        cell.t = CellValueType.NUMBER;
+                        return next(cell);
                     }
 
                     // Dealing with precision issues
@@ -86,17 +110,14 @@ export class ArrayFormulaCellInterceptorController extends Disposable {
                     // "v": "123413.23000000001",
                     // "t": 2,
                     if (cell?.t === CellValueType.NUMBER && cell.v !== undefined && cell.v !== null && isRealNum(cell.v)) {
-                        return next({
-                            ...cell,
-                            v: stripErrorMargin(Number(cell.v)),
-                        });
+                        cell.v = stripErrorMargin(Number(cell.v));
+                        return next(cell);
                     }
 
-                    return next({
-                        ...cell,
-                        v: cellData.v,
-                        t: cellData.t,
-                    });
+                    cell.v = cellData.v;
+                    cell.t = cellData.t;
+
+                    return next(cell);
                 },
             })
         );

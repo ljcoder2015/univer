@@ -21,11 +21,11 @@ import type { IPermissionPanelRule } from '../../../services/permission/sheet-pe
 import { IAuthzIoService, ICommandService, IPermissionService, IUniverInstanceService, LocaleService, Tools, UniverInstanceType, UserManagerService } from '@univerjs/core';
 import { Avatar, borderClassName, Button, clsx, Tooltip } from '@univerjs/design';
 import { serializeRange } from '@univerjs/engine-formula';
-import { DeleteSingle, WriteSingle } from '@univerjs/icons';
+import { DeleteIcon, WriteIcon } from '@univerjs/icons';
 import { UnitAction, UnitObject } from '@univerjs/protocol';
 import { baseProtectionActions, DeleteRangeProtectionCommand, DeleteWorksheetProtectionCommand, RangeProtectionRuleModel, SetWorksheetActiveOperation, WorkbookCreateProtectPermission, WorksheetProtectionRuleModel } from '@univerjs/sheets';
 import { ISidebarService, useDependency, useObservable } from '@univerjs/ui';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { distinctUntilChanged, merge } from 'rxjs';
 import { UNIVER_SHEET_PERMISSION_PANEL } from '../../../consts/permission';
 import { useHighlightRange } from '../../../hooks/use-highlight-range';
@@ -33,9 +33,12 @@ import { SheetPermissionUserManagerService } from '../../../services/permission/
 import { panelListEmptyBase64 } from './constant';
 
 type IRuleItem = IRangeProtectionRule | IWorksheetProtectionRule;
-export const SheetPermissionPanelList = () => {
+
+export function SheetPermissionPanelList() {
     const [isCurrentSheet, setIsCurrentSheet] = useState(true);
     const [forceUpdateFlag, setForceUpdateFlag] = useState(false);
+    const [currentRuleRanges, setCurrentRuleRanges] = useState<IRange[]>([]);
+
     const localeService = useDependency(LocaleService);
     const rangeProtectionRuleModel = useDependency(RangeProtectionRuleModel);
     const worksheetProtectionModel = useDependency(WorksheetProtectionRuleModel);
@@ -46,19 +49,16 @@ export const SheetPermissionPanelList = () => {
     const permissionService = useDependency(IPermissionService);
     const usesManagerService = useDependency(UserManagerService);
     const currentUser = usesManagerService.getCurrentUser();
-    const [currentRuleRanges, currentRuleRangesSet] = useState<IRange[]>([]);
     const sheetPermissionUserManagerService = useDependency(SheetPermissionUserManagerService);
 
-    const _sheetRuleRefresh = useObservable(worksheetProtectionModel.ruleRefresh$, '');
-    const _rangeRuleRefresh = useObservable(rangeProtectionRuleModel.ruleRefresh$, '');
+    const sheetRuleRefresh = useObservable(worksheetProtectionModel.ruleRefresh$, '');
+    const rangeRuleRefresh = useObservable(rangeProtectionRuleModel.ruleRefresh$, '');
 
-    const workbook = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET);
+    const workbook = univerInstanceService.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET);
 
-    if (!workbook) {
-        return null;
-    }
+    if (!workbook) return null;
 
-    const unitId = workbook?.getUnitId();
+    const unitId = workbook.getUnitId();
 
     const getRuleList = useCallback(async (isCurrentSheet: boolean) => {
         const worksheet = workbook.getActiveSheet()!;
@@ -131,15 +131,15 @@ export const SheetPermissionPanelList = () => {
 
     useEffect(() => {
         const getRuleListByRefresh = async () => {
-            if (_sheetRuleRefresh || _rangeRuleRefresh) {
+            if (sheetRuleRefresh || rangeRuleRefresh) {
                 const ruleList = await getRuleList(true);
                 setRuleList(ruleList);
             };
         };
         getRuleListByRefresh();
-    }, [_sheetRuleRefresh, _rangeRuleRefresh]);
+    }, [sheetRuleRefresh, rangeRuleRefresh]);
 
-    const handleDelete = (rule: IRuleItem) => {
+    function handleDelete(rule: IRuleItem) {
         const { unitId, subUnitId, unitType } = rule;
         let res;
         if (unitType === UnitObject.Worksheet) {
@@ -151,10 +151,10 @@ export const SheetPermissionPanelList = () => {
         if (res) {
             setForceUpdateFlag(!forceUpdateFlag);
             if ((rule as IRangeProtectionRule).ranges === currentRuleRanges) {
-                currentRuleRangesSet([]);
+                setCurrentRuleRanges([]);
             }
         }
-    };
+    }
 
     useEffect(() => {
         sheetPermissionUserManagerService.reset();
@@ -162,19 +162,24 @@ export const SheetPermissionPanelList = () => {
 
     useHighlightRange(currentRuleRanges);
 
-    const allRuleMap = new Map<string, IRangeProtectionRule | IWorksheetProtectionRule>();
-    workbook.getSheets().forEach((sheet) => {
-        const sheetId = sheet.getSheetId();
-        const rangeRules = rangeProtectionRuleModel.getSubunitRuleList(unitId, sheetId);
-        rangeRules.forEach((rule) => {
-            allRuleMap.set(rule.permissionId, rule);
+    const allRuleMap = useMemo(() => {
+        const allRuleMap = new Map<string, IRangeProtectionRule | IWorksheetProtectionRule>();
+
+        workbook.getSheets().forEach((sheet) => {
+            const sheetId = sheet.getSheetId();
+            const rangeRules = rangeProtectionRuleModel.getSubunitRuleList(unitId, sheetId);
+            rangeRules.forEach((rule) => {
+                allRuleMap.set(rule.permissionId, rule);
+            });
+
+            const sheetRule = worksheetProtectionModel.getRule(unitId, sheetId);
+            if (sheetRule) {
+                allRuleMap.set(sheetRule?.permissionId, sheetRule);
+            }
         });
 
-        const sheetRule = worksheetProtectionModel.getRule(unitId, sheetId);
-        if (sheetRule) {
-            allRuleMap.set(sheetRule?.permissionId, sheetRule);
-        }
-    });
+        return allRuleMap;
+    }, [unitId, workbook, rangeProtectionRuleModel, worksheetProtectionModel]);
 
     const handleEdit = (rule: IPermissionPanelRule) => {
         if (rule.subUnitId !== workbook.getActiveSheet().getSheetId()) {
@@ -278,13 +283,13 @@ export const SheetPermissionPanelList = () => {
                                         }
                                         if (unitType === UnitObject.SelectRange) {
                                             const ranges = (rule as IRangeProtectionRule).ranges || [];
-                                            ranges !== currentRuleRanges && currentRuleRangesSet(ranges);
+                                            ranges !== currentRuleRanges && setCurrentRuleRanges(ranges);
                                         } else if (unitType === UnitObject.Worksheet) {
                                             const ranges = [{ startRow: 0, endRow: activeSheet.getRowCount() - 1, startColumn: 0, endColumn: activeSheet.getColumnCount() - 1 }];
-                                            ranges !== currentRuleRanges && currentRuleRangesSet(ranges);
+                                            ranges !== currentRuleRanges && setCurrentRuleRanges(ranges);
                                         }
                                     }}
-                                    onMouseLeave={() => currentRuleRangesSet([])}
+                                    onMouseLeave={() => setCurrentRuleRanges([])}
                                 >
                                     <div className="univer-flex univer-h-5 univer-justify-between univer-leading-5">
                                         <Tooltip title={ruleName}>
@@ -308,7 +313,7 @@ export const SheetPermissionPanelList = () => {
                                                             `}
                                                             onClick={() => handleEdit(rule as IPermissionPanelRule)}
                                                         >
-                                                            <WriteSingle />
+                                                            <WriteIcon />
                                                         </div>
                                                     </Tooltip>
                                                 )}
@@ -321,7 +326,7 @@ export const SheetPermissionPanelList = () => {
                                                             `}
                                                             onClick={() => handleDelete(rule)}
                                                         >
-                                                            <DeleteSingle />
+                                                            <DeleteIcon />
                                                         </div>
                                                     </Tooltip>
                                                 )}
@@ -396,7 +401,7 @@ export const SheetPermissionPanelList = () => {
                     <div
                         className="univer-flex univer-flex-1 univer-flex-col univer-items-center univer-justify-center"
                     >
-                        <img width={240} height={120} src={panelListEmptyBase64} alt="" />
+                        <img width={240} height={120} src={panelListEmptyBase64} alt="" draggable={false} />
                         <p className="univer-w-60 univer-break-words univer-text-sm univer-text-gray-400">{localeService.t('permission.dialog.listEmpty')}</p>
                     </div>
                 )}

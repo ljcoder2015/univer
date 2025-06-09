@@ -113,7 +113,7 @@ export class SheetsNumfmtCellContentController extends Disposable {
                 const sheetId = location.subUnitId;
                 let numfmtValue;
                 const originCellValue = cell;
-                if (!originCellValue) {
+                if (!originCellValue || originCellValue.v === undefined || originCellValue.v === null) {
                     return next(cell);
                 }
 
@@ -128,34 +128,33 @@ export class SheetsNumfmtCellContentController extends Disposable {
                     numfmtValue = this._numfmtService.getValue(unitId, sheetId, location.row, location.col);
                 }
 
-                if (!numfmtValue) {
+                // If the cell is not formatted, or the format is 'General', do not process it
+                // e.g. { v: '001', t: 1, s: { n: { pattern: 'General' } } } should display as '001'
+                if (!numfmtValue || numfmtValue.pattern === 'General') {
                     return next(cell);
                 }
 
-                const type = cell.t || checkCellValueType(originCellValue.v);
-                // just handle number
+                const type = checkCellValueType(originCellValue.v);
+                // just handle number or number string
                 if (type !== CellValueType.NUMBER) {
                     return next(cell);
+                }
+
+                if (!cell || cell === location.rawData) {
+                    cell = { ...location.rawData };
                 }
 
                 // Add error marker to text format number
                 if (isTextFormat(numfmtValue.pattern)) {
                     // If the user has disabled the text format mark, do not show it
                     if (this._configService.getConfig<IUniverSheetsNumfmtConfig>(SHEETS_NUMFMT_PLUGIN_CONFIG_KEY)?.disableTextFormatMark) {
-                        return next({
-                            ...cell,
-                            t: CellValueType.STRING,
-                        });
+                        cell.t = CellValueType.STRING;
+                        return next(cell);
                     }
 
-                    return next({
-                        ...cell,
-                        t: CellValueType.STRING,
-                        markers: {
-                            ...cell?.markers,
-                            ...TEXT_FORMAT_MARK,
-                        },
-                    });
+                    cell.t = CellValueType.STRING;
+                    cell.markers = { ...cell?.markers, ...TEXT_FORMAT_MARK };
+                    return next(cell);
                 }
 
                 let numfmtRes: string = '';
@@ -163,9 +162,7 @@ export class SheetsNumfmtCellContentController extends Disposable {
                 if (cache && cache.parameters === `${originCellValue.v}_${numfmtValue.pattern}`) {
                     return next({ ...cell, ...cache.result });
                 }
-                if (originCellValue.v === undefined || originCellValue.v === null) {
-                    return next(cell);
-                }
+
                 const info = getPatternPreviewIgnoreGeneral(numfmtValue.pattern, Number(originCellValue.v), this.local);
                 numfmtRes = info.result;
                 if (!numfmtRes) {
@@ -174,7 +171,7 @@ export class SheetsNumfmtCellContentController extends Disposable {
 
                 const res: ICellDataForSheetInterceptor = { v: numfmtRes, t: CellValueType.NUMBER };
                 if (info.color) {
-                    const color = this._themeService.getColorFromTheme(`${info.color}.500`);
+                    const color = this._themeService.getColorFromTheme(`${info.color}.500`) ?? info.color;
 
                     if (color) {
                         res.interceptorStyle = { cl: { rgb: color } };
@@ -185,8 +182,8 @@ export class SheetsNumfmtCellContentController extends Disposable {
                     result: res,
                     parameters: `${originCellValue.v}_${numfmtValue.pattern}`,
                 });
-
-                return next({ ...cell, ...res });
+                Object.assign(cell, res);
+                return next(cell);
             },
             priority: InterceptCellContentPriority.NUMFMT,
         }));
