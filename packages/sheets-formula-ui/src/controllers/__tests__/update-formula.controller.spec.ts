@@ -348,7 +348,88 @@ const TEST_WORKBOOK_DATA_DEMO = (): IWorkbookData => ({
             },
             name: 'Sheet4',
         },
-
+        sheet5: {
+            id: 'sheet5',
+            name: 'Sheet5',
+            cellData: {
+                1: {
+                    1: { // B2
+                        v: 5,
+                        t: CellValueType.NUMBER,
+                    },
+                    3: { // D2
+                        f: '=$B2',
+                    },
+                    4: { // E2
+                        f: '=$B2',
+                        si: 'MFYkBI',
+                    },
+                    5: { // F2
+                        si: 'MFYkBI',
+                    },
+                    6: { // G2
+                        si: 'MFYkBI',
+                    },
+                    7: { // H2
+                        si: 'MFYkBI',
+                    },
+                    8: { // I2
+                        si: 'MFYkBI',
+                    },
+                },
+            },
+        },
+        sheet6: {
+            id: 'sheet6',
+            name: 'Sheet6',
+            cellData: {
+                0: {
+                    0: {
+                        v: 1,
+                        t: 2,
+                    },
+                    1: {
+                        f: '=A1',
+                        v: 1,
+                        t: 2,
+                    },
+                },
+                1: {
+                    0: {
+                        v: 2,
+                        t: 2,
+                    },
+                    1: {
+                        f: '=A2',
+                        si: 'W8Hdfc',
+                        v: 2,
+                        t: 2,
+                    },
+                },
+                2: {
+                    0: {
+                        v: 3,
+                        t: 2,
+                    },
+                    1: {
+                        si: 'W8Hdfc',
+                        v: 3,
+                        t: 2,
+                    },
+                },
+                3: {
+                    0: {
+                        v: 4,
+                        t: 2,
+                    },
+                    1: {
+                        si: 'W8Hdfc',
+                        v: 4,
+                        t: 2,
+                    },
+                },
+            },
+        },
     },
     locale: LocaleType.ZH_CN,
     name: '',
@@ -527,6 +608,235 @@ describe('Test update formula ', () => {
             expect(valuesRedo).toStrictEqual([[null, { f: '=SUM(A1:B2)' }]]);
         });
 
+        it('Move range, update reference, release si', async () => {
+            const workbook = get(IUniverInstanceService).getUnit<Workbook>('test');
+            const sheetId = 'sheet6';
+            const sheet6 = workbook?.getSheetBySheetId(sheetId);
+            if (!sheet6) {
+                throw new Error(`${sheetId}not found`);
+            }
+            workbook?.setActiveSheet(sheet6);
+
+            const params: IMoveRangeCommandParams = {
+                fromRange: {
+                    startRow: 0,
+                    startColumn: 1,
+                    endRow: 3,
+                    endColumn: 1,
+                    rangeType: 0,
+                },
+                toRange: {
+                    startRow: 2,
+                    startColumn: 1,
+                    endRow: 5,
+                    endColumn: 1,
+                    rangeType: 0,
+                },
+            };
+
+            expect(await commandService.executeCommand(MoveRangeCommand.id, params)).toBeTruthy();
+            const values = getValues(0, 1, 5, 1, sheetId);
+            expect(values).toStrictEqual([
+                [null],
+                [null],
+                [{ f: '=A1', t: 2, v: 1 }],
+                [{ f: '=A2', t: 2, v: 2 }],
+                [{ f: '=A3', t: 2, v: 3 }],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(UndoCommand.id)).toBeTruthy();
+            const valuesUndo = getValues(0, 1, 5, 1, sheetId);
+            expect(valuesUndo).toStrictEqual([
+                [{ f: '=A1', t: 2, v: 1 }],
+                [{ f: '=A2', si: 'W8Hdfc', t: 2, v: 2 }],
+                [{ si: 'W8Hdfc', t: 2, v: 3 }],
+                [{ si: 'W8Hdfc', t: 2, v: 4 }],
+                [null],
+                [null],
+            ]);
+
+            expect(await commandService.executeCommand(RedoCommand.id)).toBeTruthy();
+            const valuesRedo = getValues(0, 1, 5, 1, sheetId);
+            expect(valuesRedo).toStrictEqual([
+                [null],
+                [null],
+                [{ f: '=A1', t: 2, v: 1 }],
+                [{ f: '=A2', t: 2, v: 2 }],
+                [{ f: '=A3', t: 2, v: 3 }],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+        });
+
+        it('Move range with f/si', async () => {
+            const workbook = get(IUniverInstanceService).getUnit<Workbook>('test');
+            const sheetId = 'sheet6';
+            const sheet6 = workbook?.getSheetBySheetId(sheetId);
+            if (!sheet6) {
+                throw new Error(`${sheetId}not found`);
+            }
+            workbook?.setActiveSheet(sheet6);
+
+            const params: IMoveRangeCommandParams = {
+                fromRange: {
+                    startRow: 1,
+                    startColumn: 1,
+                    endRow: 1,
+                    endColumn: 1,
+                    rangeType: 0,
+                },
+                toRange: {
+                    startRow: 1,
+                    startColumn: 3,
+                    endRow: 1,
+                    endColumn: 3,
+                    rangeType: 0,
+                },
+            };
+
+            expect(await commandService.executeCommand(MoveRangeCommand.id, params)).toBeTruthy();
+            const values1 = getValues(1, 3, 1, 3, sheetId);
+            expect(values1).toStrictEqual([[{ f: '=A2', t: 2, v: 2 }]]);
+            const values2 = getValues(1, 1, 3, 1, sheetId);
+            expect(values2).toStrictEqual([
+                [null],
+                [{ f: '=A3', t: 2, v: 3 }],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(UndoCommand.id)).toBeTruthy();
+            const valuesUndo1 = getValues(1, 3, 1, 3, sheetId);
+            expect(valuesUndo1).toStrictEqual([[null]]);
+            const valuesUndo2 = getValues(1, 1, 3, 1, sheetId);
+            expect(valuesUndo2).toStrictEqual([
+                [{ f: '=A2', si: 'W8Hdfc', t: 2, v: 2 }],
+                [{ si: 'W8Hdfc', t: 2, v: 3 }],
+                [{ si: 'W8Hdfc', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(RedoCommand.id)).toBeTruthy();
+            const valuesRedo1 = getValues(1, 3, 1, 3, sheetId);
+            expect(valuesRedo1).toStrictEqual([[{ f: '=A2', t: 2, v: 2 }]]);
+            const valuesRedo2 = getValues(1, 1, 3, 1, sheetId);
+            expect(valuesRedo2).toStrictEqual([
+                [null],
+                [{ f: '=A3', t: 2, v: 3 }],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+        });
+
+        it('Move range with si only', async () => {
+            const workbook = get(IUniverInstanceService).getUnit<Workbook>('test');
+            const sheetId = 'sheet6';
+            const sheet6 = workbook?.getSheetBySheetId(sheetId);
+            if (!sheet6) {
+                throw new Error(`${sheetId}not found`);
+            }
+            workbook?.setActiveSheet(sheet6);
+
+            const params: IMoveRangeCommandParams = {
+                fromRange: {
+                    startRow: 2,
+                    startColumn: 1,
+                    endRow: 2,
+                    endColumn: 1,
+                    rangeType: 0,
+                },
+                toRange: {
+                    startRow: 2,
+                    startColumn: 3,
+                    endRow: 2,
+                    endColumn: 3,
+                    rangeType: 0,
+                },
+            };
+
+            expect(await commandService.executeCommand(MoveRangeCommand.id, params)).toBeTruthy();
+            const values1 = getValues(2, 3, 2, 3, sheetId);
+            expect(values1).toStrictEqual([[{ f: '=A3', t: 2, v: 3 }]]);
+            const values2 = getValues(1, 1, 3, 1, sheetId);
+            expect(values2).toStrictEqual([
+                [{ f: '=A2', t: 2, v: 2 }],
+                [null],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(UndoCommand.id)).toBeTruthy();
+            const valuesUndo1 = getValues(2, 3, 2, 3, sheetId);
+            expect(valuesUndo1).toStrictEqual([[null]]);
+            const valuesUndo2 = getValues(1, 1, 3, 1, sheetId);
+            expect(valuesUndo2).toStrictEqual([
+                [{ f: '=A2', si: 'W8Hdfc', t: 2, v: 2 }],
+                [{ si: 'W8Hdfc', t: 2, v: 3 }],
+                [{ si: 'W8Hdfc', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(RedoCommand.id)).toBeTruthy();
+            const valuesRedo1 = getValues(2, 3, 2, 3, sheetId);
+            expect(valuesRedo1).toStrictEqual([[{ f: '=A3', t: 2, v: 3 }]]);
+            const valuesRedo2 = getValues(1, 1, 3, 1, sheetId);
+            expect(valuesRedo2).toStrictEqual([
+                [{ f: '=A2', t: 2, v: 2 }],
+                [null],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+        });
+
+        it('Move range with f/si and si', async () => {
+            const workbook = get(IUniverInstanceService).getUnit<Workbook>('test');
+            const sheetId = 'sheet6';
+            const sheet6 = workbook?.getSheetBySheetId(sheetId);
+            if (!sheet6) {
+                throw new Error(`${sheetId}not found`);
+            }
+            workbook?.setActiveSheet(sheet6);
+
+            const params: IMoveRangeCommandParams = {
+                fromRange: {
+                    startRow: 1,
+                    startColumn: 1,
+                    endRow: 2,
+                    endColumn: 1,
+                    rangeType: 0,
+                },
+                toRange: {
+                    startRow: 1,
+                    startColumn: 3,
+                    endRow: 2,
+                    endColumn: 3,
+                    rangeType: 0,
+                },
+            };
+
+            expect(await commandService.executeCommand(MoveRangeCommand.id, params)).toBeTruthy();
+            const values1 = getValues(1, 3, 2, 3, sheetId);
+            expect(values1).toStrictEqual([[{ f: '=A2', t: 2, v: 2 }], [{ f: '=A3', t: 2, v: 3 }]]);
+            const values2 = getValues(1, 1, 3, 1, sheetId);
+            expect(values2).toStrictEqual([
+                [null],
+                [null],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(UndoCommand.id)).toBeTruthy();
+            const valuesUndo = getValues(1, 1, 3, 1, sheetId);
+            expect(valuesUndo).toStrictEqual([
+                [{ f: '=A2', si: 'W8Hdfc', t: 2, v: 2 }],
+                [{ si: 'W8Hdfc', t: 2, v: 3 }],
+                [{ si: 'W8Hdfc', t: 2, v: 4 }],
+            ]);
+
+            expect(await commandService.executeCommand(RedoCommand.id)).toBeTruthy();
+            const valuesRedo1 = getValues(1, 3, 2, 3, sheetId);
+            expect(valuesRedo1).toStrictEqual([[{ f: '=A2', t: 2, v: 2 }], [{ f: '=A3', t: 2, v: 3 }]]);
+            const valuesRedo2 = getValues(1, 1, 3, 1, sheetId);
+            expect(valuesRedo2).toStrictEqual([
+                [null],
+                [null],
+                [{ f: '=A4', t: 2, v: 4 }],
+            ]);
+        });
+
         it('Move range, update reference with si ', async () => {
             const params: IMoveRangeCommandParams = {
                 fromRange: {
@@ -547,15 +857,27 @@ describe('Test update formula ', () => {
 
             expect(await commandService.executeCommand(MoveRangeCommand.id, params)).toBeTruthy();
             const values = getValues(18, 1, 20, 2);
-            expect(values).toStrictEqual([[null, { f: '=SUM(A19)', t: 2, v: 1 }], [null, { f: '=SUM(A20)', si: 'id1', t: 2, v: 2 }], [null, { si: 'id1', t: 2, v: 3 }]]);
+            expect(values).toStrictEqual([
+                [null, { f: '=SUM(A19)', t: 2, v: 1 }],
+                [null, { f: '=SUM(A20)', t: 2, v: 2 }],
+                [null, { f: '=SUM(A21)', t: 2, v: 3 }],
+            ]);
 
             expect(await commandService.executeCommand(UndoCommand.id)).toBeTruthy();
             const valuesUndo = getValues(18, 1, 20, 2);
-            expect(valuesUndo).toStrictEqual([[{ f: '=SUM(A19)', t: 2, v: 1 }, null], [{ f: '=SUM(A20)', si: 'id1', t: 2, v: 2 }, null], [{ si: 'id1', t: 2, v: 3 }, null]]);
+            expect(valuesUndo).toStrictEqual([
+                [{ f: '=SUM(A19)', t: 2, v: 1 }, null],
+                [{ f: '=SUM(A20)', si: 'id1', t: 2, v: 2 }, null],
+                [{ si: 'id1', t: 2, v: 3 }, null],
+            ]);
 
             expect(await commandService.executeCommand(RedoCommand.id)).toBeTruthy();
             const valuesRedo = getValues(18, 1, 20, 2);
-            expect(valuesRedo).toStrictEqual([[null, { f: '=SUM(A19)', t: 2, v: 1 }], [null, { f: '=SUM(A20)', si: 'id1', t: 2, v: 2 }], [null, { si: 'id1', t: 2, v: 3 }]]);
+            expect(valuesRedo).toStrictEqual([
+                [null, { f: '=SUM(A19)', t: 2, v: 1 }],
+                [null, { f: '=SUM(A20)', t: 2, v: 2 }],
+                [null, { f: '=SUM(A21)', t: 2, v: 3 }],
+            ]);
         });
 
         it('Move rows, update reference', async () => {
@@ -915,6 +1237,81 @@ describe('Test update formula ', () => {
             expect(await commandService.executeCommand(RedoCommand.id)).toBeTruthy();
             const valuesRedo = getValues(10, 0, 13, 0);
             expect(valuesRedo).toStrictEqual([[{ v: 1, t: CellValueType.NUMBER }], [{ f: '=SUM(A8)' }], [{ f: '=SUM(A10)' }], [{ f: '=SUM(A11)' }]]);
+        });
+
+        it('Insert row, update range of absolute reference type', async () => {
+            const result = await commandService.executeCommand(InsertRowCommand.id, {
+                unitId: 'test',
+                subUnitId: 'sheet5',
+                range: {
+                    startRow: 0,
+                    endRow: 0,
+                    startColumn: 0,
+                    endColumn: 19,
+                },
+                direction: Direction.UP,
+            });
+            expect(result).toBeTruthy();
+
+            const cellB3 = getValues(2, 1, 2, 1, 'sheet5');
+            expect(cellB3).toStrictEqual([
+                [{ v: 5, t: CellValueType.NUMBER }],
+            ]);
+            const cellD3 = getValues(2, 3, 2, 3, 'sheet5');
+            expect(cellD3).toStrictEqual([
+                [{ f: '=$B3' }],
+            ]);
+            const cellE3 = getValues(2, 4, 2, 4, 'sheet5');
+            expect(cellE3).toStrictEqual([
+                [{ f: '=$B3' }],
+            ]);
+            const cellF3 = getValues(2, 5, 2, 5, 'sheet5');
+            expect(cellF3).toStrictEqual([
+                [{ f: '=$B3' }],
+            ]);
+            const cellG3 = getValues(2, 6, 2, 6, 'sheet5');
+            expect(cellG3).toStrictEqual([
+                [{ f: '=$B3' }],
+            ]);
+            const cellH3 = getValues(2, 7, 2, 7, 'sheet5');
+            expect(cellH3).toStrictEqual([
+                [{ f: '=$B3' }],
+            ]);
+            const cellI3 = getValues(2, 8, 2, 8, 'sheet5');
+            expect(cellI3).toStrictEqual([
+                [{ f: '=$B3' }],
+            ]);
+
+            expect(await commandService.executeCommand(UndoCommand.id)).toBeTruthy();
+
+            const cellB2 = getValues(1, 1, 1, 1, 'sheet5');
+            expect(cellB2).toStrictEqual([
+                [{ v: 5, t: CellValueType.NUMBER }],
+            ]);
+            const cellD2 = getValues(1, 3, 1, 3, 'sheet5');
+            expect(cellD2).toStrictEqual([
+                [{ f: '=$B2' }],
+            ]);
+            const cellE2 = getValues(1, 4, 1, 4, 'sheet5');
+            expect(cellE2).toStrictEqual([
+                [{ f: '=$B2', si: 'MFYkBI' }],
+            ]);
+            const cellF2 = getValues(1, 5, 1, 5, 'sheet5');
+            expect(cellF2).toStrictEqual([
+                [{ si: 'MFYkBI' }],
+            ]);
+            const cellG2 = getValues(1, 6, 1, 6, 'sheet5');
+            expect(cellG2).toStrictEqual([
+                [{ si: 'MFYkBI' }],
+            ]);
+            const cellH2 = getValues(1, 7, 1, 7, 'sheet5');
+            expect(cellH2).toStrictEqual([
+                [{ si: 'MFYkBI' }],
+            ]);
+            const cellI2 = getValues(1, 8, 1, 8, 'sheet5');
+            expect(cellI2).toStrictEqual([
+                [{ si: 'MFYkBI' }],
+            ]);
         });
 
         it('Insert column, update reference', async () => {

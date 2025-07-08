@@ -18,14 +18,14 @@ import type { ComponentType } from 'react';
 import type { Observable } from 'rxjs';
 import type { RibbonType } from '../../../controllers/ui/ui.controller';
 import type { IMenuSchema } from '../../../services/menu/menu-manager.service';
-import { LocaleService, throttle } from '@univerjs/core';
+import { IUniverInstanceService, LocaleService, throttle } from '@univerjs/core';
 import { borderBottomClassName, borderClassName, clsx, divideXClassName, Dropdown, HoverCard } from '@univerjs/design';
 import { DatabaseIcon, EyeIcon, FunctionIcon, HomeIcon, InsertIcon, MoreDownIcon, MoreFunctionIcon } from '@univerjs/icons';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { combineLatest } from 'rxjs';
 import { IMenuManagerService } from '../../../services/menu/menu-manager.service';
 import { MenuManagerPosition, RibbonPosition } from '../../../services/menu/types';
-import { useDependency } from '../../../utils/di';
+import { useDependency, useObservable } from '../../../utils/di';
 import { ComponentContainer } from '../ComponentContainer';
 import { toolbarButtonClassName } from './ToolbarButton';
 import { ToolbarItem } from './ToolbarItem';
@@ -49,8 +49,11 @@ export function Ribbon(props: IRibbonProps) {
     const { ribbonType, headerMenuComponents, headerMenu = true } = props;
 
     const menuManagerService = useDependency(IMenuManagerService);
+    const univerInstanceService = useDependency(IUniverInstanceService);
     const localeService = useDependency(LocaleService);
     const [menuChangedTimes, setMenuChangedTimes] = useState(0);
+
+    const focusedUnit = useObservable(univerInstanceService.focused$);
 
     useEffect(() => {
         const subscription = menuManagerService.menuChanged$.subscribe(() => {
@@ -88,7 +91,7 @@ export function Ribbon(props: IRibbonProps) {
         const ribbon = menuManagerService.getMenuByPositionKey(MenuManagerPosition.RIBBON);
 
         // Collect all hidden$ Observables and their corresponding paths
-        const hiddenObservaleMap: Observable<boolean>[] = [];
+        const hiddenObservableMap: Observable<boolean>[] = [];
         const hiddenKeyMap: string[] = [];
         for (const group of ribbon) {
             if (group.children) {
@@ -96,7 +99,7 @@ export function Ribbon(props: IRibbonProps) {
                     if (item.children) {
                         for (const child of item.children) {
                             if (child.item?.hidden$) {
-                                hiddenObservaleMap.push(child.item.hidden$);
+                                hiddenObservableMap.push(child.item.hidden$);
                                 hiddenKeyMap.push(`${group.key}/${item.key}/${child.key}`);
                             }
                         }
@@ -106,7 +109,7 @@ export function Ribbon(props: IRibbonProps) {
         }
 
         // Only get the current value once, not continuously subscribe
-        combineLatest(hiddenObservaleMap)
+        combineLatest(hiddenObservableMap)
             .subscribe((hiddenMap) => {
                 const newRibbon: IMenuSchema[] = [];
 
@@ -164,7 +167,7 @@ export function Ribbon(props: IRibbonProps) {
                 }
             })
             .unsubscribe();
-    }, [menuChangedTimes]);
+    }, [menuChangedTimes, focusedUnit]);
 
     const activeGroup = useMemo(() => {
         const allGroups = ribbon.find((group) => group.key === activatedTab)?.children ?? [];
@@ -328,8 +331,8 @@ export function Ribbon(props: IRibbonProps) {
                                             className={`
                                               univer-box-border univer-flex univer-cursor-pointer univer-items-center
                                               univer-gap-2.5 univer-rounded-lg univer-px-2 univer-py-1.5
-                                              dark:hover:!univer-bg-gray-700
                                               hover:univer-bg-gray-100
+                                              dark:hover:!univer-bg-gray-700
                                             `}
                                             onClick={() => handleSelectTab(group)}
                                         >
