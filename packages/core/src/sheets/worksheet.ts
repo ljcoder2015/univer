@@ -25,6 +25,7 @@ import { BuildTextUtils, DocumentDataModel } from '../docs';
 import { convertTextRotation, getFontStyleString } from '../docs/data-model/utils';
 import { composeStyles, ObjectMatrix, toDisposable, Tools } from '../shared';
 import { createRowColIter } from '../shared/row-col-iter';
+import { generateRandomId } from '../shared/tools';
 import { DEFAULT_STYLES } from '../types/const';
 import { CellValueType } from '../types/enum';
 import { ColumnManager } from './column-manager';
@@ -98,7 +99,7 @@ export class Worksheet {
         this._snapshot = mergeWorksheetSnapshotWithDefault(snapshot);
 
         const { columnData, rowData, cellData } = this._snapshot;
-        this._sheetId = this._snapshot.id ?? Tools.generateRandomId(6);
+        this._sheetId = this._snapshot.id ?? generateRandomId(6);
         this._cellData = new ObjectMatrix<Nullable<ICellData>>(cellData as IObjectMatrixPrimitiveType<Nullable<ICellData>>);
 
         // This view model will immediately injected with hooks from SheetViewModel service as Worksheet is constructed.
@@ -253,6 +254,7 @@ export class Worksheet {
      *
      * @param {number} row The row index of the cell
      * @param {number} col The column index of the cell
+     * @param {boolean} [rowPriority] If true, row style will precede column style, otherwise use this._isRowStylePrecedeColumnStyle
      * @returns {IStyleData} The composed style of the cell
      */
     getComposedCellStyle(row: number, col: number, rowPriority?: boolean): IStyleData {
@@ -264,6 +266,27 @@ export class Worksheet {
         return (rowPriority ?? this._isRowStylePrecedeColumnStyle)
             ? composeStyles(defaultStyle, colStyle, rowStyle, cell?.themeStyle, cellStyle)
             : composeStyles(defaultStyle, rowStyle, colStyle, cell?.themeStyle, cellStyle);
+    }
+
+    /**
+     * Get the composed style of the cell. If you want to get the style of the cell without merging row style,
+     * col style and default style, please use {@link getCellStyle} instead.
+     * For performance reason, if you already have the cell data, you can use this method to avoid getting the cell data again.
+     *
+     * @param {number} row The row index of the cell
+     * @param {number} col The column index of the cell
+     * @param {Nullable<ICellDataForSheetInterceptor>} cellData The cell data of the cell.
+     * @param {boolean} [rowPriority] If true, row style will precede column style, otherwise use this._isRowStylePrecedeColumnStyle
+     * @returns {IStyleData} The composed style of the cell
+     */
+    getComposedCellStyleByCellData(row: number, col: number, cellData: Nullable<ICellDataForSheetInterceptor>, rowPriority?: boolean): IStyleData {
+        const defaultStyle = this.getDefaultCellStyleInternal();
+        const rowStyle = this.getRowStyle(row);
+        const colStyle = this.getColumnStyle(col);
+        const cellStyle = this._styles.getStyleByCell(cellData);
+        return (rowPriority ?? this._isRowStylePrecedeColumnStyle)
+            ? composeStyles(defaultStyle, colStyle, rowStyle, cellData?.themeStyle, cellStyle)
+            : composeStyles(defaultStyle, rowStyle, colStyle, cellData?.themeStyle, cellStyle);
     }
 
     /**
@@ -1236,7 +1259,7 @@ export class Worksheet {
      * Only used for cell edit, and no need to rotate text when edit cell content!
      */
     getBlankCellDocumentModel(cell: Nullable<ICellData>, row: number, column: number): IDocumentLayoutObject {
-        const style = this.getComposedCellStyle(row, column);
+        const style = this.getComposedCellStyleByCellData(row, column, cell);
         const textStyle = getFontFormat(style);
         const documentModelObject = this.getCellDocumentModel(cell, style, { ignoreTextRotation: true });
 
@@ -1274,7 +1297,7 @@ export class Worksheet {
 
     // Only used for cell edit, and no need to rotate text when edit cell content!
     getCellDocumentModelWithFormula(cell: ICellData, row: number, column: number): Nullable<IDocumentLayoutObject> {
-        const style = this.getComposedCellStyle(row, column);
+        const style = this.getComposedCellStyleByCellData(row, column, cell);
         return this.getCellDocumentModel(cell, style, {
             isDeepClone: true,
             displayRawFormula: true,

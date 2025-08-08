@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export default {
+const locale = {
     BESSELI: {
         description: 'Returns the modified Bessel function In(x)',
         abstract: 'Returns the modified Bessel function In(x)',
@@ -207,9 +207,9 @@ export default {
             },
         ],
         functionParameter: {
-            number: { name: 'number', detail: 'is the value in from_units to convert.' },
-            fromUnit: { name: 'from_unit', detail: 'is the units for number.' },
-            toUnit: { name: 'to_unit', detail: 'is the units for the result.' },
+            number: { name: 'number', detail: 'Is the value in from_units to convert.' },
+            fromUnit: { name: 'from_unit', detail: 'Is the units for number.' },
+            toUnit: { name: 'to_unit', detail: 'Is the units for the result.' },
         },
     },
     DEC2BIN: {
@@ -552,7 +552,7 @@ export default {
         links: [
             {
                 title: 'Instruction',
-                url: 'https://support.google.com/docs/answer/9366486?hl=zh-Hans&sjid=1719420110567985051-AP',
+                url: 'https://support.google.com/docs/answer/9366486?hl=en&sjid=1719420110567985051-AP',
             },
         ],
         functionParameter: {
@@ -601,8 +601,8 @@ export default {
         },
     },
     IMPRODUCT: {
-        description: 'Returns the product of from 2 to 255 complex numbers',
-        abstract: 'Returns the product of from 2 to 255 complex numbers',
+        description: 'Returns the product of from 1 to 255 complex numbers',
+        abstract: 'Returns the product of from 1 to 255 complex numbers',
         links: [
             {
                 title: 'Instruction',
@@ -788,3 +788,5 @@ export default {
         },
     },
 };
+
+export default locale;

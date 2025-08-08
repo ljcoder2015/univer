@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-export default {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     BESSELI: {
         description: 'Returns the modified Bessel function In(x)',
         abstract: 'Returns the modified Bessel function In(x)',
@@ -601,8 +603,8 @@ export default {
         },
     },
     IMPRODUCT: {
-        description: 'Returns the product of from 2 to 255 complex numbers',
-        abstract: 'Returns the product of from 2 to 255 complex numbers',
+        description: 'Returns the product of from 1 to 255 complex numbers',
+        abstract: 'Returns the product of from 1 to 255 complex numbers',
         links: [
             {
                 title: 'Instruction',
@@ -788,3 +790,5 @@ export default {
         },
     },
 };
+
+export default locale;

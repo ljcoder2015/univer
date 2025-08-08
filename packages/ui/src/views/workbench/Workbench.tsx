@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import type { ILocale } from '@univerjs/design';
 import type { IUniverUIConfig } from '../../controllers/config.schema';
 import type { IWorkbenchOptions } from '../../controllers/ui/ui.controller';
 import { IConfigService, LocaleService, ThemeService } from '@univerjs/core';
@@ -105,7 +104,7 @@ export function DesktopWorkbenchContent(props: IUniverWorkbenchProps) {
         }
     }, [onRendered]);
 
-    const [locale, setLocale] = useState<ILocale>(localeService.getLocales() as unknown as ILocale);
+    const [locale, setLocale] = useState(localeService.getLocales());
 
     // Create a portal container for injecting global component themes.
     const portalContainer = useMemo<HTMLElement>(() => document.createElement('div'), []);
@@ -115,7 +114,7 @@ export function DesktopWorkbenchContent(props: IUniverWorkbenchProps) {
 
         const subscriptions = [
             localeService.localeChanged$.subscribe(() => {
-                setLocale(localeService.getLocales() as unknown as ILocale);
+                setLocale(localeService.getLocales());
             }),
         ];
 
@@ -148,7 +147,12 @@ export function DesktopWorkbenchContent(props: IUniverWorkbenchProps) {
                 onContextMenu={(e) => e.preventDefault()}
             >
                 {/* user header */}
-                <div className="univer-relative univer-flex univer-min-h-0 univer-flex-col univer-bg-white">
+                <div
+                    className={`
+                      univer-relative univer-flex univer-min-h-0 univer-flex-col univer-bg-white
+                      dark:!univer-bg-gray-800
+                    `}
+                >
                     <ComponentContainer key="custom-header" components={customHeaderComponents} />
                 </div>
 
@@ -186,6 +190,7 @@ export function DesktopWorkbenchContent(props: IUniverWorkbenchProps) {
                             className={clsx(`
                               univer-relative univer-grid univer-flex-1 univer-grid-rows-[auto_1fr]
                               univer-overflow-hidden univer-bg-white
+                              dark:!univer-bg-gray-800
                             `, borderBottomClassName)}
                         >
                             <header>

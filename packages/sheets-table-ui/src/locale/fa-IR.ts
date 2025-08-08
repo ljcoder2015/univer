@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     'sheets-table': {
         title: 'جدول',
         selectRange: 'انتخاب محدوده جدول',
@@ -38,6 +40,7 @@ const locale = {
         secondLine: 'خط دوم',
         columnPrefix: 'ستون',
         tablePrefix: 'جدول',
+        tableNameError: 'لا يمكن أن يحتوي اسم الجدول على مسافات، ولا يمكن أن يبدأ برقم، ولا يمكن أن يتكرر مع أسماء الجداول الموجودة',
 
         insert: {
             main: 'درج جدول',

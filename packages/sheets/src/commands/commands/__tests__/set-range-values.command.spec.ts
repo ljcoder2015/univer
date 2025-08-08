@@ -19,16 +19,17 @@ import type { ISetRangeValuesCommandParams } from '../set-range-values.command';
 import {
     BooleanNumber,
     CellValueType,
+    DEFAULT_TEXT_FORMAT_EXCEL,
     ICommandService,
     IUniverInstanceService,
     LocaleType,
+    merge,
     RANGE_TYPE,
     RedoCommand,
     Tools,
     UndoCommand,
     UniverInstanceType,
 } from '@univerjs/core';
-import { DEFAULT_TEXT_FORMAT_EXCEL } from '@univerjs/engine-numfmt';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { SheetsSelectionsService } from '../../../services/selections/selection.service';
 import { SetRangeValuesMutation } from '../../mutations/set-range-values.mutation';
@@ -710,7 +711,7 @@ describe('Test set range values commands', () => {
                     return paramsStyleData;
                 }
 
-                const allStyle = Tools.deepMerge({}, getParamsStyleBase(), getParamsStyleData());
+                const allStyle = merge({}, getParamsStyleBase(), getParamsStyleData());
                 expect(
                     await commandService.executeCommand(SetRangeValuesCommand.id, getParamsStyleData())
                 ).toBeTruthy();

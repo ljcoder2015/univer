@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     'sheets-table': {
         title: 'Таблица',
         selectRange: 'Выбрать диапазон таблицы',
@@ -38,6 +40,7 @@ const locale = {
         secondLine: 'Вторая строка',
         columnPrefix: 'Столбец',
         tablePrefix: 'Таблица',
+        tableNameError: 'Имя таблицы не может содержать пробелы, не может начинаться с цифры и не может совпадать с именем существующей таблицы',
 
         insert: {
             main: 'Вставить таблицу',

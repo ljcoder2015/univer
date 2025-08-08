@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     'sheets-table': {
         title: 'Tableau',
         selectRange: 'Sélectionner la plage du tableau',
@@ -38,6 +40,7 @@ const locale = {
         secondLine: 'Deuxième ligne',
         columnPrefix: 'Colonne',
         tablePrefix: 'Tableau',
+        tableNameError: 'Le nom du tableau ne peut pas contenir d\'espaces, ne peut pas commencer par un chiffre et ne peut pas être identique à un nom de tableau existant',
 
         insert: {
             main: 'Insérer un tableau',

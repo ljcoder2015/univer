@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { NullValueObject, NumberValueObject } from '../../../../engine/value-object/primitive-object';
@@ -33,7 +32,7 @@ describe('Test averageWeighted function', () => {
             const value2 = NumberValueObject.create(2);
             const weight2 = NumberValueObject.create(4);
             const result = testFunction.calculate(value1, weight1, value2, weight2);
-            expect(getObjectValue(result)).toBe(1.5714285714285714);
+            expect(getObjectValue(result, true)).toBe(1.57142857143);
         });
 
         it('Value is not paired', () => {

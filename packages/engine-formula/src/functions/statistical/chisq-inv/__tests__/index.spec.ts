@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -32,7 +31,7 @@ describe('Test chisqInv function', () => {
             const probability = NumberValueObject.create(0.5);
             const degFreedom = NumberValueObject.create(1);
             const result = testFunction.calculate(probability, degFreedom);
-            expect(getObjectValue(result)).toBe(0.45493642311961857);
+            expect(getObjectValue(result, true)).toBe(0.45493642312);
         });
 
         it('Probability value test', () => {
@@ -59,12 +58,12 @@ describe('Test chisqInv function', () => {
             const probability2 = NumberValueObject.create(0.1);
             const degFreedom3 = NumberValueObject.create(3);
             const result3 = testFunction.calculate(probability2, degFreedom3);
-            expect(getObjectValue(result3)).toBe(0.5843743741551812);
+            expect(getObjectValue(result3, true)).toBe(0.584374374155);
 
             const probability3 = NumberValueObject.create(0.9);
             const degFreedom4 = NumberValueObject.create(1);
             const result4 = testFunction.calculate(probability3, degFreedom4);
-            expect(getObjectValue(result4)).toBe(2.705543454096032);
+            expect(getObjectValue(result4, true)).toBe(2.7055434541);
         });
 
         it('Value is normal string', () => {

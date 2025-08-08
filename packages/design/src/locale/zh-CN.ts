@@ -14,22 +14,34 @@
  * limitations under the License.
  */
 
-import type { ILocale } from './interface';
-import dajsZhCN from 'dayjs/locale/zh';
-import PickerZhCN from 'rc-picker/lib/locale/zh_CN';
+import type enUS from './en-US';
 
-const locale: ILocale = {
+const locale: typeof enUS = {
     design: {
         Confirm: {
             cancel: '取消',
             confirm: '确定',
         },
-        Picker: {
-            ...dajsZhCN,
-            ...PickerZhCN,
-        },
         CascaderList: {
             empty: '无',
+        },
+        Calendar: {
+            year: '年',
+            weekDays: ['日', '一', '二', '三', '四', '五', '六'],
+            months: [
+                '一月',
+                '二月',
+                '三月',
+                '四月',
+                '五月',
+                '六月',
+                '七月',
+                '八月',
+                '九月',
+                '十月',
+                '十一月',
+                '十二月',
+            ],
         },
         Select: {
             empty: '无',

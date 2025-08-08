@@ -15,13 +15,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
-import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
-import { Nominal } from '../index';
-import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
-import { ErrorType } from '../../../../basics/error-type';
+import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { getObjectValue } from '../../../util';
+import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
+import { Nominal } from '../index';
 
 describe('Test nominal function', () => {
     const testFunction = new Nominal(FUNCTION_NAMES_FINANCIAL.NOMINAL);
@@ -31,35 +31,35 @@ describe('Test nominal function', () => {
             const effectRate = NumberValueObject.create(0.053543);
             const npery = NumberValueObject.create(4);
             const result = testFunction.calculate(effectRate, npery);
-            expect(result.getValue()).toStrictEqual(0.052500319868356016);
+            expect(getObjectValue(result, true)).toBe(0.0525003198684);
         });
 
         it('Value is error', () => {
             const effectRate = ErrorValueObject.create(ErrorType.NAME);
             const npery = NumberValueObject.create(4);
             const result = testFunction.calculate(effectRate, npery);
-            expect(result.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result)).toBe(ErrorType.NAME);
         });
 
         it('Value is boolean', () => {
             const effectRate = NumberValueObject.create(0.053543);
             const npery = BooleanValueObject.create(true);
             const result = testFunction.calculate(effectRate, npery);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
         });
 
         it('Value is blank cell', () => {
             const effectRate = NumberValueObject.create(0.053543);
             const npery = NullValueObject.create();
             const result = testFunction.calculate(effectRate, npery);
-            expect(result.getValue()).toStrictEqual(ErrorType.NUM);
+            expect(getObjectValue(result)).toBe(ErrorType.NUM);
         });
 
         it('Value is normal string', () => {
             const effectRate = StringValueObject.create('test');
             const npery = NumberValueObject.create(4);
             const result = testFunction.calculate(effectRate, npery);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
         });
 
         it('Value is array', () => {
@@ -76,7 +76,7 @@ describe('Test nominal function', () => {
             });
             const npery = NumberValueObject.create(4);
             const result = testFunction.calculate(effectRate, npery);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
         });
     });
 });

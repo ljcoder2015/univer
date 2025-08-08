@@ -15,13 +15,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
-import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
-import { Xirr } from '../index';
-import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
-import { ErrorType } from '../../../../basics/error-type';
+import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { getObjectValue } from '../../../util';
+import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
+import { Xirr } from '../index';
 
 describe('Test xirr function', () => {
     const testFunction = new Xirr(FUNCTION_NAMES_FINANCIAL.XIRR);
@@ -32,7 +32,7 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(0.3733625335188314);
+            expect(getObjectValue(result, true)).toBe(0.373362533519);
         });
 
         it('Value is normal, but no positive and negative number', () => {
@@ -40,7 +40,7 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.NUM);
+            expect(getObjectValue(result)).toBe(ErrorType.NUM);
         });
 
         it('Value is normal, but values.length !== dates.length', () => {
@@ -48,7 +48,7 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859}');
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.NUM);
+            expect(getObjectValue(result)).toBe(ErrorType.NUM);
         });
 
         it('Value is error', () => {
@@ -56,12 +56,12 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result)).toBe(ErrorType.NAME);
 
             const values2 = ArrayValueObject.create('{-10000,2750,4250,3250,2750}');
             const dates2 = ErrorValueObject.create(ErrorType.NAME);
             const result2 = testFunction.calculate(values2, dates2, guess);
-            expect(result2.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result2)).toBe(ErrorType.NAME);
         });
 
         it('Value is boolean', () => {
@@ -69,28 +69,28 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = BooleanValueObject.create(true);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
 
             const values2 = BooleanValueObject.create(true);
             const guess2 = NumberValueObject.create(0.1);
             const result2 = testFunction.calculate(values2, dates, guess2);
-            expect(result2.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result2)).toBe(ErrorType.VALUE);
 
             const values3 = NumberValueObject.create(1);
             const result3 = testFunction.calculate(values3, dates, guess2);
-            expect(result3.getValue()).toStrictEqual(ErrorType.NA);
+            expect(getObjectValue(result3)).toBe(ErrorType.NA);
 
             const dates2 = BooleanValueObject.create(true);
             const result4 = testFunction.calculate(values, dates2, guess2);
-            expect(result4.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result4)).toBe(ErrorType.VALUE);
 
             const dates3 = NumberValueObject.create(1);
             const result5 = testFunction.calculate(values, dates3, guess2);
-            expect(result5.getValue()).toStrictEqual(ErrorType.NA);
+            expect(getObjectValue(result5)).toBe(ErrorType.NA);
 
             const dates4 = NumberValueObject.create(-1);
             const result6 = testFunction.calculate(values, dates4, guess2);
-            expect(result6.getValue()).toStrictEqual(ErrorType.NUM);
+            expect(getObjectValue(result6)).toBe(ErrorType.NUM);
         });
 
         it('Value is normal string', () => {
@@ -98,7 +98,7 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = StringValueObject.create('test');
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
         });
 
         it('Value is null', () => {
@@ -106,12 +106,12 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.NA);
+            expect(getObjectValue(result)).toBe(ErrorType.NA);
 
             const values2 = ArrayValueObject.create('{-10000,2750,4250,3250,2750}');
             const guess2 = NullValueObject.create();
             const result2 = testFunction.calculate(values2, dates, guess2);
-            expect(result2.getValue()).toStrictEqual(0.3733625335188314);
+            expect(getObjectValue(result2, true)).toBe(0.373362533519);
         });
 
         it('Value is array', () => {
@@ -129,7 +129,7 @@ describe('Test xirr function', () => {
             const dates = ArrayValueObject.create('{39448,39508,39751,39859,39904}');
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(values, dates, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
 
             const values2 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -143,7 +143,7 @@ describe('Test xirr function', () => {
                 column: 0,
             });
             const result2 = testFunction.calculate(values2, dates, guess);
-            expect(result2.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result2)).toBe(ErrorType.VALUE);
 
             const values3 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -157,7 +157,7 @@ describe('Test xirr function', () => {
                 column: 0,
             });
             const result3 = testFunction.calculate(values3, dates, guess);
-            expect(result3.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result3)).toBe(ErrorType.NAME);
 
             const values4 = ArrayValueObject.create('{-10000,2750,4250,3250,2750}');
             const dates2 = ArrayValueObject.create({
@@ -172,7 +172,7 @@ describe('Test xirr function', () => {
                 column: 0,
             });
             const result4 = testFunction.calculate(values4, dates2, guess);
-            expect(result4.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result4)).toBe(ErrorType.VALUE);
 
             const dates3 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -186,7 +186,7 @@ describe('Test xirr function', () => {
                 column: 0,
             });
             const result5 = testFunction.calculate(values4, dates3, guess);
-            expect(result5.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result5)).toBe(ErrorType.VALUE);
 
             const dates4 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -200,7 +200,7 @@ describe('Test xirr function', () => {
                 column: 0,
             });
             const result6 = testFunction.calculate(values4, dates4, guess);
-            expect(result6.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result6)).toBe(ErrorType.NAME);
 
             const dates5 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -214,12 +214,12 @@ describe('Test xirr function', () => {
                 column: 0,
             });
             const result7 = testFunction.calculate(values4, dates5, guess);
-            expect(result7.getValue()).toStrictEqual(ErrorType.NUM);
+            expect(getObjectValue(result7)).toBe(ErrorType.NUM);
 
             const values5 = ArrayValueObject.create('{-10000}');
             const dates6 = ArrayValueObject.create('{39448}');
             const result8 = testFunction.calculate(values5, dates6, guess);
-            expect(result8.getValue()).toStrictEqual(ErrorType.NA);
+            expect(getObjectValue(result8)).toBe(ErrorType.NA);
         });
     });
 });

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export default {
+const locale = {
     AVEDEV: {
         description: 'Returns the average of the absolute deviations of data points from their mean.',
         abstract: 'Returns the average of the absolute deviations of data points from their mean',
@@ -964,7 +964,7 @@ export default {
         ],
         functionParameter: {
             maxRange: { name: 'sum_range', detail: 'The range of cells to max.' },
-            criteriaRange1: { name: 'criteria_range1 ', detail: 'Is the set of cells to evaluate with the criteria.' },
+            criteriaRange1: { name: 'criteria_range1', detail: 'Is the set of cells to evaluate with the criteria.' },
             criteria1: { name: 'criteria1', detail: 'Is the criteria in the form of a number, expression, or text that defines which cells will be evaluated as maximum. ' },
             criteriaRange2: { name: 'criteriaRange2', detail: 'Additional ranges. You can enter up to 127 ranges.' },
             criteria2: { name: 'criteria2', detail: 'Additional associated criteria. You can enter up to 127 criteria.' },
@@ -1699,3 +1699,5 @@ export default {
         },
     },
 };
+
+export default locale;

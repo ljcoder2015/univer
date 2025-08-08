@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -56,7 +55,7 @@ describe('Test steyx function', () => {
                 column: 0,
             });
             const result = testFunction.calculate(knownYs, knownXs);
-            expect(getObjectValue(result)).toBe(10.95439821888396);
+            expect(getObjectValue(result, true)).toBe(10.9543982189);
         });
 
         it('Value length is equal to 1', () => {

@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -102,8 +101,8 @@ describe('Test numbervalue function', () => {
             const number = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
                     [1, ' ', 1.23, true, false, null],
-                    [0, '100', '2.34', 'test', -3, ErrorType.NAME],
-                ]),
+                    [0, '2,500.27', '20%', 'test', -3, ErrorType.NAME],
+                ], true),
                 rowCount: 2,
                 columnCount: 6,
                 unitId: '',
@@ -114,7 +113,7 @@ describe('Test numbervalue function', () => {
             const result = testFunction.calculate(number);
             expect(getObjectValue(result)).toStrictEqual([
                 [1, 0, 1.23, ErrorType.VALUE, ErrorType.VALUE, 0],
-                [0, 100, 2.34, ErrorType.VALUE, -3, ErrorType.NAME],
+                [0, 2500.27, 0.2, ErrorType.VALUE, -3, ErrorType.NAME],
             ]);
         });
 

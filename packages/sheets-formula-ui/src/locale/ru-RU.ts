@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-import array from './function-list/array/ru-RU'; // TODO
-import compatibility from './function-list/compatibility/ru-RU'; // TODO
+import type enUS from './en-US';
+import array from './function-list/array/ru-RU';
+import compatibility from './function-list/compatibility/ru-RU';
 import cube from './function-list/cube/ru-RU';
 import database from './function-list/database/ru-RU';
-import date from './function-list/date/ru-RU'; // TODO
-import engineering from './function-list/engineering/ru-RU'; // TODO
-import financial from './function-list/financial/ru-RU'; // TODO
-import information from './function-list/information/ru-RU'; // TODO
+import date from './function-list/date/ru-RU';
+import engineering from './function-list/engineering/ru-RU';
+import financial from './function-list/financial/ru-RU';
+import information from './function-list/information/ru-RU';
 import logical from './function-list/logical/ru-RU'; // TODO
 import lookup from './function-list/lookup/ru-RU'; // TODO
-import math from './function-list/math/en-US'; // TODO
+import math from './function-list/math/ru-RU';
 import statistical from './function-list/statistical/en-US'; // TODO
 import text from './function-list/text/ru-RU';
 import univer from './function-list/univer/ru-RU';
 import web from './function-list/web/ru-RU';
 
-export default {
+const locale: typeof enUS = {
     shortcut: {
         'sheets-formula-ui': {
             'quick-sum': 'Быстрая сумма',
@@ -102,6 +103,7 @@ export default {
             array: 'Массив',
             univer: 'Универсальные',
             user: 'Пользовательские',
+            definedname: 'Defined Name',
         },
         moreFunctions: {
             confirm: 'Подтвердить',
@@ -116,3 +118,5 @@ export default {
         },
     },
 };
+
+export default locale;

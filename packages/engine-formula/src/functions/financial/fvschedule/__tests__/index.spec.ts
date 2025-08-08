@@ -15,13 +15,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
-import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
-import { Fvschedule } from '../index';
-import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
-import { ErrorType } from '../../../../basics/error-type';
+import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { getObjectValue } from '../../../util';
+import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
+import { Fvschedule } from '../index';
 
 describe('Test fvschedule function', () => {
     const testFunction = new Fvschedule(FUNCTION_NAMES_FINANCIAL.FVSCHEDULE);
@@ -31,49 +31,49 @@ describe('Test fvschedule function', () => {
             const principal = NumberValueObject.create(1);
             const schedule = ArrayValueObject.create('{0.09,0.11,0.1}');
             const result = testFunction.calculate(principal, schedule);
-            expect(result.getValue()).toStrictEqual(1.3308900000000004);
+            expect(getObjectValue(result, true)).toBe(1.33089);
 
             const schedule2 = NumberValueObject.create(1);
             const result2 = testFunction.calculate(principal, schedule2);
-            expect(result2.getValue()).toStrictEqual(2);
+            expect(getObjectValue(result2)).toBe(2);
         });
 
         it('Value is error', () => {
             const principal = ErrorValueObject.create(ErrorType.NAME);
             const schedule = ArrayValueObject.create('{0.09,0.11,0.1}');
             const result = testFunction.calculate(principal, schedule);
-            expect(result.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result)).toBe(ErrorType.NAME);
         });
 
         it('Value is boolean', () => {
             const principal = BooleanValueObject.create(true);
             const schedule = ArrayValueObject.create('{0.09,0.11,0.1}');
             const result = testFunction.calculate(principal, schedule);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
 
             const principal2 = NumberValueObject.create(1);
             const schedule2 = BooleanValueObject.create(true);
             const result2 = testFunction.calculate(principal2, schedule2);
-            expect(result2.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result2)).toBe(ErrorType.VALUE);
         });
 
         it('Value is blank cell', () => {
             const principal = NullValueObject.create();
             const schedule = ArrayValueObject.create('{0.09,0.11,0.1}');
             const result = testFunction.calculate(principal, schedule);
-            expect(result.getValue()).toStrictEqual(0);
+            expect(getObjectValue(result)).toBe(0);
         });
 
         it('Value is normal string', () => {
             const principal = StringValueObject.create('test');
             const schedule = ArrayValueObject.create('{0.09,0.11,0.1}');
             const result = testFunction.calculate(principal, schedule);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
 
             const principal2 = NumberValueObject.create(1);
             const schedule2 = StringValueObject.create('test');
             const result2 = testFunction.calculate(principal2, schedule2);
-            expect(result2.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result2)).toBe(ErrorType.VALUE);
         });
 
         it('Value is array', () => {
@@ -90,7 +90,7 @@ describe('Test fvschedule function', () => {
             });
             const schedule = ArrayValueObject.create('{0.09,0.11,0.1}');
             const result = testFunction.calculate(principal, schedule);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
 
             const principal2 = NumberValueObject.create(1);
             const schedule2 = ArrayValueObject.create({
@@ -105,7 +105,7 @@ describe('Test fvschedule function', () => {
                 column: 0,
             });
             const result2 = testFunction.calculate(principal2, schedule2);
-            expect(result2.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result2)).toBe(ErrorType.VALUE);
 
             const schedule3 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -119,7 +119,7 @@ describe('Test fvschedule function', () => {
                 column: 0,
             });
             const result3 = testFunction.calculate(principal2, schedule3);
-            expect(result3.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result3)).toBe(ErrorType.VALUE);
         });
     });
 });

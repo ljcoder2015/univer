@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -56,7 +55,7 @@ describe('Test fTest function', () => {
                 column: 0,
             });
             const result = testFunction.calculate(array1, array2);
-            expect(getObjectValue(result)).toBe(0.7283721822078002);
+            expect(getObjectValue(result, true)).toBe(0.728372182208);
         });
 
         it('Value length is equal to 1', () => {
@@ -113,7 +112,7 @@ describe('Test fTest function', () => {
                 column: 0,
             });
             const result = testFunction.calculate(array1, array2);
-            expect(getObjectValue(result)).toBe(0.5601137808756675);
+            expect(getObjectValue(result, true)).toBe(0.560113780876);
         });
 
         it('Value is error', () => {
@@ -301,7 +300,7 @@ describe('Test fTest function', () => {
                 column: 0,
             });
             const result = testFunction.calculate(array1, array2);
-            expect(getObjectValue(result)).toBe(0.6483178467861754);
+            expect(getObjectValue(result, true)).toBe(0.648317846786);
         });
 
         it('Array2Variance === 0', () => {

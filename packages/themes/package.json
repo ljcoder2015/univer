@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/themes",
-    "version": "0.9.1",
+    "version": "0.10.2",
     "private": false,
     "description": "Themes package for Univer",
     "author": "DreamNum <developer@univer.ai>",
@@ -52,11 +52,11 @@
         "lib"
     ],
     "scripts": {
-        "lint:types": "tsc --noEmit",
+        "typecheck": "tsc --noEmit",
         "build": "univer-cli build"
     },
     "devDependencies": {
         "@univerjs-infra/shared": "workspace:*",
-        "vite": "^6.3.5"
+        "vite": "^7.0.6"
     }
 }

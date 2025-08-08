@@ -55,7 +55,7 @@ export function fromObjectToString(array: IArrayValueObject) {
     return '';
 }
 
-export function transformToValueObject(array: Array<Array<number | string | boolean | null>> = []) {
+export function transformToValueObject(array: Array<Array<number | string | boolean | null>> = [], isIgnoreNumberPattern: boolean = false) {
     const arrayValueList: BaseValueObject[][] = [];
 
     for (let r = 0; r < array.length; r++) {
@@ -68,7 +68,7 @@ export function transformToValueObject(array: Array<Array<number | string | bool
         for (let c = 0; c < row.length; c++) {
             const cell = row[c];
 
-            arrayValueList[r][c] = ValueObjectFactory.create(cell);
+            arrayValueList[r][c] = ValueObjectFactory.create(cell, isIgnoreNumberPattern);
         }
     }
 
@@ -1953,7 +1953,7 @@ export class ArrayValueObject extends BaseValueObject {
 }
 
 export class ValueObjectFactory {
-    static create(rawValue: string | number | boolean | null) {
+    static create(rawValue: string | number | boolean | null, isIgnoreNumberPattern: boolean = false): BaseValueObject {
         if (rawValue == null) {
             return NullValueObject.create();
         }
@@ -1972,9 +1972,12 @@ export class ValueObjectFactory {
                 return NumberValueObject.create(Number(rawValue));
             }
 
-            const { isNumberPattern, value, pattern } = stringIsNumberPattern(rawValue);
-            if (isNumberPattern) {
-                return NumberValueObject.create(value as number, pattern as string);
+            // value ignore whether it is a number pattern
+            if (!isIgnoreNumberPattern) {
+                const { isNumberPattern, value, pattern } = stringIsNumberPattern(rawValue);
+                if (isNumberPattern) {
+                    return NumberValueObject.create(value as number, pattern as string);
+                }
             }
 
             const rawValueSingleLine = rawValue.replace(/\n/g, '').replace(/\r/g, '');

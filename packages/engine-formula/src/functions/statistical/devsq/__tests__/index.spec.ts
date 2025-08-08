@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -56,7 +55,7 @@ describe('Test devsq function', () => {
                 column: 0,
             });
             const result = testFunction.calculate(number1, number2);
-            expect(getObjectValue(result)).toBe(2736.3684000000003);
+            expect(getObjectValue(result, true)).toBe(2736.3684);
         });
 
         it('Value is error', () => {
@@ -111,7 +110,7 @@ describe('Test devsq function', () => {
             });
             const number3 = NumberValueObject.create(1);
             const result = testFunction.calculate(number1, number2, number3);
-            expect(getObjectValue(result)).toBe(1021.1506000000002);
+            expect(getObjectValue(result, true)).toBe(1021.1506);
         });
 
         it('Value is can not calculate', () => {

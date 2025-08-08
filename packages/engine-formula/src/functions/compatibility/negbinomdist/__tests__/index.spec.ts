@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -33,7 +32,7 @@ describe('Test negbinomdist function', () => {
             const numberS = NumberValueObject.create(10);
             const probabilityS = NumberValueObject.create(0.5);
             const result = testFunction.calculate(numberF, numberS, probabilityS);
-            expect(getObjectValue(result)).toBe(0.0763702392578125);
+            expect(getObjectValue(result, true)).toBe(0.0763702392578);
         });
 
         it('NumberF and numberS value test', () => {
@@ -74,7 +73,7 @@ describe('Test negbinomdist function', () => {
             const numberS = NumberValueObject.create(10);
             const probabilityS = NumberValueObject.create(0.5);
             const result = testFunction.calculate(numberF, numberS, probabilityS);
-            expect(getObjectValue(result)).toBe(0.0048828125);
+            expect(getObjectValue(result, true)).toBe(0.0048828125);
         });
 
         it('Value is null', () => {
@@ -82,7 +81,7 @@ describe('Test negbinomdist function', () => {
             const numberS = NumberValueObject.create(10);
             const probabilityS = NumberValueObject.create(0.5);
             const result = testFunction.calculate(numberF, numberS, probabilityS);
-            expect(getObjectValue(result)).toBe(0.0009765625);
+            expect(getObjectValue(result, true)).toBe(0.0009765625);
         });
 
         it('Value is error', () => {
@@ -118,9 +117,9 @@ describe('Test negbinomdist function', () => {
             const numberS = NumberValueObject.create(10);
             const probabilityS = NumberValueObject.create(0.5);
             const result = testFunction.calculate(numberF, numberS, probabilityS);
-            expect(getObjectValue(result)).toStrictEqual([
+            expect(getObjectValue(result, true)).toStrictEqual([
                 [0.0048828125, ErrorType.VALUE, 0.0048828125, 0.0048828125, 0.0009765625, 0.0009765625],
-                [0.0009765625, 3.284420461640601e-21, 0.013427734375, ErrorType.VALUE, ErrorType.NUM, ErrorType.NAME],
+                [0.0009765625, 3.28442046164e-21, 0.013427734375, ErrorType.VALUE, ErrorType.NUM, ErrorType.NAME],
             ]);
         });
     });

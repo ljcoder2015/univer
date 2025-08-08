@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -33,7 +32,7 @@ describe('Test gammaInv function', () => {
             const alpha = NumberValueObject.create(9);
             const beta = NumberValueObject.create(2);
             const result = testFunction.calculate(probability, alpha, beta);
-            expect(getObjectValue(result)).toBe(10.00001119143767);
+            expect(getObjectValue(result, true)).toBe(10.0000111914);
         });
 
         it('Alpha and beta value test', () => {
@@ -51,7 +50,7 @@ describe('Test gammaInv function', () => {
             const alpha3 = NumberValueObject.create(1);
             const beta3 = NumberValueObject.create(1);
             const result3 = testFunction.calculate(probability, alpha3, beta3);
-            expect(getObjectValue(result3)).toBe(0.07052332775219192);
+            expect(getObjectValue(result3, true)).toBe(0.0705233277522);
         });
 
         it('Probability value test', () => {

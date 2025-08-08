@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -55,7 +54,7 @@ describe('Test betadist function', () => {
             const alpha3 = NumberValueObject.create(1);
             const beta3 = NumberValueObject.create(1);
             const result3 = testFunction.calculate(x, alpha3, beta3, A, B);
-            expect(getObjectValue(result3)).toBe(0.5000000000000002);
+            expect(getObjectValue(result3, true)).toBe(0.5);
         });
 
         it('X and A and B value test', () => {
@@ -159,9 +158,9 @@ describe('Test betadist function', () => {
             const A = NumberValueObject.create(1);
             const B = NumberValueObject.create(3);
             const result = testFunction.calculate(x, alpha, beta, A, B);
-            expect(getObjectValue(result)).toStrictEqual([
-                [0, ErrorType.VALUE, 0.00028348362316367936, 0, ErrorType.NUM, ErrorType.NUM],
-                [ErrorType.NUM, ErrorType.NUM, 0.9745907595394001, ErrorType.VALUE, ErrorType.NUM, ErrorType.NUM],
+            expect(getObjectValue(result, true)).toStrictEqual([
+                [0, ErrorType.VALUE, 0.000283483623164, 0, ErrorType.NUM, ErrorType.NUM],
+                [ErrorType.NUM, ErrorType.NUM, 0.974590759539, ErrorType.VALUE, ErrorType.NUM, ErrorType.NUM],
             ]);
         });
     });

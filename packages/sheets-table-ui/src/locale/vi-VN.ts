@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     'sheets-table': {
         title: 'Bảng',
         selectRange: 'Chọn phạm vi bảng',
@@ -38,6 +40,7 @@ const locale = {
         secondLine: 'Dòng thứ hai',
         columnPrefix: 'Cột',
         tablePrefix: 'Bảng',
+        tableNameError: 'Tên bảng không thể chứa khoảng trắng, không được bắt đầu bằng số và không được trùng với tên bảng đã có',
 
         insert: {
             main: 'Chèn bảng',

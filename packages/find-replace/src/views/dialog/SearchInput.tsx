@@ -30,7 +30,17 @@ export interface ISearchInputProps extends Pick<IInputProps, 'onFocus' | 'onBlur
 }
 
 export function SearchInput(props: ISearchInputProps) {
-    const { findCompleted: findComplete, localeService, matchesCount, matchesPosition, initialFindString, findReplaceService, onChange, ...rest } = props;
+    const {
+        findCompleted: findComplete,
+        localeService,
+        matchesCount,
+        matchesPosition,
+        initialFindString,
+        findReplaceService,
+        onChange,
+        ...rest
+    } = props;
+
     const [value, setValue] = useState(initialFindString);
     const noResult = findComplete && matchesCount === 0;
     const text = noResult
@@ -38,6 +48,18 @@ export function SearchInput(props: ISearchInputProps) {
         : matchesCount === 0
             ? ' '
             : undefined;
+
+    function handleChangePosition(newIndex: number) {
+        if (matchesPosition === matchesCount && newIndex === 1) {
+            findReplaceService.moveToNextMatch();
+        } else if (matchesPosition === 1 && newIndex === matchesCount) {
+            findReplaceService.moveToPreviousMatch();
+        } else if (newIndex < matchesPosition) {
+            findReplaceService.moveToPreviousMatch();
+        } else {
+            findReplaceService.moveToNextMatch();
+        }
+    }
 
     return (
         <div className="univer-relative univer-flex univer-items-center univer-gap-2" onDrag={(e) => e.stopPropagation()}>
@@ -56,17 +78,7 @@ export function SearchInput(props: ISearchInputProps) {
                         text={text}
                         value={matchesPosition}
                         total={matchesCount}
-                        onChange={(newIndex) => {
-                            if (matchesPosition === matchesCount && newIndex === 1) {
-                                findReplaceService.moveToNextMatch();
-                            } else if (matchesPosition === 1 && newIndex === matchesCount) {
-                                findReplaceService.moveToPreviousMatch();
-                            } else if (newIndex < matchesPosition) {
-                                findReplaceService.moveToPreviousMatch();
-                            } else {
-                                findReplaceService.moveToNextMatch();
-                            }
-                        }}
+                        onChange={handleChangePosition}
                     />
                 )}
                 {...rest}

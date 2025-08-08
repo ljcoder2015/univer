@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -33,7 +32,7 @@ describe('Test confidenceNorm function', () => {
             const standardDev = NumberValueObject.create(2.5);
             const size = NumberValueObject.create(50);
             const result = testFunction.calculate(alpha, standardDev, size);
-            expect(getObjectValue(result)).toBe(0.6929519121748391);
+            expect(getObjectValue(result, true)).toBe(0.692951912175);
         });
 
         it('Alpha value test', () => {

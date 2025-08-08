@@ -15,13 +15,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
+import { ErrorType } from '../../../../basics/error-type';
+import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
+import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
+import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
+import { getObjectValue } from '../../../util';
 import { FUNCTION_NAMES_FINANCIAL } from '../../function-names';
 import { Rate } from '../index';
-import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
-import { ArrayValueObject, transformToValue, transformToValueObject } from '../../../../engine/value-object/array-value-object';
-import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
-import { ErrorType } from '../../../../basics/error-type';
 
 describe('Test rate function', () => {
     const testFunction = new Rate(FUNCTION_NAMES_FINANCIAL.RATE);
@@ -35,11 +35,11 @@ describe('Test rate function', () => {
             const type = NumberValueObject.create(0);
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(nper, pmt, pv, fv, type, guess);
-            expect(result.getValue()).toStrictEqual(-0.0726317700766071);
+            expect(getObjectValue(result, true)).toBe(-0.0726317700766);
 
             const type2 = NumberValueObject.create(1);
             const result2 = testFunction.calculate(nper, pmt, pv, fv, type2, guess);
-            expect(result2.getValue()).toStrictEqual(-0.07459013341097893);
+            expect(getObjectValue(result2, true)).toBe(-0.074590133411);
         });
 
         it('Value is error', () => {
@@ -50,7 +50,7 @@ describe('Test rate function', () => {
             const type = NumberValueObject.create(0);
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(nper, pmt, pv, fv, type, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.NAME);
+            expect(getObjectValue(result)).toBe(ErrorType.NAME);
         });
 
         it('Value is boolean', () => {
@@ -61,7 +61,7 @@ describe('Test rate function', () => {
             const type = NumberValueObject.create(0);
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(nper, pmt, pv, fv, type, guess);
-            expect(result.getValue()).toStrictEqual(-0.9980000000000001);
+            expect(getObjectValue(result, true)).toBe(-0.998);
         });
 
         it('Value is blank cell', () => {
@@ -72,7 +72,7 @@ describe('Test rate function', () => {
             const type = NumberValueObject.create(0);
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(nper, pmt, pv, fv, type, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.NUM);
+            expect(getObjectValue(result)).toBe(ErrorType.NUM);
         });
 
         it('Value is normal string', () => {
@@ -83,7 +83,7 @@ describe('Test rate function', () => {
             const type = NumberValueObject.create(0);
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(nper, pmt, pv, fv, type, guess);
-            expect(result.getValue()).toStrictEqual(ErrorType.VALUE);
+            expect(getObjectValue(result)).toBe(ErrorType.VALUE);
         });
 
         it('Value is array', () => {
@@ -129,8 +129,8 @@ describe('Test rate function', () => {
             const type = NumberValueObject.create(0);
             const guess = NumberValueObject.create(0.1);
             const result = testFunction.calculate(nper, pmt, pv, fv, type, guess);
-            expect(transformToValue(result.getArrayValue())).toStrictEqual([
-                [ErrorType.VALUE, 39.93118175604701, ErrorType.NUM, ErrorType.NA],
+            expect(getObjectValue(result, true)).toStrictEqual([
+                [ErrorType.VALUE, 39.931181756, ErrorType.NUM, ErrorType.NA],
                 [ErrorType.NUM, ErrorType.NUM, ErrorType.NAME, ErrorType.NA],
                 [ErrorType.NUM, ErrorType.NUM, ErrorType.NUM, ErrorType.NA],
                 [ErrorType.NA, ErrorType.NA, ErrorType.NA, ErrorType.NA],

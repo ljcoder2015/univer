@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-const locale = {
+import type enUS from './en-US';
+
+const locale: typeof enUS = {
     'sheets-table': {
         title: '表格',
         selectRange: '選擇表格範圍',
@@ -38,6 +40,7 @@ const locale = {
         secondLine: '第二行',
         columnPrefix: '列',
         tablePrefix: '表格',
+        tableNameError: '表格名稱不能包含空格， 不能以數字開頭，不能和已有表格名稱重複',
 
         insert: {
             main: '表格插入',

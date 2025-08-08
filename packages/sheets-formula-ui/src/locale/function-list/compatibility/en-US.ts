@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export default {
+const locale = {
     BETADIST: {
         description: 'Returns the beta cumulative distribution function',
         abstract: 'Returns the beta cumulative distribution function',
@@ -487,7 +487,7 @@ export default {
             },
         ],
         functionParameter: {
-            x: { name: 'x', detail: 'The numeric value at which to evaluate the distribution' },
+            x: { name: 'x', detail: 'The numeric value at which to evaluate the distribution.' },
             degFreedom: { name: 'degFreedom', detail: 'An integer indicating the number of degrees of freedom.' },
             tails: { name: 'tails', detail: 'Specifies the number of distribution tails to return. If Tails = 1, TDIST returns the one-tailed distribution. If Tails = 2, TDIST returns the two-tailed distribution.' },
         },
@@ -582,3 +582,5 @@ export default {
         },
     },
 };
+
+export default locale;

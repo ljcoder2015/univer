@@ -15,10 +15,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
+import { getObjectValue } from '../../../functions/util';
 import { ArrayValueObject, transformToValueObject } from '../array-value-object';
 import { NumberValueObject } from '../primitive-object';
-import { stripArrayValue } from '../../../functions/__tests__/create-function-test-bed';
 
 describe('arrayValueObject floor method test', () => {
     const originArrayValueObject = ArrayValueObject.create({
@@ -49,8 +48,9 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
+            const result = originArrayValueObject.floor(floorArrayValueObject);
 
-            expect((originArrayValueObject.floor(floorArrayValueObject) as ArrayValueObject).toValue()).toStrictEqual([
+            expect(getObjectValue(result)).toStrictEqual([
                 [0.12, 0.987, 0.5432, '#N/A', '#N/A'],
                 [0.2, 0.8765, 0.32, '#N/A', '#N/A'],
                 ['#N/A', '#N/A', '#N/A', '#N/A', '#N/A'],
@@ -67,8 +67,9 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
+            const result = originArrayValueObject.floor(floorArrayValueObject);
 
-            expect((originArrayValueObject.floor(floorArrayValueObject) as ArrayValueObject).toValue()).toStrictEqual([
+            expect(getObjectValue(result)).toStrictEqual([
                 [0.12, 0.98, 0.54, 0.678, 0.456],
                 [0.23, 0.87, 0.32, 0.765, 0.543],
                 [0.34, 0.76, 0.21, 0.654, 0.678],
@@ -85,8 +86,9 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
+            const result = originArrayValueObject.floor(floorArrayValueObject);
 
-            expect((originArrayValueObject.floor(floorArrayValueObject) as ArrayValueObject).toValue()).toStrictEqual([
+            expect(getObjectValue(result)).toStrictEqual([
                 [0.123, 0.987, 0.543, 0.678, 0.456],
                 [0.23, 0.87, 0.32, 0.76, 0.54],
                 [0.3, 0.7, 0.2, 0.6, 0.6],
@@ -116,8 +118,9 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
+            const result = originArrayValueObject.floor(floorArrayValueObject);
 
-            expect((originArrayValueObject.floor(floorArrayValueObject) as ArrayValueObject).toValue()).toStrictEqual([
+            expect(getObjectValue(result)).toStrictEqual([
                 [0.12, 0.98, 0.54, 0.678, 0.456],
                 [0.123, 0.987, 0.543, 0.6789, 0.4567],
                 [0.1234, 0.9876, 0.5432, 0.6789, 0.4567],
@@ -147,8 +150,9 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
+            const result = originArrayValueObject.floor(floorArrayValueObject);
 
-            expect((originArrayValueObject.floor(floorArrayValueObject) as ArrayValueObject).toValue()).toStrictEqual([
+            expect(getObjectValue(result)).toStrictEqual([
                 [0.12, 0.12, 0.12, 0.123, 0.123],
                 [0.234, 0.234, 0.234, 0.2345, 0.2345],
                 [0.3456, 0.3456, 0.3456, 0.3456, 0.3456],
@@ -168,10 +172,10 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
-
             const floorValueObject = NumberValueObject.create(1);
+            const result = originArrayValueObject.floor(floorValueObject);
 
-            expect((originArrayValueObject.floor(floorValueObject) as ArrayValueObject).toValue()).toStrictEqual([
+            expect(getObjectValue(result)).toStrictEqual([
                 [1, '#VALUE!', 1.2, 1, 0],
                 [0, 100, 2.3, '#VALUE!', -3],
             ]);
@@ -191,8 +195,9 @@ describe('arrayValueObject floor method test', () => {
                 row: 0,
                 column: 0,
             });
+            const result = originValueObject.floor(floorArrayValueObject);
 
-            expect(stripArrayValue((originValueObject.floor(floorArrayValueObject) as ArrayValueObject).toValue())).toStrictEqual([
+            expect(getObjectValue(result, true)).toStrictEqual([
                 [1, '#VALUE!', 1, 1, 1],
                 [1, 1, 1, '#VALUE!', 0],
             ]);

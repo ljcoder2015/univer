@@ -15,10 +15,26 @@
  */
 
 import type { IRangeThemeStyleJSON } from '@univerjs/sheets';
-import type { IAddSheetTableCommandParams, IDeleteSheetTableParams, ISetSheetTableCommandParams, ISetSheetTableParams, ITableFilterItem, ITableInfoWithUnitId, ITableOptions, ITableRange } from '@univerjs/sheets-table';
-import { cellToRange, Rectangle } from '@univerjs/core';
+import type {
+    IAddSheetTableCommandParams,
+    IDeleteSheetTableParams,
+    ISetSheetTableCommandParams,
+    ISetSheetTableParams,
+    ITableFilterItem,
+    ITableInfoWithUnitId,
+    ITableOptions,
+    ITableRange,
+} from '@univerjs/sheets-table';
+import { cellToRange, customNameCharacterCheck, ILogService, LocaleService, Rectangle } from '@univerjs/core';
 import { RangeThemeStyle } from '@univerjs/sheets';
-import { AddSheetTableCommand, AddTableThemeCommand, DeleteSheetTableCommand, SetSheetTableCommand, SetSheetTableFilterCommand, SheetTableService } from '@univerjs/sheets-table';
+import {
+    AddSheetTableCommand,
+    AddTableThemeCommand,
+    DeleteSheetTableCommand,
+    SetSheetTableCommand,
+    SetSheetTableFilterCommand,
+    SheetTableService,
+} from '@univerjs/sheets-table';
 import { FWorksheet } from '@univerjs/sheets/facade';
 
 /**
@@ -54,7 +70,7 @@ export interface IFWorkSheetTableMixin {
      * }
      * ```
      */
-    addTable(tableName: string, rangeInfo: ITableRange, tableId?: string, options?: ITableOptions): Promise<boolean>;
+    addTable(tableName: string, rangeInfo: ITableRange, tableId?: string, options?: ITableOptions): Promise<boolean> | boolean;
 
     /**
      * Set the filter for a table column
@@ -182,7 +198,7 @@ export interface IFWorkSheetTableMixin {
      * }
      * ```
      */
-    setTableName(tableId: string, tableName: string): Promise<boolean>;
+    setTableName(tableId: string, tableName: string): Promise<boolean> | boolean;
 
     /**
      * Get the list of tables in the worksheet
@@ -316,9 +332,25 @@ export interface IFWorkSheetTableMixin {
 }
 
 export class FWorkSheetTableMixin extends FWorksheet implements IFWorkSheetTableMixin {
-    override addTable(tableName: string, rangeInfo: ITableRange, tableId?: string, options?: ITableOptions): Promise<boolean> {
+    override addTable(tableName: string, rangeInfo: ITableRange, tableId?: string, options?: ITableOptions): Promise<boolean> | boolean {
         const subUnitId = this.getSheetId();
-        const unitId = this.getWorkbook().getUnitId();
+        const workbook = this.getWorkbook();
+        const unitId = workbook.getUnitId();
+
+        const localeService = this._injector.get(LocaleService);
+
+        const sheetNameSet = new Set<string>();
+        if (workbook) {
+            workbook.getSheets().forEach((sheet) => {
+                sheetNameSet.add(sheet.getName());
+            });
+        }
+        const isValidName = customNameCharacterCheck(tableName, sheetNameSet);
+        if (!isValidName) {
+            const logService = this._injector.get(ILogService);
+            logService.warn(localeService.t('sheets-table.tableNameError'));
+            return false;
+        }
         const addTableParams: IAddSheetTableCommandParams = {
             unitId,
             subUnitId,
@@ -360,7 +392,24 @@ export class FWorkSheetTableMixin extends FWorksheet implements IFWorkSheetTable
         return this._commandService.executeCommand(SetSheetTableCommand.id, tableSetConfig);
     }
 
-    override setTableName(tableId: string, tableName: string): Promise<boolean> {
+    override setTableName(tableId: string, tableName: string): Promise<boolean> | boolean {
+        const workbook = this.getWorkbook();
+
+        const localeService = this._injector.get(LocaleService);
+
+        const sheetNameSet = new Set<string>();
+        if (workbook) {
+            workbook.getSheets().forEach((sheet) => {
+                sheetNameSet.add(sheet.getName());
+            });
+        }
+        const isValidName = customNameCharacterCheck(tableName, sheetNameSet);
+        if (!isValidName) {
+            const logService = this._injector.get(ILogService);
+            logService.warn(localeService.t('sheets-table.tableNameError'));
+            return false;
+        }
+
         const tableSetConfig: ISetSheetTableCommandParams = {
             unitId: this.getWorkbook().getUnitId(),
             tableId,

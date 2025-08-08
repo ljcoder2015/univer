@@ -1,6 +1,6 @@
 {
     "name": "@univerjs/sheets-graphics",
-    "version": "0.9.1",
+    "version": "0.10.2",
     "private": false,
     "description": "Drawing graphics for Univer Sheets",
     "author": "DreamNum <developer@univer.ai>",
@@ -52,7 +52,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "coverage": "vitest run --coverage",
-        "lint:types": "tsc --noEmit",
+        "typecheck": "tsc --noEmit",
         "build": "univer-cli build"
     },
     "dependencies": {
@@ -63,7 +63,7 @@
     "devDependencies": {
         "@univerjs-infra/shared": "workspace:*",
         "typescript": "^5.8.3",
-        "vite": "^6.3.5",
+        "vite": "^7.0.6",
         "vitest": "^3.2.4"
     }
 }

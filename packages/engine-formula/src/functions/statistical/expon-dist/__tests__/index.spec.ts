@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -33,7 +32,7 @@ describe('Test exponDist function', () => {
             const lambda = NumberValueObject.create(1);
             const cumulative = BooleanValueObject.create(true);
             const result = testFunction.calculate(x, lambda, cumulative);
-            expect(getObjectValue(result)).toBe(0.3934693402873666);
+            expect(getObjectValue(result, true)).toBe(0.393469340287);
         });
 
         it('Lambda value test', () => {
@@ -53,7 +52,7 @@ describe('Test exponDist function', () => {
             const lambda = NumberValueObject.create(1);
             const cumulative = BooleanValueObject.create(false);
             const result = testFunction.calculate(x, lambda, cumulative);
-            expect(getObjectValue(result)).toBe(0.6065306597126334);
+            expect(getObjectValue(result, true)).toBe(0.606530659713);
         });
 
         it('Value is normal string', () => {
@@ -69,7 +68,7 @@ describe('Test exponDist function', () => {
             const lambda = NumberValueObject.create(1);
             const cumulative = BooleanValueObject.create(true);
             const result = testFunction.calculate(x, lambda, cumulative);
-            expect(getObjectValue(result)).toBe(0.6321205588285577);
+            expect(getObjectValue(result, true)).toBe(0.632120558829);
         });
 
         it('Value is null', () => {
@@ -113,9 +112,9 @@ describe('Test exponDist function', () => {
             const lambda = NumberValueObject.create(1);
             const cumulative = BooleanValueObject.create(true);
             const result = testFunction.calculate(x, lambda, cumulative);
-            expect(getObjectValue(result)).toStrictEqual([
-                [0.6321205588285577, ErrorType.VALUE, 0.7077074223191406, 0.6321205588285577, 0, 0],
-                [0, 1, 0.9036723617695069, ErrorType.VALUE, ErrorType.NUM, 0],
+            expect(getObjectValue(result, true)).toStrictEqual([
+                [0.632120558829, ErrorType.VALUE, 0.707707422319, 0.632120558829, 0, 0],
+                [0, 1, 0.90367236177, ErrorType.VALUE, ErrorType.NUM, 0],
             ]);
         });
     });

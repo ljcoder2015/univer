@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -239,7 +238,7 @@ describe('Test dstdevp function', () => {
                 column: 0,
             });
             const result = testFunction.calculate(database, field, criteria);
-            expect(getObjectValue(result)).toStrictEqual(2.4324199198877374);
+            expect(getObjectValue(result, true)).toStrictEqual(2.43241991989);
 
             const criteria2 = ArrayValueObject.create({
                 calculateValueList: transformToValueObject([
@@ -284,7 +283,7 @@ describe('Test dstdevp function', () => {
                 column: 0,
             });
             const result4 = testFunction.calculate(database, field, criteria4);
-            expect(getObjectValue(result4)).toStrictEqual(2.4324199198877374);
+            expect(getObjectValue(result4, true)).toStrictEqual(2.43241991989);
         });
     });
 });

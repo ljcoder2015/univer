@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -42,7 +41,7 @@ describe('Test harmean function', () => {
             });
             const number2 = NumberValueObject.create(3);
             const result = testFunction.calculate(number, number2);
-            expect(getObjectValue(result)).toStrictEqual(5.028375962061728);
+            expect(getObjectValue(result, true)).toStrictEqual(5.02837596206);
         });
 
         it('Value is single cell = null/boolean/string/error/negtive number', () => {

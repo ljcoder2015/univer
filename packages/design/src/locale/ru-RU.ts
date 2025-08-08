@@ -14,25 +14,37 @@
  * limitations under the License.
  */
 
-import type { ILocale } from './interface';
-import dajsRuRU from 'dayjs/locale/ru';
-import PickerRuRU from 'rc-picker/lib/locale/ru_RU';
+import type enUS from './en-US';
 
-const locale: ILocale = {
+const locale: typeof enUS = {
     design: {
         Confirm: {
             cancel: 'отмена',
             confirm: 'ок',
-        },
-        Picker: {
-            ...dajsRuRU,
-            ...PickerRuRU,
         },
         CascaderList: {
             empty: 'Нет',
         },
         Select: {
             empty: 'Нет',
+        },
+        Calendar: {
+            year: '',
+            weekDays: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+            months: [
+                'Январь',
+                'Февраль',
+                'Март',
+                'Апрель',
+                'Май',
+                'Июнь',
+                'Июль',
+                'Август',
+                'Сентябрь',
+                'Октябрь',
+                'Ноябрь',
+                'Декабрь',
+            ],
         },
         ColorPicker: {
             more: 'Больше цветов',

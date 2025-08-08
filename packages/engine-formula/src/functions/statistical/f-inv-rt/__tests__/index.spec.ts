@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { ErrorValueObject } from '../../../../engine/value-object/base-value-object';
@@ -33,7 +32,7 @@ describe('Test fInvRt function', () => {
             const degFreedom1 = NumberValueObject.create(6);
             const degFreedom2 = NumberValueObject.create(4);
             const result = testFunction.calculate(probability, degFreedom1, degFreedom2);
-            expect(getObjectValue(result)).toBe(15.206864861157555);
+            expect(getObjectValue(result, true)).toBe(15.2068648612);
         });
 
         it('DegFreedom value test', () => {

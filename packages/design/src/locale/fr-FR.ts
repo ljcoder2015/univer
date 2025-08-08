@@ -14,22 +14,34 @@
  * limitations under the License.
  */
 
-import type { ILocale } from './interface';
-import dajsFrFR from 'dayjs/locale/fr';
-import PickerFrFR from 'rc-picker/lib/locale/fr_FR';
+import type enUS from './en-US';
 
-const locale: ILocale = {
+const locale: typeof enUS = {
     design: {
         Confirm: {
             cancel: 'annuler',
             confirm: 'ok',
         },
-        Picker: {
-            ...dajsFrFR,
-            ...PickerFrFR,
-        },
         CascaderList: {
             empty: 'Aucun',
+        },
+        Calendar: {
+            year: '',
+            weekDays: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+            months: [
+                'Janvier',
+                'Février',
+                'Mars',
+                'Avril',
+                'Mai',
+                'Juin',
+                'Juillet',
+                'Août',
+                'Septembre',
+                'Octobre',
+                'Novembre',
+                'Décembre',
+            ],
         },
         Select: {
             empty: 'Aucun',

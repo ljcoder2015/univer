@@ -15,7 +15,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-
 import { ErrorType } from '../../../../basics/error-type';
 import { ArrayValueObject, transformToValueObject } from '../../../../engine/value-object/array-value-object';
 import { BooleanValueObject, NullValueObject, NumberValueObject, StringValueObject } from '../../../../engine/value-object/primitive-object';
@@ -42,7 +41,7 @@ describe('Test marginoferror function', () => {
             });
             const confidence = NumberValueObject.create(0.1);
             const result = testFunction.calculate(range, confidence);
-            expect(getObjectValue(result)).toBe(0.0881737585364693);
+            expect(getObjectValue(result, true)).toBe(0.0881737585365);
         });
 
         it('Range value test', () => {

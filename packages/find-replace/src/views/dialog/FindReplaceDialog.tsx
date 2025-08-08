@@ -74,7 +74,6 @@ export const FindDialog = forwardRef(function FindDialogImpl(_props, ref) {
         <>
             <SearchInput
                 findCompleted={findCompleted}
-                className="univer-find-input"
                 matchesCount={matchesCount}
                 matchesPosition={matchesPosition}
                 findReplaceService={findReplaceService}
@@ -280,9 +279,9 @@ export function FindReplaceDialog() {
             }
 
             if (!focusRef.current || !focusRef.current.selectHasFocus()) {
-                setDialogInputFocus(true);
-            } else {
                 setDialogInputFocus(false);
+            } else {
+                setDialogInputFocus(true);
             }
         });
 

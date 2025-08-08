@@ -14,22 +14,34 @@
  * limitations under the License.
  */
 
-import type { ILocale } from './interface';
-import dajsEnUS from 'dayjs/locale/en';
-import PickerEnUs from 'rc-picker/lib/locale/en_US';
+import type enUS from './en-US';
 
-const locale: ILocale = {
+const locale: typeof enUS = {
     design: {
         Confirm: {
             cancel: 'لغو',
             confirm: 'باشه',
         },
-        Picker: {
-            ...dajsEnUS,
-            ...PickerEnUs,
-        },
         CascaderList: {
             empty: 'هیچ کدام',
+        },
+        Calendar: {
+            year: 'سال',
+            weekDays: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
+            months: [
+                'فروردین',
+                'اردیبهشت',
+                'خرداد',
+                'تیر',
+                'مرداد',
+                'شهریور',
+                'مهر',
+                'آبان',
+                'آذر',
+                'دی',
+                'بهمن',
+                'اسفند',
+            ],
         },
         Select: {
             empty: 'هیچ‌کدام',
