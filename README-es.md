@@ -5,7 +5,7 @@
     <img src="./docs/img/banner-dark.png" alt="Univer" width="400" />
 </picture>
 
-Univer es un motor de suite ofimática de código abierto, diseñado para ofrecer a los desarrolladores una solución potente, flexible y fácil de usar. Soporta hojas de cálculo, documentos y presentaciones, y proporciona una amplia gama de funciones y una alta extensibilidad.<br />
+Univer es un motor de suite ofimática de código abierto, diseñado para ofrecer a los desarrolladores una solución potente, flexible y fácil de usar. Soporta hojas de cálculo, documentos y presentaciones, y proporciona una amplia gama de funciones y una alta extensibilidad. <br />
 **Extensible · Integrable · Alto rendimiento**
 
 [English][readme-en-link] | [简体中文][readme-zh-link] | [日本語][readme-ja-link] | **Español**<br />
@@ -24,6 +24,10 @@ Univer es un motor de suite ofimática de código abierto, diseñado para ofrece
 [![Trendshift][github-trending-shield]][github-trending-url]
 
 </div>
+
+Usa [Univer MCP](https://github.com/dream-num/univer-mcp) para controlar Univer Sheet con lenguaje natural y crear hojas de cálculo verdaderamente nativas de IA.
+
+https://github.com/user-attachments/assets/7429bd5f-d769-4057-9e67-353337531024
 
 <details open>
 <summary>
@@ -118,7 +122,7 @@ Univer soporta múltiples idiomas, incluyendo:
 
 `zh-CN` y `en-US` son soportados oficialmente, los demás son contribuciones de la comunidad.
 
-Puedes añadir el idioma que desees siguiendo la [guía de personalización de idiomas](https://univer.ai/guides/sheet/getting-started/i18n#using-custom-locales). También puedes ayudarnos a añadir nuevos idiomas consultando la [guía de contribución](./CONTRIBUTING.md).
+Puedes añadir el idioma que desees siguiendo la [guía de personalización de idiomas](https://docs.univer.ai/guides/sheets/getting-started/i18n#custom-language-packs). También puedes ayudarnos a añadir nuevos idiomas consultando la [guía de contribución](./CONTRIBUTING.md).
 
 ## 👾 Ejemplos
 
@@ -126,7 +130,7 @@ Integra Univer en productos de IA como herramienta de presentación de datos.
 
 [![][examples-preview-capalyze]][examples-link-capalyze]
 
-Puedes encontrar todos los ejemplos en [Univer Examples](https://univer.ai/examples).
+Puedes encontrar todos los ejemplos en [Univer Examples](https://docs.univer.ai/showcase).
 
 | **📊 Hojas de cálculo** | **📊 Multi-instancia** | **📊 Uniscript** |
 | :---: | :---: | :---: |

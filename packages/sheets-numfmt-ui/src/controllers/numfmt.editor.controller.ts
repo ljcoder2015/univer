@@ -24,16 +24,18 @@ import type {
 import {
     CellValueType,
     Disposable,
+    getNumfmtParseValueFilter,
     Inject,
     Injector,
+    isRealNum,
     isTextFormat,
     IUniverInstanceService,
-    numfmt,
     Optional,
     toDisposable,
     UniverInstanceType,
     willLoseNumericPrecision,
 } from '@univerjs/core';
+import { stripErrorMargin } from '@univerjs/engine-formula';
 import {
     AFTER_CELL_EDIT,
     BEFORE_CELL_EDIT,
@@ -113,6 +115,9 @@ export class NumfmtEditorController extends Disposable {
                                 case 'grouped':
                                 case 'number': {
                                     const cell = context.worksheet.getCellRaw(row, col);
+                                    if (cell?.t === CellValueType.NUMBER && cell?.v !== undefined && cell.v !== null && isRealNum(cell.v)) {
+                                        cell.v = stripErrorMargin(Number(cell.v));
+                                    }
                                     return next && next(cell);
                                 }
                                 case 'percent':
@@ -143,6 +148,10 @@ export class NumfmtEditorController extends Disposable {
                 this._sheetInterceptorService.writeCellInterceptor.intercept(AFTER_CELL_EDIT, {
                     // eslint-disable-next-line complexity
                     handler: (value, context, next) => {
+                        if (!value?.v && !value?.p) {
+                            return next(value);
+                        }
+
                         // clear the effect
                         this._collectEffectMutation.clean();
                         const currentNumfmtValue = this._numfmtService.getValue(
@@ -151,20 +160,8 @@ export class NumfmtEditorController extends Disposable {
                             context.row,
                             context.col
                         );
-                        // const currentNumfmtType = (currentNumfmtValue && getPatternType(currentNumfmtValue.pattern)) ?? '';
-                        // const clean = () => {
-                        //     currentNumfmtValue &&
-                        //             this._collectEffectMutation.add(
-                        //                 context.unitId,
-                        //                 context.subUnitId,
-                        //                 context.row,
-                        //                 context.col,
-                        //                 null
-                        //             );
-                        // };
-                        if (!value?.v && !value?.p) {
-                            return next(value);
-                        }
+
+                        const originCell = context.worksheet.getCellRaw(context.row, context.col);
 
                         // if the cell is text format or force string, do not convert the value
                         if (isTextFormat(currentNumfmtValue?.pattern) || value.t === CellValueType.FORCE_STRING) {
@@ -173,7 +170,7 @@ export class NumfmtEditorController extends Disposable {
 
                         const body = value.p?.body;
                         const content = value?.p?.body?.dataStream ? value.p.body.dataStream.replace(/\r\n$/, '') : String(value.v);
-                        const numfmtInfo = numfmt.parseDate(content) || numfmt.parseTime(content) || numfmt.parseNumber(content);
+                        const numfmtInfo = getNumfmtParseValueFilter(content);
 
                         if (body) {
                             if (!canConvertRichTextToNumfmt(body)) {
@@ -189,10 +186,18 @@ export class NumfmtEditorController extends Disposable {
                         }
 
                         if (numfmtInfo) {
+                            // If the content is parsed to a number format or the origin cell has a number format, do not need judge whether it will lose precision.
+                            // If the cell type is string or force string, do not need judge whether it will lose precision.
                             // If the numeric string will lose precision when converted to a number, set the cell type to force string
                             // e.g. 123456789123456789
                             // e.g. 1212121212121212.2345
-                            if (!numfmtInfo.z && willLoseNumericPrecision(content)) {
+                            if (
+                                !numfmtInfo.z &&
+                                !currentNumfmtValue?.pattern &&
+                                originCell?.t !== CellValueType.STRING &&
+                                originCell?.t !== CellValueType.FORCE_STRING &&
+                                willLoseNumericPrecision(content)
+                            ) {
                                 return next({
                                     ...value,
                                     p: undefined,
@@ -217,9 +222,7 @@ export class NumfmtEditorController extends Disposable {
 
                             return next({ ...value, p: undefined, v, t: CellValueType.NUMBER });
                         }
-                        // else if (['date', 'time', 'datetime', 'percent'].includes(currentNumfmtType) || !isNumeric(content)) {
-                        //     clean();
-                        // }
+
                         return next(value);
                     },
                 })

@@ -120,7 +120,15 @@ export function createDocumentModelWithStyle(content: string, textStyle: ITextSt
                 vertexAngle,
                 wrapStrategy,
                 cellValueType,
-                zeroWidthParagraphBreak: 1,
+                /**
+                 * TODO@weird94
+                 * This config was previously used to fix the issue of cell image editing, now remove it first.
+                 * If you need to use it, please note the following issues:
+                 * 1. After delete cell content using backspace, the cell does not enter edit mode.
+                 * because the code `if (!info || info.actualWidth <= 0) return;`, code in `packages/sheets-ui/src/services/editor/cell-editor-resize.service.ts`
+                 * 2. copy empty cell content from excel and paste it to univer, the empty cell does not enter edit mode. The reason is the same as above.
+                 */
+                // zeroWidthParagraphBreak: 1,
             },
         },
         drawings: {},
@@ -160,7 +168,7 @@ export function getFontFormat(format?: Nullable<IStyleData>): IStyleBase {
     if (!format) {
         return {};
     }
-    const { ff, fs, it, bl, ul, st, ol, cl } = format;
+    const { ff, fs, it, bl, ul, st, ol, cl, bg } = format;
     const style: IStyleBase = {};
     ff && (style.ff = ff);
     fs && (style.fs = fs);
@@ -170,6 +178,8 @@ export function getFontFormat(format?: Nullable<IStyleData>): IStyleBase {
     st && (style.st = st);
     ol && (style.ol = ol);
     cl && (style.cl = cl);
+    bg && (style.bg = bg);
+
     return style;
 }
 

@@ -572,7 +572,9 @@ export class EditingRenderController extends Disposable {
         }
 
         // moveSelection need to put behind of SetRangeValuesCommand, fix https://github.com/dream-num/univer/issues/1155
-        this._moveSelection(keycode, currentUnitId, worksheetId);
+        if (keycode !== undefined) {
+            this._moveSelection(keycode, currentUnitId, worksheetId);
+        }
     }
 
     private _getEditorObject() {
@@ -625,7 +627,7 @@ export class EditingRenderController extends Disposable {
         }
 
         const finalCell = this._sheetInterceptorService.onWriteCell(workbook, worksheet, row, column, cellData) as ICellData;
-        if (finalCell === worksheet.getCellRaw(row, column)) {
+        if (Tools.diffValue(cleanCellDataObject(finalCell), cleanCellDataObject(worksheet.getCellRaw(row, column)))) {
             return true;
         }
 
@@ -674,6 +676,10 @@ export class EditingRenderController extends Disposable {
         const editorUnitId = this._editorBridgeService.getCurrentEditorId();
         if (editorUnitId == null || !this._editorService.isSheetEditor(editorUnitId)) {
             return;
+        }
+        // Reset the width of the editor to the initial state after exiting the input.
+        if (editorUnitId === DOCS_NORMAL_EDITOR_UNIT_ID_KEY) {
+            this._getEditorSkeleton(DOCS_NORMAL_EDITOR_UNIT_ID_KEY)?.resetInitialWidth();
         }
         this._undoRedoService.clearUndoRedo(editorUnitId);
         this._undoRedoService.clearUndoRedo(DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY);
@@ -981,4 +987,16 @@ function emptyBody(body: IDocumentBody, removeStyle = false) {
     if (body.customBlocks != null) {
         body.customBlocks = undefined;
     }
+}
+
+function cleanCellDataObject(cellData: Nullable<ICellData>): Nullable<ICellData> {
+    if (!cellData) return cellData;
+    return Object.fromEntries(
+        Object.entries(cellData).filter(([_, value]) => {
+            if (value === undefined || value === null) return false;
+            if (Array.isArray(value) && value.length === 0) return false;
+            if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+            return true;
+        })
+    );
 }

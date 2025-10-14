@@ -128,9 +128,10 @@ export class Line extends docExtension {
         const color =
             (c === BooleanNumber.TRUE ? getColorStyle(glyph.ts?.cl) : getColorStyle(colorStyle)) || COLOR_BLACK_RGB;
         ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth;
 
-        this._setLineType(ctx, lineType || TextDecoration.SINGLE);
+        this._setLineType(ctx, lineType ?? TextDecoration.SINGLE, lineWidth);
+
+        startY += this._isDouble(lineType) ? -0.8 : 0;
 
         const centerAngle = degToRad(centerAngleDeg);
         const vertexAngle = degToRad(vertexAngleDeg);
@@ -151,25 +152,97 @@ export class Line extends docExtension {
 
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
+
+        this._drawLineTo(ctx, start.x, end.x, end.y, lineType);
+        if (this._isDouble(lineType)) {
+            ctx.moveTo(start.x, start.y + 2);
+            this._drawLineTo(ctx, start.x, end.x, end.y + 2, lineType);
+        }
+
         ctx.stroke();
         ctx.restore();
     }
 
-    private _setLineType(ctx: UniverRenderingContext, style: TextDecoration) {
-        if (style === TextDecoration.DASH_DOT_DOT_HEAVY || style === TextDecoration.DOT_DOT_DASH) {
-            ctx.setLineDash([2, 2, 5, 2, 2]);
-        } else if (style === TextDecoration.DASH_DOT_HEAVY || style === TextDecoration.DOT_DASH) {
-            ctx.setLineDash([2, 5, 2]);
-        } else if (style === TextDecoration.DOTTED || style === TextDecoration.DOTTED_HEAVY) {
-            ctx.setLineDash([2]);
-        } else if (style === TextDecoration.DASH || style === TextDecoration.DASHED_HEAVY) {
-            ctx.setLineDash([3]);
-        } else if (style === TextDecoration.DASH_LONG || style === TextDecoration.DASH_LONG_HEAVY) {
-            ctx.setLineDash([6]);
+    private _drawLineTo(ctx: UniverRenderingContext, startX: number, endX: number, endY: number, lineType?: TextDecoration) {
+        if (this._isWave(lineType)) {
+            for (let x = startX; x < endX; x++) {
+                ctx.lineTo(x, endY + 0.8 * Math.sin(x * 1)); // y + amplitude * frequency
+            }
         } else {
-            ctx.setLineDash([0]);
+            ctx.lineTo(endX, endY);
         }
+    }
+
+    private _setLineType(ctx: UniverRenderingContext, style: TextDecoration, lineWidth: number) {
+        switch (style) {
+            case TextDecoration.SINGLE:
+            case TextDecoration.DOUBLE:
+                ctx.lineWidth = 1;
+                ctx.setLineDash([0]);
+                return;
+            case TextDecoration.DOTTED:
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2]);
+                return;
+            case TextDecoration.DOTTED_HEAVY:
+                ctx.lineWidth = 2;
+                ctx.setLineDash([2]);
+                return;
+            case TextDecoration.DASH:
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3]);
+                return;
+            case TextDecoration.DASHED_HEAVY:
+                ctx.lineWidth = 2;
+                ctx.setLineDash([3]);
+                return;
+            case TextDecoration.DASH_LONG:
+                ctx.lineWidth = 1;
+                ctx.setLineDash([6]);
+                return;
+            case TextDecoration.DASH_LONG_HEAVY:
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6]);
+                return;
+            case TextDecoration.DOT_DASH:
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 5, 2]);
+                return;
+            case TextDecoration.DASH_DOT_HEAVY:
+                ctx.lineWidth = 2;
+                ctx.setLineDash([2, 5, 2]);
+                return;
+            case TextDecoration.DOT_DOT_DASH:
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2, 5, 2, 2]);
+                return;
+            case TextDecoration.DASH_DOT_DOT_HEAVY:
+                ctx.lineWidth = 2;
+                ctx.setLineDash([2, 2, 5, 2, 2]);
+                return;
+            case TextDecoration.THICK:
+                ctx.lineWidth = 2;
+                ctx.setLineDash([0]);
+                return;
+            case TextDecoration.WAVE:
+            case TextDecoration.WAVY_DOUBLE:
+                ctx.lineWidth = 1;
+                return;
+            case TextDecoration.WAVY_HEAVY:
+                ctx.lineWidth = 2;
+                return;
+            default:
+                ctx.setLineDash([0]);
+                ctx.lineWidth = lineWidth;
+        }
+    }
+
+    private _isWave(lineType?: TextDecoration): boolean {
+        return lineType === TextDecoration.WAVE || lineType === TextDecoration.WAVY_HEAVY || lineType === TextDecoration.WAVY_DOUBLE;
+    }
+
+    private _isDouble(lineType?: TextDecoration): boolean {
+        return lineType === TextDecoration.DOUBLE || lineType === TextDecoration.WAVY_DOUBLE;
     }
 }
 

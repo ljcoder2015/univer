@@ -22,7 +22,7 @@ import type { BorderCache, BorderCacheItem } from '../interfaces';
 import type { SpreadsheetSkeleton } from '../sheet.render-skeleton';
 import { BorderStyleTypes, Range } from '@univerjs/core';
 import { BORDER_TYPE as BORDER_LTRB, COLOR_BLACK_RGB, FIX_ONE_PIXEL_BLUR_OFFSET } from '../../../basics/const';
-import { drawDiagonalLineByBorderType, drawLineByBorderType, getLineWidth, setLineType } from '../../../basics/draw';
+import { drawDiagonalineByBorderType, drawLineByBorderType, getLineWidth, setLineType } from '../../../basics/draw';
 import { SpreadsheetExtensionRegistry } from '../../extension';
 import { SheetExtension } from './sheet-extension';
 
@@ -106,8 +106,10 @@ export class Border extends SheetExtension {
 
         if (!isMerged) {
             const visibleRow = spreadsheetSkeleton.worksheet.getRowVisible(row);
+            if (!visibleRow) return true;
+
             const visibleCol = spreadsheetSkeleton.worksheet.getColVisible(col);
-            if (!visibleRow || !visibleCol) return true;
+            if (!visibleCol) return true;
         }
 
         if (!this.isRenderDiffRangesByRow(mergeInfo.startRow, mergeInfo.endRow, diffRanges)) {
@@ -144,7 +146,7 @@ export class Border extends SheetExtension {
             ctx.setLineWidthByPrecision(lineWidth);
             ctx.strokeStyle = color || COLOR_BLACK_RGB;
 
-            drawDiagonalLineByBorderType(ctx, type, {
+            drawDiagonalineByBorderType(ctx, style, type, {
                 startX,
                 startY,
                 endX,
@@ -161,6 +163,15 @@ export class Border extends SheetExtension {
                 endX,
                 endY,
             });
+
+            if (style === BorderStyleTypes.DOUBLE) {
+                drawLineByBorderType(ctx, type, (lineWidth - 1) / 2 / precisionScale, {
+                    startX: startX + 2,
+                    startY: startY + 2,
+                    endX: endX - 2,
+                    endY: endY - 2,
+                });
+            }
         }
     }
 

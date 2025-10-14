@@ -22,7 +22,16 @@ import { UniverDocsUIPlugin } from '@univerjs/docs-ui';
 import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula';
 import { UniverRenderEnginePlugin } from '@univerjs/engine-render';
 import { DEFAULT_WORKBOOK_DATA_DEMO } from '@univerjs/mockdata';
+import caES from '@univerjs/mockdata/locales/ca-ES';
+import enUS from '@univerjs/mockdata/locales/en-US';
+import esES from '@univerjs/mockdata/locales/es-ES';
+import faIR from '@univerjs/mockdata/locales/fa-IR';
+import frFR from '@univerjs/mockdata/locales/fr-FR';
+import koKR from '@univerjs/mockdata/locales/ko-KR';
+import ruRU from '@univerjs/mockdata/locales/ru-RU';
+import viVN from '@univerjs/mockdata/locales/vi-VN';
 import zhCN from '@univerjs/mockdata/locales/zh-CN';
+import zhTW from '@univerjs/mockdata/locales/zh-TW';
 import { UniverNetworkPlugin } from '@univerjs/network';
 import { UniverRPCMainThreadPlugin } from '@univerjs/rpc';
 import { UniverSheetsPlugin } from '@univerjs/sheets';
@@ -41,8 +50,9 @@ import { UniverSheetsZenEditorPlugin } from '@univerjs/sheets-zen-editor';
 import { UniverUIPlugin } from '@univerjs/ui';
 import { UniverVue3AdapterPlugin } from '@univerjs/ui-adapter-vue3';
 import { UniverWebComponentAdapterPlugin } from '@univerjs/ui-adapter-web-component';
-import { UniverSheetsCustomShortcutPlugin } from './custom-plugin/custom-shortcut';
-import ImportCSVButtonPlugin from './custom-plugin/import-csv-button';
+import { customRegisterEvent } from './custom/custom-register-event';
+import { UniverSheetsCustomShortcutPlugin } from './custom/custom-shortcut';
+import ImportCSVButtonPlugin from './custom/import-csv-button';
 
 import '@univerjs/sheets/facade';
 import '@univerjs/ui/facade';
@@ -89,7 +99,16 @@ function createNewInstance() {
         darkMode: localStorage.getItem('local.darkMode') === 'dark',
         locale: LocaleType.ZH_CN,
         locales: {
+            [LocaleType.CA_ES]: caES,
+            [LocaleType.EN_US]: enUS,
+            [LocaleType.ES_ES]: esES,
+            [LocaleType.FA_IR]: faIR,
+            [LocaleType.FR_FR]: frFR,
+            [LocaleType.KO_KR]: koKR,
+            [LocaleType.RU_RU]: ruRU,
+            [LocaleType.VI_VN]: viVN,
             [LocaleType.ZH_CN]: zhCN,
+            [LocaleType.ZH_TW]: zhTW,
         },
         logLevel: LogLevel.VERBOSE,
     });
@@ -169,6 +188,8 @@ function createNewInstance() {
 
     window.univer = univer;
     window.univerAPI = FUniver.newAPI(univer);
+
+    customRegisterEvent(univer, window.univerAPI!);
 }
 
 createNewInstance();

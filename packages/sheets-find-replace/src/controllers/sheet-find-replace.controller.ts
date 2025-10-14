@@ -535,12 +535,27 @@ export class SheetFindModel extends FindModel {
             const { startX, startY } = startPosition;
             const { endX, endY } = endPosition;
 
-            const rowHidden = !worksheet.getRowRawVisible(startRow);
-            const columnHidden = !worksheet.getColVisible(startColumn);
+            let isAllRowHidden = true;
 
-            const inHiddenRange = rowHidden || columnHidden;
-            const width = columnHidden ? 2 : endX - startX;
-            const height = rowHidden ? 2 : endY - startY;
+            for (let row = startRow; row <= endRow; row++) {
+                if (worksheet.getRowRawVisible(row)) {
+                    isAllRowHidden = false;
+                    break;
+                }
+            }
+
+            let isAllColHidden = true;
+
+            for (let col = startColumn; col <= endColumn; col++) {
+                if (worksheet.getColVisible(col)) {
+                    isAllColHidden = false;
+                    break;
+                }
+            }
+
+            const inHiddenRange = isAllRowHidden || isAllColHidden;
+            const width = isAllColHidden ? 2 : endX - startX;
+            const height = isAllRowHidden ? 2 : endY - startY;
 
             const props: ISheetFindReplaceHighlightShapeProps = {
                 left: startX,
@@ -967,17 +982,16 @@ class SheetsFindReplaceProvider extends Disposable implements IFindReplaceProvid
     async find(query: IFindQuery): Promise<SheetFindModel[]> {
         this._terminate();
 
-        const allWorkbooks = this._univerInstanceService.getAllUnitsForType<Workbook>(UniverInstanceType.UNIVER_SHEET);
-        const parsedQuery = this._preprocessQuery(query);
-        const findModels = allWorkbooks.map((workbook) => {
-            const skeletonManagerService = this._renderManagerService.getRenderById(workbook.getUnitId())!.with(SheetSkeletonManagerService);
-            const sheetFind = this._injector.createInstance(SheetFindModel, workbook, skeletonManagerService);
-            this._findModelsByUnitId.set(workbook.getUnitId(), sheetFind);
-            sheetFind.start(parsedQuery);
-            return sheetFind;
-        });
+        const workbook = this._univerInstanceService.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET);
+        if (!workbook) return [];
 
-        return findModels;
+        const parsedQuery = this._preprocessQuery(query);
+        const skeletonManagerService = this._renderManagerService.getRenderById(workbook.getUnitId())!.with(SheetSkeletonManagerService);
+        const sheetFind = this._injector.createInstance(SheetFindModel, workbook, skeletonManagerService);
+        this._findModelsByUnitId.set(workbook.getUnitId(), sheetFind);
+        sheetFind.start(parsedQuery);
+
+        return [sheetFind];
     }
 
     terminate(): void {

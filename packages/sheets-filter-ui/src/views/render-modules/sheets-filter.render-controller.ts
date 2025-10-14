@@ -19,7 +19,7 @@ import type { IRenderContext, IRenderModule, SpreadsheetSkeleton } from '@univer
 import type { ISheetCommandSharedParams } from '@univerjs/sheets';
 import type { FilterModel } from '@univerjs/sheets-filter';
 import type { ISheetsFilterButtonShapeProps } from '../widgets/filter-button.shape';
-import { CommandType, fromCallback, ICommandService, Inject, Injector, InterceptorEffectEnum, RxDisposable, ThemeService } from '@univerjs/core';
+import { CommandType, fromCallback, ICommandService, Inject, Injector, InterceptorEffectEnum, RxDisposable, ThemeService, VerticalAlign } from '@univerjs/core';
 import { INTERCEPTOR_POINT, SetRangeValuesMutation, SheetInterceptorService } from '@univerjs/sheets';
 import { FILTER_MUTATIONS, SheetsFilterService } from '@univerjs/sheets-filter';
 
@@ -38,6 +38,23 @@ interface ISheetsFilterRenderParams {
     range?: IRange;
     skeleton: SpreadsheetSkeleton;
 }
+
+function computeIconTop(
+    startY: number,
+    endY: number,
+    cellHeight: number,
+    verticalAlign?: VerticalAlign
+) {
+    switch (verticalAlign) {
+        case VerticalAlign.TOP:
+            return startY + FILTER_ICON_PADDING;
+        case VerticalAlign.MIDDLE:
+            return startY + Math.max(0, (cellHeight - FILTER_ICON_SIZE) / 2);
+        case VerticalAlign.BOTTOM:
+        default:
+            return endY - FILTER_ICON_SIZE - FILTER_ICON_PADDING;
+    }
+};
 
 /**
  * Show selected range in filter.
@@ -135,7 +152,11 @@ export class SheetsFilterRenderController extends RxDisposable implements IRende
 
     private _renderButtons(params: Required<ISheetsFilterRenderParams>): void {
         const { range, filterModel, unitId, skeleton, worksheetId } = params;
-        const { scene } = this._context;
+        const { unit: workbook, scene } = this._context;
+        const worksheet = workbook.getSheetBySheetId(worksheetId);
+        if (!worksheet) {
+            return;
+        }
 
         // Push cell contents to leave space for the filter buttons.
         this._interceptCellContent(unitId, worksheetId, params.range);
@@ -145,6 +166,8 @@ export class SheetsFilterRenderController extends RxDisposable implements IRende
         for (let col = startColumn; col <= endColumn; col++) {
             const key = `sheets-filter-button-${col}`;
             const startPosition = getCoordByCell(startRow, col, scene, skeleton);
+            const cellStyle = worksheet.getComposedCellStyle(startRow, col);
+            const verticalAlign = cellStyle?.vt || VerticalAlign.BOTTOM;
             const { startX, startY, endX, endY } = startPosition;
 
             // Too little space to draw the button, just ignore it.
@@ -157,7 +180,7 @@ export class SheetsFilterRenderController extends RxDisposable implements IRende
             // In other cases we need to draw the button, and we need to take care of the position and clipping.
             const hasCriteria = !!filterModel.getFilterColumn(col);
             const iconStartX = endX - FILTER_ICON_SIZE - FILTER_ICON_PADDING;
-            const iconStartY = endY - FILTER_ICON_SIZE - FILTER_ICON_PADDING;
+            const iconStartY = computeIconTop(startY, endY, cellHeight, verticalAlign);
             const props: ISheetsFilterButtonShapeProps = {
                 left: iconStartX,
                 top: iconStartY,

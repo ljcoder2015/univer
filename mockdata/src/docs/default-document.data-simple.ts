@@ -54,10 +54,11 @@ const exampleTables = [
 
 const title = 'Examples of Accessible Data Tables\r';
 const description = 'Basic Data Table with Column Headings\r';
+const underline = ['dash', 'dash dot dot heavy', 'dashed dot heavy', 'dashed heavy', 'dash long', 'dash long heavy', 'dot dash', 'dot dot dash', 'dotted', 'dotted heavy', 'double', 'none', 'single', 'thick', 'wave', 'wavy double', 'wavy heavy\r'];
 const summary = 'These example tables contain captions and summaries. When you copy any of these tables into your page you must edit the caption and summary. The caption can be edited in the Design view but the summary text must be edited in Code view. Click inside the table, then select the table tag on the tag selector, then switch to Code view and edit the text in the summary attribute.\r';
 const tableStream = createTableDataStream(exampleTables);
 
-const dataStream = `${title}${description}${tableStream}${summary}\n`;
+const dataStream = `${title}${description}${underline.join(', ')}${tableStream}${summary}\n`;
 
 const startIndex = dataStream.indexOf(TABLE_START);
 const endIndex = tableStream.length + startIndex;
@@ -125,6 +126,26 @@ function createTextRuns() {
     });
 
     offset += description.length;
+
+    for (let i = 0; i < underline.length; i++) {
+        textRuns.push({
+            st: offset,
+            ed: offset + underline[i].length,
+            ts: {
+                fs: 12,
+                ff: 'Helvetica Neue',
+                cl: {
+                    rgb: '#54585a',
+                },
+                ul: {
+                    s: 1,
+                    t: i,
+                },
+            },
+        });
+
+        offset += underline[i].length + 2;
+    }
 
     textRuns.push({
         st: offset,

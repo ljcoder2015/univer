@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IAccessor, Workbook } from '@univerjs/core';
+import type { DocumentDataModel, IAccessor, IColorStyle, Nullable, Workbook } from '@univerjs/core';
 import type { IMenuButtonItem, IMenuSelectorItem } from '@univerjs/ui';
 import {
     BooleanNumber,
@@ -533,9 +533,10 @@ export function ResetTextColorMenuItemFactory(accessor: IAccessor): IMenuButtonI
     };
 }
 
-export function TextColorSelectorMenuItemFactory(accessor: IAccessor): IMenuSelectorItem<string> {
+export function TextColorSelectorMenuItemFactory(accessor: IAccessor): IMenuSelectorItem<string, string | undefined> {
     const commandService = accessor.get(ICommandService);
     const themeService = accessor.get(ThemeService);
+    const selectionManagerService = accessor.get(SheetsSelectionsService);
 
     return {
         id: SetRangeTextColorCommand.id,
@@ -549,6 +550,16 @@ export function TextColorSelectorMenuItemFactory(accessor: IAccessor): IMenuSele
                     hoverable: false,
                     selectable: false,
                 },
+                value$: new Observable<string>((subscriber) => {
+                    const defaultValue = DEFAULT_STYLES.cl.rgb;
+                    const { isAllValuesSame, value: currentValue } = selectionManagerService.getCellStylesProperty('cl');
+
+                    if (isAllValuesSame) {
+                        subscriber.next((currentValue as Nullable<IColorStyle>)?.rgb ?? defaultValue);
+                    } else {
+                        subscriber.next(defaultValue);
+                    }
+                }),
             },
         ],
         value$: new Observable<string>((subscriber) => {
@@ -586,9 +597,10 @@ export function ResetBackgroundColorMenuItemFactory(accessor: IAccessor): IMenuB
     };
 }
 
-export function BackgroundColorSelectorMenuItemFactory(accessor: IAccessor): IMenuSelectorItem<string> {
+export function BackgroundColorSelectorMenuItemFactory(accessor: IAccessor): IMenuSelectorItem<string, string | undefined> {
     const commandService = accessor.get(ICommandService);
     const themeService = accessor.get(ThemeService);
+    const selectionManagerService = accessor.get(SheetsSelectionsService);
 
     return {
         id: SetBackgroundColorCommand.id,
@@ -602,6 +614,16 @@ export function BackgroundColorSelectorMenuItemFactory(accessor: IAccessor): IMe
                     hoverable: false,
                     selectable: false,
                 },
+                value$: new Observable<string>((subscriber) => {
+                    const defaultValue = DEFAULT_STYLES.bg.rgb;
+                    const { isAllValuesSame, value: currentValue } = selectionManagerService.getCellStylesProperty('bg');
+
+                    if (isAllValuesSame) {
+                        subscriber.next((currentValue as Nullable<IColorStyle>)?.rgb ?? defaultValue);
+                    } else {
+                        subscriber.next(defaultValue);
+                    }
+                }),
             },
         ],
         value$: new Observable<string>((subscriber) => {
@@ -1377,7 +1399,7 @@ function getFontStyleAtCursor(accessor: IAccessor) {
     const univerInstanceService = accessor.get(IUniverInstanceService);
     const textSelectionService = accessor.get(DocSelectionManagerService);
 
-    const editorDataModel = univerInstanceService.getUniverDocInstance(DOCS_NORMAL_EDITOR_UNIT_ID_KEY);
+    const editorDataModel = univerInstanceService.getUnit<DocumentDataModel>(DOCS_NORMAL_EDITOR_UNIT_ID_KEY);
     const activeTextRange = textSelectionService.getActiveTextRange();
 
     if (editorDataModel == null || activeTextRange == null) return null;
