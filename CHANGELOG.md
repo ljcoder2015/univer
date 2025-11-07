@@ -1,5 +1,85 @@
 # Changelog
 
+## [0.10.14](https://github.com/dream-num/univer/compare/v0.10.13...v0.10.14) (2025-10-29)
+
+
+### Bug Fixes
+
+* **filter:** fix the error of filtering multiple conditions ([#6059](https://github.com/dream-num/univer/issues/6059)) ([e95e64e](https://github.com/dream-num/univer/commit/e95e64efdc4bee287c87d451796652a36999fb80))
+* **permission:** remove throw error ([#6049](https://github.com/dream-num/univer/issues/6049)) ([5e0a9db](https://github.com/dream-num/univer/commit/5e0a9db1ea5080ae5e416c6ce0067d1aced62daa))
+* **slides:** params in getRenderUnitByPageId ([#6053](https://github.com/dream-num/univer/issues/6053)) ([38b7063](https://github.com/dream-num/univer/commit/38b7063c6cdabc840559c6ec89e814f76048c56c))
+
+## [0.10.13](https://github.com/dream-num/univer/compare/v0.10.12...v0.10.13) (2025-10-25)
+
+
+### Bug Fixes
+
+* add ellipsis if defined name long ([#6007](https://github.com/dream-num/univer/issues/6007)) ([8e3f20e](https://github.com/dream-num/univer/commit/8e3f20e46c4ac2d1e7d94ea9851d27b8830ac193))
+* err with updateInlineDrawingCoordsAndBorder ([#6002](https://github.com/dream-num/univer/issues/6002)) ([d6493f2](https://github.com/dream-num/univer/commit/d6493f24644a33dfbfbc267d313fe07ca4abbc86))
+* **facade:** fix the issue that setNumberFormat API setting for empty cells is invalid ([#6025](https://github.com/dream-num/univer/issues/6025)) ([37fefa6](https://github.com/dream-num/univer/commit/37fefa6a8d01299f3dd4dfc64e86294023be1c25))
+* **numfmt:** fix bad case ([#6019](https://github.com/dream-num/univer/issues/6019)) ([a7620be](https://github.com/dream-num/univer/commit/a7620beabb3598bc77e65451e822bf148dd7ac4f))
+* optimize scrolling animation ([#6027](https://github.com/dream-num/univer/issues/6027)) ([ece55ef](https://github.com/dream-num/univer/commit/ece55efe9fba3f6ef3c9d737f001c6e2bfe3e029))
+* **resources:** fix some issues with plugin functions when remove and copy worksheets ([#6038](https://github.com/dream-num/univer/issues/6038)) ([145272b](https://github.com/dream-num/univer/commit/145272b82527d6cf740a28813be1cc9c109bb794))
+* searchFunction long defined name ([#6020](https://github.com/dream-num/univer/issues/6020)) ([7dde032](https://github.com/dream-num/univer/commit/7dde0326886a580fbf51c367e257a89a9a6d56b2))
+* **sheet:** add highlightRanges facade apis ([#6015](https://github.com/dream-num/univer/issues/6015)) ([94533a5](https://github.com/dream-num/univer/commit/94533a5388e8e7f94f75676f79026068aeda2d43))
+* **sheets-hyper-link-ui:** tooltip if content overflow show ellipsis ([#6034](https://github.com/dream-num/univer/issues/6034)) ([3bfd34c](https://github.com/dream-num/univer/commit/3bfd34c8e196bfbed07f72dfb227c0684c948a88))
+* **thread-comment:** fix thread comment root editor id ([#6042](https://github.com/dream-num/univer/issues/6042)) ([7e1bb8a](https://github.com/dream-num/univer/commit/7e1bb8a1e24009b890182e4f1c5e8d16919e2eb6))
+
+
+### Features
+
+* **facade:** add `isCellEditing` and optimize `endEditingAsync` and `startEditing` in FWorkbbok api ([#6041](https://github.com/dream-num/univer/issues/6041)) ([8981592](https://github.com/dream-num/univer/commit/89815924b198ca3fd757a4766909a461c5bc37b0))
+* **facade:** add manual initialization support ([#6022](https://github.com/dream-num/univer/issues/6022)) ([ddefdfb](https://github.com/dream-num/univer/commit/ddefdfb6d60106226a61d65190dd98ebb63154fd))
+* optimize the enableSyncSwitch configuration to support setting the default value of the switch ([#6040](https://github.com/dream-num/univer/issues/6040)) ([9385d04](https://github.com/dream-num/univer/commit/9385d04067968f118697cc0b3659e425087e2393))
+* **permission:** add workbook initial load obs ([#6037](https://github.com/dream-num/univer/issues/6037)) ([04e1d05](https://github.com/dream-num/univer/commit/04e1d05a376b35777813f818591ab8d9f371af27))
+* **scroll:** add scroll param to screen ratio ([#6029](https://github.com/dream-num/univer/issues/6029)) ([5a8de18](https://github.com/dream-num/univer/commit/5a8de18d6ef82c2f2829fe519c292d5cf6e88685))
+* **sheet:** normalized url support for editing cell contents ([#6024](https://github.com/dream-num/univer/issues/6024)) ([052b765](https://github.com/dream-num/univer/commit/052b7654537afeddb2cf0492b25894724be34df2))
+* some ru lang in docs-hyper-link ([#6028](https://github.com/dream-num/univer/issues/6028)) ([cac7151](https://github.com/dream-num/univer/commit/cac7151c72844b6f365f4835bdbab753caf38545))
+
+## [0.10.12](https://github.com/dream-num/univer/compare/v0.10.11...v0.10.12) (2025-10-22)
+
+
+### Bug Fixes
+
+* **design:** colorPickerDialog normalize short hex ([#5968](https://github.com/dream-num/univer/issues/5968)) ([76545d2](https://github.com/dream-num/univer/commit/76545d236398cc7774216f44c1923e1f3298d67c))
+* fix resource unload ([#6000](https://github.com/dream-num/univer/issues/6000)) ([3608424](https://github.com/dream-num/univer/commit/3608424e82b0e4f575cfc964732fd4866b02406c))
+* **sheet:** fix remove sheet error ([#6005](https://github.com/dream-num/univer/issues/6005)) ([05294c8](https://github.com/dream-num/univer/commit/05294c8a2330a62c48f226e4fecccfff924b1be9))
+
+
+### Features
+
+* **sheets-ui:** scrolling supports setting animation duration ([#6012](https://github.com/dream-num/univer/issues/6012)) ([9e09cce](https://github.com/dream-num/univer/commit/9e09ccec67384fb43ea6f85f1af20f5f74f29158))
+
+## [0.10.11](https://github.com/dream-num/univer/compare/v0.10.10...v0.10.11) (2025-10-18)
+
+
+### Bug Fixes
+
+* darkBlue key ([#5954](https://github.com/dream-num/univer/issues/5954)) ([89495e1](https://github.com/dream-num/univer/commit/89495e11f02803c60dd2a0d20b6d1873fadac067))
+* defined name Ru support ([#5946](https://github.com/dream-num/univer/issues/5946)) ([46d2f71](https://github.com/dream-num/univer/commit/46d2f71c280b5cf04034e1ab6f15e459353567bb))
+* fix getValidatorStatusAsync api result ([#5963](https://github.com/dream-num/univer/issues/5963)) ([9ea416e](https://github.com/dream-num/univer/commit/9ea416e368ecccfcd37363d359140b60dd5c51ae))
+* fix open filter panel will trigger SheetEditEnded event ([#5955](https://github.com/dream-num/univer/issues/5955)) ([a50385e](https://github.com/dream-num/univer/commit/a50385e2ac64318ce217bec330ccc833972e0ed1))
+* fix some issues with sheets-table ([#5987](https://github.com/dream-num/univer/issues/5987)) ([580efc8](https://github.com/dream-num/univer/commit/580efc87fcfc94532313e39cd22e735922bf7c99))
+* fix the issue of holding down the shift key to select a selection ([#5958](https://github.com/dream-num/univer/issues/5958)) ([e05e89f](https://github.com/dream-num/univer/commit/e05e89f1f1e0c6ebb5833b51da1e71a9f62325d8))
+* fix the issue that the style ID of the copied worksheet could not be found in collaboration ([#5977](https://github.com/dream-num/univer/issues/5977)) ([1ad3872](https://github.com/dream-num/univer/commit/1ad38720bc8ccec46cecfac1eb7b97674ef9cc69))
+* **mem:** dispose some obj ([#5978](https://github.com/dream-num/univer/issues/5978)) ([e838616](https://github.com/dream-num/univer/commit/e838616d3dd5e1c70796753f78cb6bb8eb0580a2))
+* **memo:** fix memo leak ([#5988](https://github.com/dream-num/univer/issues/5988)) ([2c08a0c](https://github.com/dream-num/univer/commit/2c08a0c809aa0fc6190ad11bc174329bf5de0270))
+* optimize editor input ([#5950](https://github.com/dream-num/univer/issues/5950)) ([3565968](https://github.com/dream-num/univer/commit/35659680cc1ee834d24c396635b40d7ca5554b67))
+* **sheet:** fix some memory leak error ([#5973](https://github.com/dream-num/univer/issues/5973)) ([f5f2ea8](https://github.com/dream-num/univer/commit/f5f2ea8cd9d1a3f09866141faf6297027a9db8b6))
+* **sheets-formula-ui:** handle potential null reference for currentDoc in useRefactorEffect ([#5932](https://github.com/dream-num/univer/issues/5932)) ([dbfe4e6](https://github.com/dream-num/univer/commit/dbfe4e6a8bd75f886fc3b13495cc4fd8844c6a32))
+* **sheets-ui:** defined name bar - actions tooltip position ([#5944](https://github.com/dream-num/univer/issues/5944)) ([9214b92](https://github.com/dream-num/univer/commit/9214b922cc9dcf500f1951298bd51d838e7aee48))
+* **sheets-ui:** improve layout and styling of status bar items ([#5975](https://github.com/dream-num/univer/issues/5975)) ([6121b21](https://github.com/dream-num/univer/commit/6121b2113df2abac16e4bdca3ab4a9e75fb0a0b1))
+* some typos in the ru translation ([#5945](https://github.com/dream-num/univer/issues/5945)) ([0848c55](https://github.com/dream-num/univer/commit/0848c551c7d81381c047e6a84572b8a0a678c039))
+* table filter panel  buttons overlap each other in some lang ([#5990](https://github.com/dream-num/univer/issues/5990)) ([1f9ed06](https://github.com/dream-num/univer/commit/1f9ed06d27ae0b4d5ae028e7eb743c3819eb04f5))
+* **ui:** fix tooltip for dark mode styling ([#5974](https://github.com/dream-num/univer/issues/5974)) ([252e8d3](https://github.com/dream-num/univer/commit/252e8d3f0a27775fc094b75dd5dd7ca1bc31f450))
+* ul margin in funtions list ([#5970](https://github.com/dream-num/univer/issues/5970)) ([fa5bbb9](https://github.com/dream-num/univer/commit/fa5bbb9d840e3e161b876d173782834c80a8a563))
+
+
+### Features
+
+* add freezeSync config and api to controll whether synchronize the frozen state to other users in real-time collaboration ([#5960](https://github.com/dream-num/univer/issues/5960)) ([dc3f9d3](https://github.com/dream-num/univer/commit/dc3f9d3c7b2e180be19ef2fde739c8122ce6ed73))
+* **sheets-ui:** increase UX in formulaBar ([#5980](https://github.com/dream-num/univer/issues/5980)) ([4906d98](https://github.com/dream-num/univer/commit/4906d98956b3eb7d83dea28c794031ac60d5797f))
+
 ## [0.10.10](https://github.com/dream-num/univer/compare/v0.10.9...v0.10.10) (2025-09-26)
 
 

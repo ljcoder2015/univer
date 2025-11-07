@@ -45,6 +45,51 @@ export interface IScrollState {
      * e.g. If column A ~ C is frozen, the first column of viewMain is D, but sheetViewStartColumn still 0.
      */
     sheetViewStartColumn: number;
+
+    /**
+     * The duration of the scroll animation in milliseconds.
+     */
+    duration?: number;
+
+    /**
+     * The relative screen offset ratio (horizontal).
+     *
+     * - Represents how far the target scroll position is along the **visible screen width**.
+     * - The value is **relative**, not absolute — for example:
+     *   - `screenRatioX = 0` → aligns the target with the **left edge** of the visible area.
+     *   - `screenRatioX = 0.5` → centers the target horizontally.
+     *   - `screenRatioX = 1` → aligns the target with the **right edge**.
+     *
+     * The final horizontal scroll offset is calculated as:
+     * ```ts
+     * offsetX = screenWidth * screenRatioX
+     * ```
+     *
+     * @example
+     * // Scroll to 60% of the screen width to make the range appear slightly right-centered
+     * screenRatioX = 0.6
+     */
+    screenRatioX?: number;
+
+    /**
+     * The relative screen offset ratio (vertical).
+     *
+     * - Represents how far the target scroll position is along the **visible screen height**.
+     * - The value is **relative**, not absolute — for example:
+     *   - `screenRatioY = 0` → aligns the target with the **top edge** of the visible area.
+     *   - `screenRatioY = 0.5` → centers the target vertically.
+     *   - `screenRatioY = 1` → aligns the target with the **bottom edge**.
+     *
+     * The final vertical scroll offset is calculated as:
+     * ```ts
+     * offsetY = screenHeight * screenRatioY
+     * ```
+     *
+     * @example
+     * // Scroll to 55% of the screen height for a slightly lower visual bias
+     * screenRatioY = 0.55
+     */
+    screenRatioY?: number;
 }
 
 export interface IViewportScrollState extends IScrollState {

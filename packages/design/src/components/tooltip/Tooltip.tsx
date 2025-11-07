@@ -254,12 +254,12 @@ export function Tooltip(props: ITooltipProps) {
                 onMouseEnter={() => showTooltip()}
                 onMouseLeave={() => hideTooltip()}
             >
-                <div>{title}</div>
+                <div className="univer-break-words">{title}</div>
                 <div
                     ref={arrowRef}
                     className={`
                       univer-absolute univer-size-2.5 univer-rotate-45 univer-rounded-sm univer-bg-gray-700
-                      dark:univer-bg-gray-100
+                      dark:!univer-bg-gray-100
                     `}
                     style={{
                         // position arrow based on placement

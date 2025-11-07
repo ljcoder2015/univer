@@ -304,8 +304,8 @@ export class SheetCanvasPopManagerService extends Disposable {
 
     // #region attach to position
     attachPopupByPosition(bound: IBoundRectNoAngle, popup: ICanvasPopup, location: ISheetLocationBase): Nullable<INeedCheckDisposable> {
-        const workbook = this._univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
-        const worksheet = workbook.getActiveSheet();
+        let workbook = this._univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
+        let worksheet = workbook.getActiveSheet();
         if (!worksheet) {
             return null;
         }
@@ -353,6 +353,10 @@ export class SheetCanvasPopManagerService extends Disposable {
                 position$.complete();
                 disposable.dispose();
                 rectsObserverDisposable.dispose();
+                //@ts-ignore
+                workbook = null;
+                //@ts-ignore
+                worksheet = null;
             },
             canDispose: () => this._globalPopupManagerService.activePopupId !== id,
         };
@@ -418,8 +422,8 @@ export class SheetCanvasPopManagerService extends Disposable {
      * @returns
      */
     attachPopupToCell(row: number, col: number, popup: ICanvasPopup, _unitId?: string, _subUnitId?: string, viewport?: Viewport): Nullable<INeedCheckDisposable> {
-        const workbook = this._univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
-        const worksheet = workbook.getActiveSheet();
+        let workbook = this._univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
+        let worksheet = workbook.getActiveSheet();
         if (!worksheet) {
             return null;
         }
@@ -484,6 +488,10 @@ export class SheetCanvasPopManagerService extends Disposable {
         return {
             dispose() {
                 disposableCollection.dispose();
+                //@ts-ignore
+                worksheet = null;
+                //@ts-ignore
+                workbook = null;
             },
             canDispose: () => this._globalPopupManagerService.activePopupId !== id,
         };
@@ -529,7 +537,7 @@ export class SheetCanvasPopManagerService extends Disposable {
             return null;
         }
 
-        const { position, position$, disposable: positionObserverDisposable, updateRowCol, topLeftPos$, rightBottomPos$ } = this._createRangePositionObserver(range, currentRender, skeleton, activeViewport);
+        const { position, position$, disposable: positionObserverDisposable, updateRange, topLeftPos$, rightBottomPos$ } = this._createRangePositionObserver(range, currentRender, skeleton, activeViewport);
 
         const { rects$, disposable: rectsObserverDisposable } = this._createHiddenRectObserver({
             row: range.startRow,
@@ -562,7 +570,7 @@ export class SheetCanvasPopManagerService extends Disposable {
             if (!after) {
                 disposableCollection.dispose();
             } else {
-                updateRowCol(after.startRow, after.startColumn);
+                updateRange(after);
             }
         }));
 
@@ -641,6 +649,15 @@ export class SheetCanvasPopManagerService extends Disposable {
         activeViewport: Viewport
     ): IBoundRectNoAngle {
         const { scene, engine } = currentRender;
+        //@ts-ignore this line for check disposed
+        if (skeleton._disposed || scene._disposed) {
+            return {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+            };
+        }
 
         const primaryWithCoord = skeleton.getCellWithCoordByIndex(row, col);
         const cellInfo = primaryWithCoord.isMergedMainCell ? primaryWithCoord.mergeInfo : primaryWithCoord;
@@ -690,15 +707,15 @@ export class SheetCanvasPopManagerService extends Disposable {
         skeleton: SpreadsheetSkeleton,
         activeViewport: Viewport
     ) {
-        let { startRow, startColumn } = range;
+        let { startRow, startColumn, endRow, endColumn } = range;
         const topLeftCoord = this._calcCellPositionByCell(startRow, startColumn, currentRender, skeleton, activeViewport);
         const topLeftPos$ = new BehaviorSubject(topLeftCoord);
-        const rightBottomCoord = this._calcCellPositionByCell(range.endRow, range.endColumn, currentRender, skeleton, activeViewport);
+        const rightBottomCoord = this._calcCellPositionByCell(endRow, endColumn, currentRender, skeleton, activeViewport);
         const rightBottomPos$ = new BehaviorSubject(rightBottomCoord);
 
         const updatePosition = () => {
             const topLeftCoord = this._calcCellPositionByCell(startRow, startColumn, currentRender, skeleton, activeViewport);
-            const rightBottomCoord = this._calcCellPositionByCell(range.endRow, range.endColumn, currentRender, skeleton, activeViewport);
+            const rightBottomCoord = this._calcCellPositionByCell(endRow, endColumn, currentRender, skeleton, activeViewport);
 
             topLeftPos$.next(topLeftCoord);
             rightBottomPos$.next(rightBottomCoord);
@@ -725,16 +742,18 @@ export class SheetCanvasPopManagerService extends Disposable {
             }
         }));
 
-        const updateRowCol = (newRow: number, newCol: number) => {
-            startRow = newRow;
-            startColumn = newCol;
+        const updateRange = (newRange: IRange) => {
+            startRow = newRange.startRow;
+            startColumn = newRange.startColumn;
+            endRow = newRange.endRow;
+            endColumn = newRange.endColumn;
 
             updatePosition();
         };
         // const position$ = combineLatest(topLeftPos$, rightBottomPos$);
         const position$ = topLeftPos$.pipe(
             map((topLeft) => {
-                const rightBottomCoord = this._calcCellPositionByCell(range.endRow, range.endColumn, currentRender, skeleton, activeViewport);
+                const rightBottomCoord = this._calcCellPositionByCell(endRow, endColumn, currentRender, skeleton, activeViewport);
                 return {
                     top: topLeft.top,
                     left: topLeft.left,
@@ -752,7 +771,7 @@ export class SheetCanvasPopManagerService extends Disposable {
         return {
             position$,
             position,
-            updateRowCol,
+            updateRange,
             topLeftPos$,
             rightBottomPos$,
             disposable,
