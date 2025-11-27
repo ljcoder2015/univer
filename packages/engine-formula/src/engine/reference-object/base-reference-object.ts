@@ -77,6 +77,10 @@ export class BaseReferenceObject extends ObjectClassType {
 
     private _refOffsetY = 0;
 
+    private _currentRow?: number;
+
+    private _currentColumn?: number;
+
     constructor(private _token: string) {
         super();
     }
@@ -119,7 +123,9 @@ export class BaseReferenceObject extends ObjectClassType {
     }
 
     getRangePosition() {
-        let { startRow, startColumn, endRow, endColumn } = moveRangeByOffset(this._rangeData, this._refOffsetX, this._refOffsetY);
+        const { x, y } = this.getRefOffset();
+        const rangeData = this.getRangeData();
+        let { startRow, startColumn, endRow, endColumn } = moveRangeByOffset(rangeData, x, y);
 
         if (Number.isNaN(startRow)) {
             startRow = 0;
@@ -138,7 +144,6 @@ export class BaseReferenceObject extends ObjectClassType {
         }
 
         return {
-            ...this._rangeData,
             startRow,
             endRow,
             startColumn,
@@ -358,11 +363,13 @@ export class BaseReferenceObject extends ObjectClassType {
     }
 
     getRowCount() {
-        return this._rangeData.endRow - this._rangeData.startRow + 1;
+        const rangeData = this.getRangeData();
+        return rangeData.endRow - rangeData.startRow + 1;
     }
 
     getColumnCount() {
-        return this._rangeData.endColumn - this._rangeData.startColumn + 1;
+        const rangeData = this.getRangeData();
+        return rangeData.endColumn - rangeData.startColumn + 1;
     }
 
     getRowData() {
@@ -390,6 +397,18 @@ export class BaseReferenceObject extends ObjectClassType {
     }
 
     isTable() {
+        return false;
+    }
+
+    isCurrentRowForRange(): boolean {
+        return false;
+    }
+
+    isCurrentColumnForRange(): boolean {
+        return false;
+    }
+
+    isMultiArea(): boolean {
         return false;
     }
 
@@ -496,12 +515,13 @@ export class BaseReferenceObject extends ObjectClassType {
     getCellByPosition(rowRaw?: number, columnRaw?: number) {
         let row = rowRaw;
         let column = columnRaw;
+        const rangeData = this.getRangeData();
         if (!row) {
-            row = this._rangeData.startRow;
+            row = rangeData.startRow;
         }
 
         if (!column) {
-            column = this._rangeData.startColumn;
+            column = rangeData.startColumn;
         }
 
         const cell = this.getCellData(row, column);
@@ -511,6 +531,19 @@ export class BaseReferenceObject extends ObjectClassType {
         }
 
         return this.getCellValueObject(cell);
+    }
+
+    setCurrentRowAndColumn(row: number, column: number) {
+        this._currentRow = row;
+        this._currentColumn = column;
+    }
+
+    getCurrentRow() {
+        return this._currentRow;
+    }
+
+    getCurrentColumn() {
+        return this._currentColumn;
     }
 
     /**

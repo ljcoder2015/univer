@@ -31,6 +31,8 @@ import {
 } from './controllers/config.schema';
 import { DefinedNameController } from './controllers/defined-name.controller';
 import { FormulaController } from './controllers/formula.controller';
+import { ImageFormulaCellInterceptorController } from './controllers/image-formula-cell-interceptor.controller';
+import { SuperTableController } from './controllers/super-table.controller';
 import { TriggerCalculationController } from './controllers/trigger-calculation.controller';
 import { UpdateDefinedNameController } from './controllers/update-defined-name.controller';
 import { UpdateFormulaController } from './controllers/update-formula.controller';
@@ -100,11 +102,13 @@ export class UniverSheetsFormulaPlugin extends Plugin {
             [FormulaRefRangeService],
             [RegisterOtherFormulaService],
             [ArrayFormulaCellInterceptorController],
+            [ImageFormulaCellInterceptorController],
             [TriggerCalculationController],
             [UpdateFormulaController],
             [ActiveDirtyController],
             [DefinedNameController],
             [UpdateDefinedNameController],
+            [SuperTableController],
         ];
 
         // If the plugin do not execute formula, it should delegate a remote proxy.
@@ -124,6 +128,7 @@ export class UniverSheetsFormulaPlugin extends Plugin {
             [FormulaController],
             [ActiveDirtyController],
             [ArrayFormulaCellInterceptorController],
+            [ImageFormulaCellInterceptorController],
             [UpdateFormulaController],
             [UpdateDefinedNameController],
         ]);
@@ -139,6 +144,7 @@ export class UniverSheetsFormulaPlugin extends Plugin {
     override onRendered(): void {
         touchDependencies(this._injector, [
             [DefinedNameController],
+            [SuperTableController],
         ]);
 
         // Wait for rendering to complete before initializing formula calculation

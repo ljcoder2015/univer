@@ -15,7 +15,6 @@
  */
 
 import type { ICommandInfo } from '@univerjs/core';
-
 import type { ISetArrayFormulaDataMutationParams } from '../commands/mutations/set-array-formula-data.mutation';
 import type { ISetFormulaCalculationStartMutation } from '../commands/mutations/set-formula-calculation.mutation';
 import type { IFormulaDirtyData } from '../services/current-data.service';
@@ -29,6 +28,7 @@ import {
     SetFormulaCalculationStartMutation,
     SetFormulaCalculationStopMutation,
 } from '../commands/mutations/set-formula-calculation.mutation';
+import { SetImageFormulaDataMutation } from '../commands/mutations/set-image-formula-data.mutation';
 import { FormulaDataModel } from '../models/formula-data.model';
 import { ICalculateFormulaService } from '../services/calculate-formula.service';
 import { FormulaExecutedStateType } from '../services/runtime.service';
@@ -145,14 +145,14 @@ export class CalculateController extends Disposable {
     }
 
     private async _applyResult(data: IAllRuntimeData) {
-        const { unitData, unitOtherData, arrayFormulaRange, arrayFormulaCellData, clearArrayFormulaCellData } = data;
+        const { unitData, unitOtherData, arrayFormulaRange, arrayFormulaCellData, clearArrayFormulaCellData, arrayFormulaEmbedded, imageFormulaData } = data;
 
         if (!unitData) {
             console.error('No sheetData from Formula Engine!');
             return;
         }
 
-        if (arrayFormulaRange) {
+        if (arrayFormulaRange || arrayFormulaEmbedded) {
             this._formulaDataModel.clearPreviousArrayFormulaCellData(clearArrayFormulaCellData);
             this._formulaDataModel.mergeArrayFormulaCellData(arrayFormulaCellData);
             this._formulaDataModel.mergeArrayFormulaRange(arrayFormulaRange);
@@ -162,6 +162,20 @@ export class CalculateController extends Disposable {
                 {
                     arrayFormulaRange: this._formulaDataModel.getArrayFormulaRange(),
                     arrayFormulaCellData: this._formulaDataModel.getArrayFormulaCellData(),
+                    arrayFormulaEmbedded,
+                },
+                {
+                    onlyLocal: true,
+                }
+            );
+        }
+
+        // handle image formula data
+        if (imageFormulaData && imageFormulaData.length > 0) {
+            this._commandService.executeCommand(
+                SetImageFormulaDataMutation.id,
+                {
+                    imageFormulaData,
                 },
                 {
                     onlyLocal: true,

@@ -15,13 +15,16 @@
  */
 
 import type { IRange, Nullable } from '@univerjs/core';
-import type { ISequenceArray, ISequenceNode } from '../utils/sequence';
+import type { IDirtyUnitSheetDefinedNameMap } from '../../basics/common';
 
+import type { IFunctionNames } from '../../basics/function';
+import type { IDefinedNamesServiceParam } from '../../services/defined-names.service';
+import type { ISequenceArray, ISequenceNode } from '../utils/sequence';
 import { AbsoluteRefType, Disposable, isValidRange, moveRangeByOffset, Tools } from '@univerjs/core';
+
 import { FormulaAstLRU } from '../../basics/cache-lru';
 import { ERROR_TYPE_COUNT_ARRAY, ERROR_TYPE_SET, ErrorType } from '../../basics/error-type';
 import { isFormulaLexerToken, isTokenCannotBeAtEnd, isTokenCannotPrecedeSuffixToken } from '../../basics/match-token';
-
 import { regexTestSingeRange } from '../../basics/regex';
 import {
     matchToken,
@@ -55,6 +58,13 @@ const FORMULA_CACHE_LRU_COUNT = 2000;
 export const FormulaLexerNodeCache = new FormulaAstLRU<LexerNode>(FORMULA_CACHE_LRU_COUNT);
 
 export const FormulaSequenceNodeCache = new FormulaAstLRU<Array<string | ISequenceNode>>(FORMULA_CACHE_LRU_COUNT);
+
+interface IInjectDefinedNameParam {
+    unitId: Nullable<string>;
+    getValueByName(unitId: string, name: string): Nullable<IDefinedNamesServiceParam>;
+    getDirtyDefinedNameMap(): IDirtyUnitSheetDefinedNameMap;
+    getSheetName: (unitId: string, sheetId: string) => string;
+}
 
 export class LexerTreeBuilder extends Disposable {
     private _currentLexerNode: LexerNode = new LexerNode();
@@ -390,6 +400,8 @@ export class LexerTreeBuilder extends Disposable {
 
         if (node instanceof LexerNode) {
             return true;
+        } else if (this._passArrayOperator(node)) {
+            return true;
         }
 
         if (
@@ -400,6 +412,34 @@ export class LexerTreeBuilder extends Disposable {
             || node === matchToken.COLON
             || node === matchToken.OPEN_BRACKET
         ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * ={0,1,2,3,4,5,6} + {0;1;2;3;4;5;6}*7
+     */
+    private _passArrayOperator(s: string) {
+        if (s.length === 0) {
+            return false;
+        }
+
+        if (!(s[0] === '{' && s[s.length - 1] === '}')) {
+            return false;
+        }
+
+        const curChildren = this._currentLexerNode.getChildren();
+
+        const lastNode = curChildren[curChildren.length - 1];
+
+        if (lastNode instanceof LexerNode) {
+            return false;
+        }
+
+        if (
+            OPERATOR_TOKEN_SET.has(lastNode)) {
             return true;
         }
 
@@ -619,16 +659,11 @@ export class LexerTreeBuilder extends Disposable {
     treeBuilder(
         formulaString: string,
         transformSuffix = true,
-        injectDefinedName?: (sequenceArray: ISequenceArray[]) => {
-            sequenceString: string;
-            hasDefinedName: boolean;
-            definedNames: string[];
-        },
-        simpleCheckDefinedName?: (formulaString: string) => boolean
+        injectDefinedNameParam?: IInjectDefinedNameParam
     ) {
         if (transformSuffix === true) {
             const lexerNode = FormulaLexerNodeCache.get(formulaString);
-            const simpleCheckDefinedNameResult = simpleCheckDefinedName?.(formulaString);
+            const simpleCheckDefinedNameResult = injectDefinedNameParam && this._simpleCheckDefinedName?.(formulaString, injectDefinedNameParam);
             if (lexerNode && !simpleCheckDefinedNameResult) {
                 return lexerNode;
             }
@@ -650,8 +685,8 @@ export class LexerTreeBuilder extends Disposable {
 
         let currentDefinedNames: string[] = [];
 
-        if (injectDefinedName) {
-            const { hasDefinedName, sequenceString, definedNames } = injectDefinedName(sequenceArray);
+        if (injectDefinedNameParam) {
+            const { hasDefinedName, sequenceString, definedNames } = this._handleDefinedName(sequenceArray, injectDefinedNameParam);
             currentHasDefinedName = hasDefinedName;
             currentSequenceString = sequenceString;
             currentDefinedNames = definedNames;
@@ -688,6 +723,158 @@ export class LexerTreeBuilder extends Disposable {
         }
 
         return this._currentLexerNode;
+    }
+
+    private _handleDefinedName(sequenceArray: ISequenceArray[], param: IInjectDefinedNameParam): {
+        sequenceString: string;
+        hasDefinedName: boolean;
+        definedNames: string[];
+    } {
+        const { unitId, getValueByName, getSheetName } = param;
+
+        if (unitId == null) {
+            return {
+                sequenceString: '',
+                hasDefinedName: false,
+                definedNames: [],
+            };
+        }
+
+        const sequenceNodes = this.getSequenceNode(sequenceArray);
+        let sequenceString = '';
+        let hasDefinedName = false;
+        const definedNames: string[] = [];
+
+        for (let i = 0, len = sequenceNodes.length; i < len; i++) {
+            const node = sequenceNodes[i];
+            if (typeof node === 'string') {
+                sequenceString += node;
+                continue;
+            }
+
+            const { nodeType, token: tokenRaw } = node;
+            let token = tokenRaw;
+            if (nodeType === sequenceNodeType.REFERENCE || nodeType === sequenceNodeType.FUNCTION) {
+                if (nodeType === sequenceNodeType.FUNCTION) {
+                    token = this._getHasSheetNameDefinedName(tokenRaw, unitId, param);
+                }
+
+                const definedContent = getValueByName(unitId, token);
+                if (definedContent) {
+                    const refString = definedContent.formulaOrRefString;
+                    // if (refString.substring(0, 1) === operatorToken.EQUALS) {
+                    //     refString = refString.substring(1);
+                    // }
+
+                    const nestedDefinedNameParam = this._handleNestedDefinedName(refString, param);
+                    if (nestedDefinedNameParam == null || typeof nestedDefinedNameParam !== 'object') {
+                        sequenceString += nestedDefinedNameParam || ErrorType.NAME;
+                        hasDefinedName = true;
+                        definedNames.push(token);
+                    } else if (typeof nestedDefinedNameParam === 'object') {
+                        const { sequenceString: nestedSequenceString, definedNames: nestedDefinedNames } = nestedDefinedNameParam;
+                        sequenceString += nestedSequenceString;
+                        nestedDefinedNames.forEach((name) => {
+                            definedNames.push(name);
+                        });
+                        hasDefinedName = true;
+                    }
+                } else if (this._checkDefinedNameDirty(token, param)) {
+                    sequenceString += ErrorType.NAME;
+                    hasDefinedName = true;
+                    definedNames.push(token);
+                } else {
+                    sequenceString += token;
+                }
+            } else {
+                sequenceString += token;
+            }
+        }
+
+        return {
+            sequenceString,
+            hasDefinedName,
+            definedNames,
+        };
+    }
+
+    private _getHasSheetNameDefinedName(tokenRaw: string, unitId: string, param: IInjectDefinedNameParam) {
+        if (!tokenRaw.includes('!')) {
+            return tokenRaw;
+        }
+
+        const parts = tokenRaw.split('!');
+        if (parts.length !== 2) {
+            return tokenRaw;
+        }
+
+        const sheetName = parts[0];
+        const tokenLike = parts[1].trim();
+        const definedContent = param.getValueByName(unitId, tokenLike);
+        if (!definedContent) {
+            return tokenRaw;
+        }
+
+        const definedSheetId = definedContent.localSheetId;
+        if (definedSheetId !== undefined) {
+            if (definedSheetId === 'AllDefaultWorkbook') {
+                return tokenLike;
+            }
+            const actualSheetName = param.getSheetName(unitId, definedSheetId);
+            if (sheetName === actualSheetName) {
+                return tokenLike;
+            }
+        } else {
+            return tokenLike;
+        }
+
+        return tokenRaw;
+    }
+
+    private _handleNestedDefinedName(refString: string, param: IInjectDefinedNameParam) {
+        const sequenceArray: ISequenceArray[] = [];
+
+        const state = this._nodeMaker(refString, sequenceArray);
+
+        if (state === ErrorType.VALUE || sequenceArray.length === 0) {
+            return state as string;
+        }
+
+        return this._handleDefinedName(sequenceArray, param);
+    }
+
+    private _simpleCheckDefinedName(formulaString: string, injectDefinedNameParam: IInjectDefinedNameParam) {
+        const { getDirtyDefinedNameMap, unitId } = injectDefinedNameParam;
+        const definedNameMap = getDirtyDefinedNameMap();
+        const executeUnitId = unitId;
+        if (executeUnitId != null && definedNameMap[executeUnitId] != null) {
+            const names = Object.keys(definedNameMap[executeUnitId]!);
+            for (let i = 0, len = names.length; i < len; i++) {
+                const name = names[i];
+                if (formulaString.indexOf(name) > -1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private _checkDefinedNameDirty(token: string, injectDefinedNameParam: IInjectDefinedNameParam) {
+        const { getDirtyDefinedNameMap, unitId } = injectDefinedNameParam;
+        const definedNameMap = getDirtyDefinedNameMap();
+        const executeUnitId = unitId;
+        if (executeUnitId != null && definedNameMap[executeUnitId] != null) {
+            const names = Object.keys(definedNameMap[executeUnitId]!);
+            for (let i = 0, len = names.length; i < len; i++) {
+                const name = names[i];
+                if (name === token) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     // eslint-disable-next-line complexity
@@ -746,7 +933,7 @@ export class LexerTreeBuilder extends Disposable {
                     // =()+9, return error
                     this._processSuffixExpressionCloseBracket(baseStack, symbolStack, children, i);
                 } else {
-                     // =(1+3)9, return error
+                    // =(1+3)9, return error
                     if (this._checkCloseBracket(children[i - 1])) {
                         return false;
                     }
@@ -1759,5 +1946,9 @@ export class LexerTreeBuilder extends Disposable {
             cur,
             currentLexerNode: this._currentLexerNode,
         });
+    }
+
+    getNewFormulaWithPrefix(formulaString: string, hasFunction: (functionToken: IFunctionNames) => boolean): string | null {
+        return null;
     }
 }

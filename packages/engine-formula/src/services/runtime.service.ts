@@ -16,8 +16,10 @@
 
 import type { ICellData, IRange, Nullable } from '@univerjs/core';
 import type {
+    IArrayFormulaEmbeddedMap,
     IArrayFormulaRangeType,
     IFeatureDirtyRangeType,
+    IRuntimeImageFormulaDataType,
     IRuntimeOtherUnitDataType,
     IRuntimeUnitDataType,
 } from '../basics/common';
@@ -31,6 +33,7 @@ import { isInDirtyRange } from '../basics/dirty';
 import { ErrorType } from '../basics/error-type';
 import { CELL_INVERTED_INDEX_CACHE } from '../basics/inverted-index-cache';
 import { isNullCellForFormula } from '../basics/is-null-cell';
+import { FORMULA_REF_TO_ARRAY_CACHE } from '../engine/reference-object/base-reference-object';
 import { getRuntimeFeatureCell } from '../engine/utils/get-runtime-feature-cell';
 import { clearNumberFormatTypeCache, clearStringToNumberPatternCache } from '../engine/utils/numfmt-kit';
 import { clearReferenceToRangeCache } from '../engine/utils/reference-cache';
@@ -65,10 +68,12 @@ export enum FormulaExecutedStateType {
 export interface IAllRuntimeData {
     unitData: IRuntimeUnitDataType;
     arrayFormulaRange: IArrayFormulaRangeType;
+    arrayFormulaEmbedded: IArrayFormulaEmbeddedMap;
     unitOtherData: IRuntimeOtherUnitDataType;
     functionsExecutedState: FormulaExecutedStateType;
     arrayFormulaCellData: IRuntimeUnitDataType;
     clearArrayFormulaCellData: IRuntimeUnitDataType;
+    imageFormulaData: IRuntimeImageFormulaDataType[];
 
     runtimeFeatureRange: { [featureId: string]: IFeatureDirtyRangeType };
     runtimeFeatureCellData: { [featureId: string]: IRuntimeUnitDataType };
@@ -177,6 +182,14 @@ export interface IFormulaRuntimeService {
     setRuntimeFeatureRange(featureId: string, featureRange: IFeatureDirtyRangeType): void;
 
     clearReferenceAndNumberformatCache(): void;
+
+    getUnitArrayFormulaEmbeddedMap(): IArrayFormulaEmbeddedMap;
+
+    setUnitArrayFormulaEmbeddedMap(): void;
+
+    clearArrayObjectCache(): void;
+
+    getRuntimeImageFormulaData(): IRuntimeImageFormulaDataType[];
 }
 
 export class FormulaRuntimeService extends Disposable implements IFormulaRuntimeService {
@@ -199,6 +212,8 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
 
     private _unitArrayFormulaRange: IArrayFormulaRangeType = {};
 
+    private _unitArrayFormulaEmbeddedMap: IArrayFormulaEmbeddedMap = {};
+
     private _runtimeArrayFormulaCellData: IRuntimeUnitDataType = {};
 
     private _runtimeClearArrayFormulaCellData: IRuntimeUnitDataType = {};
@@ -206,6 +221,8 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
     private _runtimeFeatureRange: { [featureId: string]: IFeatureDirtyRangeType } = {};
 
     private _runtimeFeatureCellData: { [featureId: string]: IRuntimeUnitDataType } = {};
+
+    private _runtimeImageFormulaData: IRuntimeImageFormulaDataType[] = [];
 
     private _functionsExecutedState: FormulaExecutedStateType = FormulaExecutedStateType.INITIAL;
 
@@ -355,8 +372,10 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
         this._runtimeData = {};
         this._runtimeOtherData = {};
         this._unitArrayFormulaRange = {};
+        this._unitArrayFormulaEmbeddedMap = {};
         this._runtimeArrayFormulaCellData = {};
         this._runtimeClearArrayFormulaCellData = {};
+        this._runtimeImageFormulaData = [];
 
         // this._runtimeFeatureCellData = {};
         // this._runtimeFeatureRange = {};
@@ -459,6 +478,7 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
         const sheetId = this._currentSubUnitId;
         const unitId = this._currentUnitId;
 
+        // Get current sheet data
         if (this._runtimeData[unitId] == null) {
             this._runtimeData[unitId] = {};
         }
@@ -469,6 +489,9 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
             unitData[sheetId] = new ObjectMatrix<Nullable<ICellData>>();
         }
 
+        const sheetData = unitData[sheetId];
+
+        // Get current sheet array formula range
         if (this._unitArrayFormulaRange[unitId] == null) {
             this._unitArrayFormulaRange[unitId] = {};
         }
@@ -481,6 +504,7 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
 
         const arrayData = new ObjectMatrix<IRange>(arrayFormulaRange[sheetId]);
 
+        // Get current sheet array formula cell data
         if (this._runtimeArrayFormulaCellData[unitId] === undefined) {
             this._runtimeArrayFormulaCellData[unitId] = {};
         }
@@ -491,6 +515,9 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
             runtimeArrayFormulaCellData[sheetId] = new ObjectMatrix<Nullable<ICellData>>();
         }
 
+        const runtimeArrayUnitData = runtimeArrayFormulaCellData[sheetId];
+
+        // Get current sheet clear array formula cell data
         if (this._runtimeClearArrayFormulaCellData[unitId] === undefined) {
             this._runtimeClearArrayFormulaCellData[unitId] = {};
         }
@@ -500,10 +527,6 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
         if (clearArrayFormulaCellData[sheetId] == null) {
             clearArrayFormulaCellData[sheetId] = new ObjectMatrix<Nullable<ICellData>>();
         }
-
-        const sheetData = unitData[sheetId];
-
-        const runtimeArrayUnitData = runtimeArrayFormulaCellData[sheetId];
 
         const clearArrayUnitData = clearArrayFormulaCellData[sheetId];
 
@@ -628,6 +651,20 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
             const valueObject = this._getValueObjectOfRuntimeData(functionVariant as BaseValueObject);
             sheetData.setValue(row, column, valueObject);
 
+            // If it is the result of the IMAGE formula, the image info needs to be saved to runtimeImageFormulaData
+            if ((functionVariant as BaseValueObject).isString() && (functionVariant as StringValueObject).isImage()) {
+                const imageInfo = (functionVariant as StringValueObject).getImageInfo();
+                if (imageInfo) {
+                    this._runtimeImageFormulaData.push({
+                        ...imageInfo,
+                        unitId,
+                        sheetId,
+                        row,
+                        column,
+                    });
+                }
+            }
+
             // Formula calculation results are saved to cache
             CELL_INVERTED_INDEX_CACHE.set(
                 unitId,
@@ -661,6 +698,32 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
         return this._unitArrayFormulaRange;
     }
 
+    getUnitArrayFormulaEmbeddedMap() {
+        return this._unitArrayFormulaEmbeddedMap;
+    }
+
+    setUnitArrayFormulaEmbeddedMap() {
+        const unitId = this._currentUnitId;
+        const sheetId = this._currentSubUnitId;
+        const rowIndex = this._currentRow;
+        const columnIndex = this._currentColumn;
+
+        const arrayFormulaEmbeddedMap = this._unitArrayFormulaEmbeddedMap;
+        if (arrayFormulaEmbeddedMap[unitId] == null) {
+            arrayFormulaEmbeddedMap[unitId] = {};
+        }
+
+        if (arrayFormulaEmbeddedMap[unitId][sheetId] == null) {
+            arrayFormulaEmbeddedMap[unitId][sheetId] = {};
+        }
+
+        if (arrayFormulaEmbeddedMap[unitId][sheetId][rowIndex] == null) {
+            arrayFormulaEmbeddedMap[unitId][sheetId][rowIndex] = {};
+        }
+
+        arrayFormulaEmbeddedMap[unitId][sheetId][rowIndex][columnIndex] = true;
+    }
+
     getRuntimeOtherData() {
         return this._runtimeOtherData;
     }
@@ -689,14 +752,20 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
         this._runtimeFeatureCellData[featureId] = featureData;
     }
 
+    getRuntimeImageFormulaData() {
+        return this._runtimeImageFormulaData;
+    }
+
     getAllRuntimeData(): IAllRuntimeData {
         return {
             unitData: this.getUnitData(),
             arrayFormulaRange: this.getUnitArrayFormula(),
+            arrayFormulaEmbedded: this.getUnitArrayFormulaEmbeddedMap(),
             unitOtherData: this.getRuntimeOtherData(),
             functionsExecutedState: this._functionsExecutedState,
             arrayFormulaCellData: this.getRuntimeArrayFormulaCellData(),
             clearArrayFormulaCellData: this.getRuntimeClearArrayFormulaCellData(),
+            imageFormulaData: this.getRuntimeImageFormulaData(),
 
             runtimeFeatureRange: this.getRuntimeFeatureRange(),
             runtimeFeatureCellData: this.getRuntimeFeatureCellData(),
@@ -717,6 +786,10 @@ export class FormulaRuntimeService extends Disposable implements IFormulaRuntime
 
             formulaCycleIndex: this.getFormulaCycleIndex(),
         };
+    }
+
+    clearArrayObjectCache() {
+        FORMULA_REF_TO_ARRAY_CACHE.clear();
     }
 
     // eslint-disable-next-line complexity

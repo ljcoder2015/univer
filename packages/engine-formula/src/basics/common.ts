@@ -15,7 +15,6 @@
  */
 
 import type {
-    BooleanNumber,
     ICellData,
     IColumnData,
     IObjectArrayPrimitiveType,
@@ -27,6 +26,7 @@ import type {
     ObjectMatrix,
     Styles,
 } from '@univerjs/core';
+import type { IImageFormulaInfo } from '../engine/value-object/primitive-object';
 
 export const ERROR_VALUE_OBJECT_CLASS_TYPE = 'errorValueObject';
 
@@ -115,8 +115,23 @@ export interface IArrayFormulaRangeType {
     [unitId: string]: Nullable<{ [sheetId: string]: IObjectMatrixPrimitiveType<IRange> }>;
 }
 
+export interface IArrayFormulaEmbeddedMap {
+    [unitId: string]: Nullable<{ [sheetId: string]: IObjectMatrixPrimitiveType<boolean> }>;
+}
+
 export interface IFeatureDirtyRangeType {
     [unitId: string]: Nullable<{ [sheetId: string]: IRange[] }>;
+}
+
+export interface IRuntimeImageFormulaDataType extends IImageFormulaInfo {
+    unitId: string;
+    sheetId: string;
+    row: number;
+    column: number;
+}
+
+export interface IUnitImageFormulaDataType {
+    [unitId: string]: Nullable<{ [sheetId: string]: ObjectMatrix<Nullable<IImageFormulaInfo>> }>;
 }
 
 export interface IArrayFormulaUnitCellType extends IRuntimeUnitDataPrimitiveType {}
@@ -159,7 +174,6 @@ export interface IOtherFormulaDataItem {
 
 export interface ISuperTable {
     sheetId: string;
-    hasCustomTitle: BooleanNumber;
     titleMap: Map<string, number>;
     range: IRange;
 }
@@ -169,6 +183,7 @@ export enum TableOptionType {
     DATA = '#Data',
     HEADERS = '#Headers',
     TOTALS = '#Totals',
+    THIS_ROW = '#This Row',
 }
 
 export interface IUnitExcludedCell {

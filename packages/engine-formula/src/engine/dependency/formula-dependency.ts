@@ -137,6 +137,8 @@ export class FormulaDependencyGenerator extends Disposable {
 
         this._dependencyRTreeCacheForAddressFunction.clear();
 
+        this._runtimeService.clearArrayObjectCache();
+
         return Promise.resolve(finalTreeList);
     }
 
@@ -568,6 +570,7 @@ export class FormulaDependencyGenerator extends Disposable {
                     const treeId = this._dependencyManagerService.getFormulaDependency(unitId, sheetId, row, column);
                     if (treeId != null) {
                         FDtree.treeId = treeId;
+                        FDtree.isCache = true;
                     } else {
                         this._dependencyManagerService.addFormulaDependency(unitId, sheetId, row, column, FDtree);
                         this._dependencyManagerService.addFormulaDependencyByDefinedName(FDtree);
@@ -602,6 +605,7 @@ export class FormulaDependencyGenerator extends Disposable {
                     const treeId = this._dependencyManagerService.getFormulaDependency(unitId, sheetId, row, column);
                     if (treeId != null) {
                         FDtree.treeId = treeId;
+                        FDtree.isCache = true;
                     } else {
                         this._dependencyManagerService.addFormulaDependency(unitId, sheetId, row, column, FDtree);
                         this._dependencyManagerService.addFormulaDependencyByDefinedName(FDtree);

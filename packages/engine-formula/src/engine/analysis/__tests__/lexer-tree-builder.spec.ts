@@ -15,7 +15,6 @@
  */
 
 import type { LexerNode } from '../lexer-node';
-
 import { AbsoluteRefType } from '@univerjs/core';
 import { describe, expect, it } from 'vitest';
 import { ErrorType } from '../../../basics/error-type';
@@ -291,6 +290,11 @@ describe('lexer nodeMaker test', () => {
         it('Zero braces together error!', () => {
             const node = lexerTreeBuilder.treeBuilder('=sum({0}{0})') as LexerNode;
             expect(node).toStrictEqual(ErrorType.VALUE);
+        });
+
+        it('Braces operator', () => {
+            const node = lexerTreeBuilder.treeBuilder('={0,1,2,3,4,5,6} + {0;1;2;3;4;5;6}*7') as LexerNode;
+            expect(JSON.stringify(node.serialize())).toStrictEqual('{"token":"R_1","st":-1,"ed":-1,"children":["{0,1,2,3,4,5,6}","{0;1;2;3;4;5;6}","7","*","+"]}');
         });
 
         it('Lack braces error!', () => {
