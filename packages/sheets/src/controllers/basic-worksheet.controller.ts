@@ -18,6 +18,7 @@ import type { IDisposable, IMutation, IStyleData } from '@univerjs/core';
 import { Disposable, ICommandService, IConfigService, Optional } from '@univerjs/core';
 import { DataSyncPrimaryController } from '@univerjs/rpc';
 import { AddRangeProtectionCommand } from '../commands/commands/add-range-protection.command';
+import { AddWorksheetMergeAllCommand, AddWorksheetMergeCommand, AddWorksheetMergeHorizontalCommand, AddWorksheetMergeVerticalCommand } from '../commands/commands/add-worksheet-merge.command';
 import { AddWorksheetProtectionCommand } from '../commands/commands/add-worksheet-protection.command';
 import { SetWorksheetRangeThemeStyleCommand } from '../commands/commands/add-worksheet-range-theme.command';
 import { AppendRowCommand } from '../commands/commands/append-row.command';
@@ -73,6 +74,7 @@ import { SetDefinedNameCommand } from '../commands/commands/set-defined-name.com
 import { CancelFrozenCommand, SetFrozenCommand } from '../commands/commands/set-frozen.command';
 import { SetGridlinesColorCommand } from '../commands/commands/set-gridlines-color.command';
 import { SetProtectionCommand } from '../commands/commands/set-protection.command';
+import { SetRangeCustomMetadataCommand } from '../commands/commands/set-range-custom-metadata.command';
 import { SetRangeValuesCommand } from '../commands/commands/set-range-values.command';
 import { SetRowDataCommand } from '../commands/commands/set-row-data.command';
 import {
@@ -110,6 +112,7 @@ import {
 } from '../commands/commands/set-worksheet-row-height.command';
 import { SetWorksheetShowCommand } from '../commands/commands/set-worksheet-show.command';
 import { SplitTextToColumnsCommand } from '../commands/commands/split-text-to-columns.command';
+import { TextToNumberCommand } from '../commands/commands/text-to-number.command';
 import { ToggleCellCheckboxCommand } from '../commands/commands/toggle-checkbox.command';
 import { ToggleGridlinesCommand } from '../commands/commands/toggle-gridlines.command';
 import { UnregisterWorksheetRangeThemeStyleCommand } from '../commands/commands/unregister-range-theme.command';
@@ -218,6 +221,10 @@ export class BasicWorksheetController extends Disposable implements IDisposable 
         const onlyRegisterFormulaRelatedMutations = this._configService.getConfig(ONLY_REGISTER_FORMULA_RELATED_MUTATIONS_KEY) ?? false;
         if (!onlyRegisterFormulaRelatedMutations) {
             [
+                AddWorksheetMergeCommand,
+                AddWorksheetMergeAllCommand,
+                AddWorksheetMergeVerticalCommand,
+                AddWorksheetMergeHorizontalCommand,
                 AppendRowCommand,
                 ClearSelectionAllCommand,
                 ClearSelectionContentCommand,
@@ -270,6 +277,7 @@ export class BasicWorksheetController extends Disposable implements IDisposable 
                 SetFrozenMutation,
                 CancelFrozenCommand,
                 SetHorizontalTextAlignCommand,
+                SetRangeCustomMetadataCommand,
                 SetRangeValuesCommand,
                 SetRowHeightCommand,
                 SetRowHiddenCommand,
@@ -320,6 +328,8 @@ export class BasicWorksheetController extends Disposable implements IDisposable 
                 ToggleGridlinesMutation,
                 SetGridlinesColorCommand,
                 SetGridlinesColorMutation,
+
+                TextToNumberCommand,
 
                 // permissions range protection
                 SetWorksheetPermissionPointsCommand,

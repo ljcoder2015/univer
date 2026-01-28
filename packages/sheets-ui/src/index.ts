@@ -63,7 +63,7 @@ export { RefillCommand } from './commands/commands/refill.command';
 export { RemoveColConfirmCommand, RemoveRowConfirmCommand } from './commands/commands/remove-row-col-confirm.command';
 export { RemoveSheetConfirmCommand } from './commands/commands/remove-sheet-confirm.command';
 export { ApplyFormatPainterCommand, SetInfiniteFormatPainterCommand, SetOnceFormatPainterCommand } from './commands/commands/set-format-painter.command';
-export { SetColumnFrozenCommand, SetRowFrozenCommand, SetSelectionFrozenCommand } from './commands/commands/set-frozen.command';
+export { SetColumnFrozenCommand, SetFirstColumnFrozenCommand, SetFirstRowFrozenCommand, SetRowFrozenCommand, SetSelectionFrozenCommand } from './commands/commands/set-frozen.command';
 export {
     type IScrollCommandParams,
     type IScrollToCellCommandParams,
@@ -89,7 +89,7 @@ export { SheetPermissionOpenDialogOperation } from './commands/operations/sheet-
 export { SheetPermissionOpenPanelOperation } from './commands/operations/sheet-permission-open-panel.operation';
 export { SidebarDefinedNameOperation } from './commands/operations/sidebar-defined-name.operation';
 export { EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY, RANGE_SELECTOR_COMPONENT_KEY, SHEET_VIEW_KEY } from './common/keys';
-export { getCellRealRange } from './common/utils';
+export { getCellRealRange, getViewportByCell } from './common/utils';
 export { useActiveWorkbook, useActiveWorksheet, useWorkbooks } from './components/hook';
 export { UNIVER_SHEET_PERMISSION_USER_PART } from './consts/permission';
 export { SHEET_UI_PLUGIN_NAME } from './consts/plugin-name';
@@ -106,7 +106,7 @@ export { EMBEDDING_FORMULA_EDITOR, isEmbeddingFormulaEditor } from './controller
 export { isRangeSelector, RANGE_SELECTOR_SYMBOLS } from './controllers/editor/utils/is-range-selector';
 export { HoverRenderController } from './controllers/hover-render.controller';
 export { menuSchema as SheetsUIMenuSchema } from './controllers/menu.schema';
-export { PASTE_SPECIAL_MENU_ID, SheetMenuPosition } from './controllers/menu/menu';
+export { COPY_SPECIAL_MENU_ID, menuClipboardDisabledObservable, PASTE_SPECIAL_MENU_ID, SheetMenuPosition } from './controllers/menu/menu';
 export { deriveStateFromActiveSheet$, getCurrentExclusiveRangeInterest$, getCurrentRangeDisable$, getObservableWithExclusiveRange$ } from './controllers/menu/menu-util';
 export { SheetPermissionCheckUIController } from './controllers/permission/sheet-permission-check-ui.controller';
 export { HeaderFreezeRenderController } from './controllers/render-controllers/freeze.render-controller';
@@ -132,9 +132,9 @@ export { type ICanvasPopup, SheetCanvasPopManagerService } from './services/canv
 export { CellAlertManagerService, CellAlertType, type ICellAlert } from './services/cell-alert-manager.service';
 export { type IDropdownParam, ISheetCellDropdownManagerService, SheetCellDropdownManagerService } from './services/cell-dropdown-manager.service';
 export { CellPopupManagerService } from './services/cell-popup-manager.service';
-export { getMatrixPlainText, ISheetClipboardService, PREDEFINED_HOOK_NAME, SheetClipboardService } from './services/clipboard/clipboard.service';
+export { getMatrixPlainText, ISheetClipboardService, PREDEFINED_HOOK_NAME, PREDEFINED_HOOK_NAME_COPY, PREDEFINED_HOOK_NAME_PASTE, SheetClipboardService } from './services/clipboard/clipboard.service';
 export { COPY_TYPE } from './services/clipboard/type';
-export type { ICellDataWithSpanInfo, ICopyPastePayload, IPasteHookValueType, ISheetClipboardHook, ISheetDiscreteRangeLocation } from './services/clipboard/type';
+export type { ICellDataWithSpanInfo, ICopyHookKeyType, ICopyHookValueType, ICopyPastePayload, IPasteHookKeyType, IPasteHookValueType, ISheetClipboardHook, ISheetDiscreteRangeLocation } from './services/clipboard/type';
 export { getRepeatRange, mergeSetRangeValues } from './services/clipboard/utils';
 export { DragManagerService, type IDragCellPosition } from './services/drag-manager.service';
 export { EditorBridgeService, IEditorBridgeService, type IEditorBridgeServiceVisibleParam } from './services/editor-bridge.service';

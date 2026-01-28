@@ -35,6 +35,11 @@ import {
     SetFormulaDependencyCalculationResultMutation,
     SetFormulaStringBatchCalculationMutation,
     SetFormulaStringBatchCalculationResultMutation,
+    SetQueryFormulaDependencyAllMutation,
+    SetQueryFormulaDependencyAllResultMutation,
+    SetQueryFormulaDependencyMutation,
+    SetQueryFormulaDependencyResultMutation,
+    SetTriggerFormulaCalculationStartMutation,
 } from '../commands/mutations/set-formula-calculation.mutation';
 import { SetFormulaDataMutation } from '../commands/mutations/set-formula-data.mutation';
 import { SetImageFormulaDataMutation } from '../commands/mutations/set-image-formula-data.mutation';
@@ -82,11 +87,16 @@ export class FormulaController extends Disposable {
             SetArrayFormulaDataMutation,
             SetImageFormulaDataMutation,
             SetFormulaCalculationStartMutation,
+            SetTriggerFormulaCalculationStartMutation,
             SetFormulaStringBatchCalculationMutation,
             SetFormulaStringBatchCalculationResultMutation,
+            SetQueryFormulaDependencyMutation,
+            SetQueryFormulaDependencyResultMutation,
             SetFormulaCalculationStopMutation,
             SetFormulaCalculationNotificationMutation,
             SetFormulaCalculationResultMutation,
+            SetQueryFormulaDependencyAllMutation,
+            SetQueryFormulaDependencyAllResultMutation,
 
             SetFormulaDependencyCalculationMutation,
             SetFormulaDependencyCalculationResultMutation,

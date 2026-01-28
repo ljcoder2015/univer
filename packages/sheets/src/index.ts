@@ -62,6 +62,9 @@ export {
     AddWorksheetMergeCommand,
     AddWorksheetMergeHorizontalCommand,
     AddWorksheetMergeVerticalCommand,
+    getClearContentMutationParamForRange,
+    getClearContentMutationParamsForRanges,
+    type IMergeCellsUtilOptions,
 } from './commands/commands/add-worksheet-merge.command';
 export { AddWorksheetProtectionCommand } from './commands/commands/add-worksheet-protection.command';
 export { SetWorksheetRangeThemeStyleCommand } from './commands/commands/add-worksheet-range-theme.command';
@@ -77,8 +80,8 @@ export { DeleteRangeProtectionCommand, type IDeleteRangeProtectionCommandParams 
 export { DeleteWorksheetProtectionCommand } from './commands/commands/delete-worksheet-protection.command';
 export { DeleteWorksheetRangeThemeStyleCommand } from './commands/commands/delete-worksheet-range-theme.command';
 export { InsertDefinedNameCommand } from './commands/commands/insert-defined-name.command';
-export { InsertRangeMoveDownCommand, type InsertRangeMoveDownCommandParams } from './commands/commands/insert-range-move-down.command';
-export { InsertRangeMoveRightCommand, type InsertRangeMoveRightCommandParams } from './commands/commands/insert-range-move-right.command';
+export { type IInsertRangeMoveDownCommandParams, InsertRangeMoveDownCommand } from './commands/commands/insert-range-move-down.command';
+export { type IInsertRangeMoveRightCommandParams, InsertRangeMoveRightCommand } from './commands/commands/insert-range-move-right.command';
 export {
     type IInsertColCommandParams,
     type IInsertRowCommandParams,
@@ -135,6 +138,7 @@ export { type ICancelFrozenCommandParams, type ISetFrozenCommandParams } from '.
 export { CancelFrozenCommand, SetFrozenCommand } from './commands/commands/set-frozen.command';
 export { type ISetGridlinesColorCommandParams, SetGridlinesColorCommand } from './commands/commands/set-gridlines-color.command';
 export { SetProtectionCommand } from './commands/commands/set-protection.command';
+export { type ISetRangeCustomMetadataCommandParams, SetRangeCustomMetadataCommand } from './commands/commands/set-range-custom-metadata.command';
 export { type ISetRangeValuesCommandParams, SetRangeValuesCommand } from './commands/commands/set-range-values.command';
 export { type ISetRowDataCommandParams, SetRowDataCommand } from './commands/commands/set-row-data.command';
 export {
@@ -191,6 +195,7 @@ export { SetWorksheetShowCommand } from './commands/commands/set-worksheet-show.
 export type { ISetWorksheetShowCommandParams } from './commands/commands/set-worksheet-show.command';
 export { SplitTextToColumnsCommand } from './commands/commands/split-text-to-columns.command';
 export type { ISplitTextToColumnsCommandParams } from './commands/commands/split-text-to-columns.command';
+export { type ITextToNumberCommandParams, TextToNumberCommand } from './commands/commands/text-to-number.command';
 export { type IToggleCellCheckboxCommandParams, ToggleCellCheckboxCommand } from './commands/commands/toggle-checkbox.command';
 export { type IToggleGridlinesCommandParams, ToggleGridlinesCommand } from './commands/commands/toggle-gridlines.command';
 export { UnregisterWorksheetRangeThemeStyleCommand } from './commands/commands/unregister-range-theme.command';
@@ -303,11 +308,12 @@ export {
     type ISetWorksheetRowAutoHeightMutationParams,
     type ISetWorksheetRowHeightMutationParams,
     type ISetWorksheetRowIsAutoHeightMutationParams,
-
     SetWorksheetRowAutoHeightMutation,
     SetWorksheetRowAutoHeightMutationFactory,
     SetWorksheetRowHeightMutation,
+    SetWorksheetRowHeightMutationFactory,
     SetWorksheetRowIsAutoHeightMutation,
+    SetWorksheetRowIsAutoHeightMutationFactory,
 } from './commands/mutations/set-worksheet-row-height.mutation';
 export { type IToggleGridlinesMutationParams, ToggleGridlinesMutation } from './commands/mutations/toggle-gridlines.mutation';
 export { type IUnregisterWorksheetRangeThemeStyleMutationParams, UnregisterWorksheetRangeThemeStyleMutation } from './commands/mutations/unregister-range-theme-style.mutation';

@@ -118,8 +118,9 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
         this._activeSheet$.complete();
         this._name$.complete();
 
-        Promise.resolve().then(() => {
-            this._worksheets.clear();
+        const sheetIds = Array.from(this._worksheets.keys());
+        sheetIds.forEach((id) => {
+            this._removeSheet(id);
         });
     }
 
@@ -179,6 +180,7 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
 
         sheets[id] = worksheetSnapshot;
         sheetOrder.splice(index, 0, id);
+        this.ensureSheetOrderUnique();
         const worksheet = new Worksheet(this._unitId, worksheetSnapshot, this._styles);
         this._worksheets.set(id, worksheet);
         this._sheetCreated$.next(worksheet);
@@ -188,6 +190,22 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
 
     getSheetOrders(): Readonly<string[]> {
         return this._snapshot.sheetOrder;
+    }
+
+    // Ensure sheet order is unique
+    ensureSheetOrderUnique() {
+        const seen = new Set<string>();
+        const result: string[] = [];
+
+        for (const item of this._snapshot.sheetOrder) {
+            if (!seen.has(item)) {
+                seen.add(item);
+                result.push(item);
+            }
+        }
+
+        this._snapshot.sheetOrder = result;
+        seen.clear();
     }
 
     getWorksheets(): Map<string, Worksheet> {
@@ -273,7 +291,7 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
         this._activeSheet$.next(worksheet);
     }
 
-    removeSheet(sheetId: string): boolean {
+    private _removeSheet(sheetId: string): boolean {
         const sheetToRemove = this._worksheets.get(sheetId);
         if (!sheetToRemove) {
             return false;
@@ -281,10 +299,19 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
 
         this._worksheets.delete(sheetId);
         this._snapshot.sheetOrder.splice(this._snapshot.sheetOrder.indexOf(sheetId), 1);
-        delete this._snapshot.sheets[sheetId];
+        this.ensureSheetOrderUnique();
         this._sheetDisposed$.next(sheetToRemove);
 
         return true;
+    }
+
+    removeSheet(sheetId: string): boolean {
+        const success = this._removeSheet(sheetId);
+        if (success) {
+            delete this._snapshot.sheets[sheetId];
+        }
+
+        return success;
     }
 
     getActiveSheetIndex(): number {
@@ -367,13 +394,13 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
     }
 
     /**
-     * Check if sheet name is unique
+     * Check if sheet name is unique, ignore case sensitivity
      * @param name sheet name
      * @returns True if sheet name is unique
      */
     checkSheetName(name: string): boolean {
         const sheetsName = this.getSheetsName();
-        return sheetsName.includes(name);
+        return sheetsName.some((sheetName) => sheetName.toLowerCase() === name.toLowerCase());
     }
 
     /**
@@ -436,6 +463,8 @@ export class Workbook extends UnitModel<IWorkbookData, UniverInstanceType.UNIVER
                 sheetOrder.push(sheetId);
             }
         }
+
+        this.ensureSheetOrderUnique();
 
         // Active the first sheet.
         this.ensureActiveSheet();
