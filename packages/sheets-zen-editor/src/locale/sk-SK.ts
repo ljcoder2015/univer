@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-import { CellValueType } from '@univerjs/core';
-import { describe, expect, it } from 'vitest';
-import { needsUpdateCellValue } from '../tools';
+import type enUS from './en-US';
 
-describe('Test tool', () => {
-    it('Function needsUpdateCellValue', () => {
-        expect(needsUpdateCellValue({ f: '=A1' })).toBeFalsy();
-        expect(needsUpdateCellValue({ si: 'id1' })).toBeFalsy();
-        expect(needsUpdateCellValue({ t: CellValueType.BOOLEAN })).toBeFalsy();
-        expect(needsUpdateCellValue({ v: 1, t: CellValueType.NUMBER })).toBeTruthy();
-    });
-});
+const locale: typeof enUS = {
+    rightClick: {
+        zenEditor: 'Editor na celú obrazovku',
+    },
+    shortcut: {
+        sheet: {
+            'zen-edit-cancel': 'Zrušiť zen úpravu',
+            'zen-edit-confirm': 'Potvrdiť zen úpravu',
+        },
+    },
+};
+
+export default locale;

@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-import type { IAccessor, ICommand } from '@univerjs/core';
-import type { APPLY_TYPE } from '../../services/auto-fill/type';
+import type enUS from './en-US';
 
-import { CommandType } from '@univerjs/core';
-import { IAutoFillService } from '../../services/auto-fill/auto-fill.service';
-
-interface IRefillCommandParams {
-    type: APPLY_TYPE;
-}
-
-export const RefillCommand: ICommand = {
-    id: 'sheet.command.refill',
-    type: CommandType.COMMAND,
-    handler: async (accessor: IAccessor, params: IRefillCommandParams) => {
-        const autoFillService = accessor.get(IAutoFillService);
-        return autoFillService.fillData(params.type);
+const locale: typeof enUS = {
+    'script-panel': {
+        title: 'Uniscript',
+        tooltip: {
+            'menu-button': 'Prepnúť panel Uniscript',
+        },
+        panel: {
+            execute: 'Spustiť skript',
+        },
+    },
+    uniscript: {
+        message: {
+            success: 'Spustenie úspešné',
+            failed: 'Spustenie zlyhalo',
+        },
     },
 };
+
+export default locale;
