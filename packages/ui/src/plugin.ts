@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import type { IUniverUIConfig } from './controllers/config.schema';
+import type { IUniverUIConfig } from './config/config';
 import { DependentOn, generateRandomId, IConfigService, IConfirmService, IContextService, ILocalStorageService, Inject, Injector, merge, mergeOverrideWithDependencies, Plugin, registerDependencies, touchDependencies } from '@univerjs/core';
 import { UniverRenderEnginePlugin } from '@univerjs/engine-render';
+import pkg from '../package.json';
 import { ComponentManager } from './common/component-manager';
 import { ZIndexManager } from './common/z-index-manager';
-import { defaultPluginConfig, UI_PLUGIN_CONFIG_KEY } from './controllers/config.schema';
+import { defaultPluginConfig, UI_PLUGIN_CONFIG_KEY } from './config/config';
 import { ErrorController } from './controllers/error/error.controller';
 import { SharedController } from './controllers/shared-shortcut.controller';
 import { ShortcutPanelController } from './controllers/shortcut-display/shortcut-panel.controller';
@@ -28,6 +29,7 @@ import { IUIController } from './controllers/ui/ui.controller';
 import { DesktopBeforeCloseService, IBeforeCloseService } from './services/before-close/before-close.service';
 import { BrowserClipboardService, IClipboardInterfaceService } from './services/clipboard/clipboard-interface.service';
 import { DesktopConfirmService } from './services/confirm/desktop-confirm.service';
+import { ContextMenuHostService, IContextMenuHostService } from './services/contextmenu/contextmenu-host.service';
 import { ContextMenuService, IContextMenuService } from './services/contextmenu/contextmenu.service';
 import { DesktopDialogService } from './services/dialog/desktop-dialog.service';
 import { IDialogService } from './services/dialog/dialog.service';
@@ -58,8 +60,6 @@ import { ThemeSwitcherService } from './services/theme-switcher/theme-switcher.s
 import { DesktopZenZoneService } from './services/zen-zone/desktop-zen-zone.service';
 import { IZenZoneService } from './services/zen-zone/zen-zone.service';
 
-export const UNIVER_UI_PLUGIN_NAME = 'UNIVER_UI_PLUGIN';
-
 export const DISABLE_AUTO_FOCUS_KEY = 'DISABLE_AUTO_FOCUS';
 
 /**
@@ -67,7 +67,9 @@ export const DISABLE_AUTO_FOCUS_KEY = 'DISABLE_AUTO_FOCUS';
  */
 @DependentOn(UniverRenderEnginePlugin)
 export class UniverUIPlugin extends Plugin {
-    static override pluginName = UNIVER_UI_PLUGIN_NAME;
+    static override pluginName = 'UNIVER_UI_PLUGIN';
+    static override packageName = pkg.name;
+    static override version = pkg.version;
 
     constructor(
         private readonly _config: Partial<IUniverUIConfig> = defaultPluginConfig,
@@ -107,6 +109,7 @@ export class UniverUIPlugin extends Plugin {
             [IShortcutService, { useClass: ShortcutService }],
             [IPlatformService, { useClass: PlatformService }],
             [IMenuManagerService, { useClass: MenuManagerService }],
+            [IContextMenuHostService, { useClass: ContextMenuHostService }],
             [IContextMenuService, { useClass: ContextMenuService }],
             [IClipboardInterfaceService, { useClass: BrowserClipboardService, lazy: true }],
             [INotificationService, { useClass: DesktopNotificationService, lazy: true }],

@@ -36,7 +36,7 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
     const layoutService = useDependency(ILayoutService);
     const componentManager = useDependency(ComponentManager);
 
-    const { value, hidden, disabled, activated } = useToolbarItemStatus(props);
+    const { value, hidden, disabled, activated, selectionsValue } = useToolbarItemStatus(props);
 
     const executeCommand = (commandId: string, params?: Record<string, unknown>) => {
         layoutService.focus();
@@ -57,6 +57,7 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
             });
         }
     }, [selections]);
+
     const options = useObservable(selections$) as IValueOption[];
 
     const icon$ = useMemo(() => {
@@ -107,9 +108,9 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                     data-u-command={id}
                     data-disabled={disabled}
                     className={clsx(`
-                      univer-animate-in univer-fade-in univer-group univer-relative univer-flex univer-h-6
-                      univer-cursor-pointer univer-items-center univer-rounded univer-pr-5 univer-text-sm
-                      univer-transition-colors
+                      univer-toolbar-button-selector-root univer-animate-in univer-fade-in univer-group univer-relative
+                      univer-flex univer-h-6 univer-cursor-pointer univer-items-center univer-rounded univer-pr-5
+                      univer-text-sm univer-transition-colors
                       hover:univer-bg-gray-100
                       dark:hover:!univer-bg-gray-700
                     `, {
@@ -119,8 +120,8 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                 >
                     <div
                         className={clsx(`
-                          univer-relative univer-z-[1] univer-flex univer-h-full univer-items-center univer-rounded-l
-                          univer-px-1 univer-transition-colors
+                          univer-toolbar-button-selector-main univer-relative univer-z-[1] univer-flex univer-h-full
+                          univer-items-center univer-rounded-l univer-px-1 univer-transition-colors
                           hover:univer-bg-gray-200
                           dark:hover:!univer-bg-gray-600
                         `, {
@@ -132,7 +133,7 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                         <CustomLabel
                             icon={iconToDisplay}
                             title={title!}
-                            value={value}
+                            value={selectionsValue ?? value}
                             label={label}
                             onChange={handleSelectionsValueChange}
                         />
@@ -148,9 +149,9 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                     >
                         <div
                             className={clsx(`
-                              univer-absolute univer-right-0 univer-top-0 univer-box-border univer-flex univer-h-6
-                              univer-w-5 univer-items-center univer-justify-center univer-rounded-r
-                              univer-transition-colors
+                              univer-toolbar-button-selector-trigger univer-absolute univer-right-0 univer-top-0
+                              univer-box-border univer-flex univer-h-6 univer-w-5 univer-items-center
+                              univer-justify-center univer-rounded-r univer-transition-colors
                               hover:univer-bg-gray-200
                               dark:hover:!univer-bg-gray-600
                             `, {
@@ -178,9 +179,9 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                     <div
                         data-u-command={id}
                         className={clsx(`
-                          univer-animate-in univer-fade-in univer-relative univer-flex univer-h-6 univer-cursor-pointer
-                          univer-items-center univer-gap-2 univer-whitespace-nowrap univer-rounded univer-px-1
-                          univer-transition-colors
+                          univer-toolbar-selector-root univer-animate-in univer-fade-in univer-relative univer-flex
+                          univer-h-6 univer-cursor-pointer univer-items-center univer-gap-2 univer-whitespace-nowrap
+                          univer-rounded univer-px-1 univer-transition-colors
                           hover:univer-bg-gray-100
                           dark:hover:!univer-bg-gray-700
                         `, {
@@ -198,7 +199,9 @@ export const ToolbarItem = forwardRef<ITooltipWrapperRef, IDisplayMenuItem<IMenu
                             onChange={handleSelectionsValueChange}
                         />
                         <div
-                            className={clsx('univer-flex univer-h-full univer-items-center', {
+                            className={clsx(`
+                              univer-toolbar-selector-trigger univer-flex univer-h-full univer-items-center
+                            `, {
                                 'univer-pointer-events-none univer-cursor-not-allowed univer-text-gray-300 dark:!univer-text-gray-600': disabled,
                             })}
                         >

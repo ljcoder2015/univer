@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { ICommandInfo, IRange, Nullable, Workbook, Worksheet } from '@univerjs/core';
+import type { BooleanNumber, ICommandInfo, IExecutionOptions, IRange, Nullable, Workbook, Worksheet } from '@univerjs/core';
 import type { ISetFormulaCalculationNotificationMutation } from '@univerjs/engine-formula';
 import type { IAfterRender$Info, IBasicFrameInfo, IExtendFrameInfo, IRenderContext, IRenderModule, IScrollBarProps, ISummaryFrameInfo, ISummaryMetric, ITimeMetric, IViewportInfos, Scene } from '@univerjs/engine-render';
-import type { IUniverSheetsUIConfig } from '../config.schema';
+import type { IUniverSheetsUIConfig } from '../../config/config';
 import { CommandType, ICommandService, IConfigService, Inject, Optional, Rectangle, RxDisposable } from '@univerjs/core';
 import { SetFormulaCalculationNotificationMutation } from '@univerjs/engine-formula';
 
@@ -39,9 +39,9 @@ import {
     SHEET_COMPONENT_MAIN_LAYER_INDEX,
     SHEET_VIEW_KEY,
 } from '../../common/keys';
+import { SHEETS_UI_PLUGIN_CONFIG_KEY } from '../../config/config';
 import { SheetSkeletonManagerService } from '../../services/sheet-skeleton-manager.service';
 import { SheetsRenderService } from '../../services/sheets-render.service';
-import { SHEETS_UI_PLUGIN_CONFIG_KEY } from '../config.schema';
 
 interface ISetWorksheetMutationParams {
     unitId: string;
@@ -260,12 +260,15 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
         scene.enableLayerCache(SHEET_COMPONENT_MAIN_LAYER_INDEX, SHEET_COMPONENT_HEADER_LAYER_INDEX);
     }
 
-    private _initViewports(scene: Scene, rowHeader: { width: number }, columnHeader: { height: number }) {
+    private _initViewports(scene: Scene, rowHeader: { width: number; hidden?: BooleanNumber }, columnHeader: { height: number; hidden?: BooleanNumber }) {
+        const rowHeaderWidth = rowHeader.hidden ? 0 : rowHeader.width;
+        const columnHeaderHeight = columnHeader.hidden ? 0 : columnHeader.height;
         const bufferEdgeX = 100;
         const bufferEdgeY = 100;
+
         const viewMain = new Viewport(SHEET_VIEWPORT_KEY.VIEW_MAIN, scene, {
-            left: rowHeader.width,
-            top: columnHeader.height,
+            left: rowHeaderWidth,
+            top: columnHeaderHeight,
             bottom: 0,
             right: 0,
             isWheelPreventDefaultX: true,
@@ -300,9 +303,9 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
         });
         const viewRowBottom = new Viewport(SHEET_VIEWPORT_KEY.VIEW_ROW_BOTTOM, scene, {
             left: 0,
-            top: columnHeader.height,
+            top: columnHeaderHeight,
             bottom: 0,
-            width: rowHeader.width + 1,
+            width: rowHeaderWidth + 1,
             isWheelPreventDefaultX: true,
         });
         const viewColumnLeft = new Viewport(SHEET_VIEWPORT_KEY.VIEW_COLUMN_LEFT, scene, {
@@ -310,17 +313,17 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
             isWheelPreventDefaultX: true,
         });
         const viewColumnRight = new Viewport(SHEET_VIEWPORT_KEY.VIEW_COLUMN_RIGHT, scene, {
-            left: rowHeader.width,
+            left: rowHeaderWidth,
             top: 0,
-            height: columnHeader.height + 1,
+            height: columnHeaderHeight + 1,
             right: 0,
             isWheelPreventDefaultX: true,
         });
         const viewLeftTop = new Viewport(SHEET_VIEWPORT_KEY.VIEW_LEFT_TOP, scene, {
             left: 0,
             top: 0,
-            width: rowHeader.width,
-            height: columnHeader.height,
+            width: rowHeaderWidth,
+            height: columnHeaderHeight,
             isWheelPreventDefaultX: true,
         });
 
@@ -403,7 +406,7 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
     }
 
     private _initCommandListener(): void {
-        this.disposeWithMe(this._commandService.onCommandExecuted((command: ICommandInfo) => {
+        this.disposeWithMe(this._commandService.onCommandExecuted((command: ICommandInfo, options) => {
             const { unit: workbook } = this._context;
             const { id: commandId } = command;
 
@@ -443,12 +446,12 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
 
             // All mutations must be executed. Using reCalculate alone will not trigger a refresh.
             if (command.type === CommandType.MUTATION) {
-                this._markUnitDirty(command);
+                this._markUnitDirty(command, options);
             }
         }));
     }
 
-    private _markUnitDirty(command: ICommandInfo) {
+    private _markUnitDirty(command: ICommandInfo, options: IExecutionOptions | undefined) {
         if (command.id.substring(0, 3) === 'doc') {
             return;
         }
@@ -471,20 +474,20 @@ export class SheetRenderController extends RxDisposable implements IRenderModule
 
         const cmdParams = command.params as Record<string, any>;
         const viewports = this._spreadsheetViewports(scene);
-        if (command.id === SetRangeValuesMutation.id && cmdParams.cellValue) {
+        if (command.id === SetRangeValuesMutation.id && cmdParams.cellValue && !options?.fromChangeset) {
             const dirtyRange: IRange = this._cellValueToRange(cmdParams.cellValue);
             const dirtyBounds = this._rangeToBounds([dirtyRange]);
             this._markViewportDirty(viewports, dirtyBounds);
-            (spreadsheet as unknown as Spreadsheet).setDirtyArea(dirtyBounds);
+            (spreadsheet as Spreadsheet).setDirtyArea(dirtyBounds);
         }
 
-        if (command.id === MoveRangeMutation.id && cmdParams.from && cmdParams.to) {
+        if (command.id === MoveRangeMutation.id && cmdParams.from && cmdParams.to && !options?.fromChangeset) {
             // keep the get _cellValueToRange code to ensure the code can effect as before
             const fromRange = cmdParams.fromRange || this._cellValueToRange(cmdParams.from.value);
             const toRange = cmdParams.toRange || this._cellValueToRange(cmdParams.to.value);
             const dirtyBounds = this._rangeToBounds([fromRange, toRange]);
             this._markViewportDirty(viewports, dirtyBounds);
-            (spreadsheet as unknown as Spreadsheet).setDirtyArea(dirtyBounds);
+            (spreadsheet as Spreadsheet).setDirtyArea(dirtyBounds);
         }
     }
 

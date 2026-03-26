@@ -15,21 +15,23 @@
  */
 
 import type { Dependency } from '@univerjs/core';
-import type { IUniverSheetsFormulaBaseConfig, IUniverSheetsFormulaRemoteConfig } from './controllers/config.schema';
+import type { IUniverSheetsFormulaBaseConfig, IUniverSheetsFormulaRemoteConfig } from './config/config';
 import { DependentOn, IConfigService, Inject, Injector, isNodeEnv, merge, Plugin, touchDependencies, UniverInstanceType } from '@univerjs/core';
 import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula';
 import { fromModule, IRPCChannelService, toModule } from '@univerjs/rpc';
 import { UniverSheetsPlugin } from '@univerjs/sheets';
+import pkg from '../package.json';
 import { SHEETS_FORMULA_PLUGIN_NAME } from './common/plugin-name';
-import { ActiveDirtyController } from './controllers/active-dirty.controller';
-import { ArrayFormulaCellInterceptorController } from './controllers/array-formula-cell-interceptor.controller';
 import {
     defaultPluginBaseConfig,
     defaultPluginRemoteConfig,
     PLUGIN_CONFIG_KEY_BASE,
     PLUGIN_CONFIG_KEY_REMOTE,
-} from './controllers/config.schema';
+} from './config/config';
+import { ActiveDirtyController } from './controllers/active-dirty.controller';
+import { ArrayFormulaCellInterceptorController } from './controllers/array-formula-cell-interceptor.controller';
 import { DefinedNameController } from './controllers/defined-name.controller';
+import { FormulaAutoFillController } from './controllers/formula-auto-fill.controller';
 import { FormulaController } from './controllers/formula.controller';
 import { ImageFormulaCellInterceptorController } from './controllers/image-formula-cell-interceptor.controller';
 import { SuperTableController } from './controllers/super-table.controller';
@@ -44,6 +46,8 @@ import { IRemoteRegisterFunctionService, RemoteRegisterFunctionService, RemoteRe
 @DependentOn(UniverFormulaEnginePlugin)
 export class UniverRemoteSheetsFormulaPlugin extends Plugin {
     static override pluginName = 'SHEET_FORMULA_REMOTE_PLUGIN';
+    static override packageName = pkg.name;
+    static override version = pkg.version;
     static override type = UniverInstanceType.UNIVER_SHEET;
 
     constructor(
@@ -74,6 +78,8 @@ export class UniverRemoteSheetsFormulaPlugin extends Plugin {
 @DependentOn(UniverSheetsPlugin)
 export class UniverSheetsFormulaPlugin extends Plugin {
     static override pluginName = SHEETS_FORMULA_PLUGIN_NAME;
+    static override packageName = pkg.name;
+    static override version = pkg.version;
     static override type = UniverInstanceType.UNIVER_SHEET;
 
     constructor(
@@ -107,6 +113,7 @@ export class UniverSheetsFormulaPlugin extends Plugin {
             [DefinedNameController],
             [UpdateDefinedNameController],
             [SuperTableController],
+            [FormulaAutoFillController],
         ];
 
         // If the plugin do not execute formula, it should delegate a remote proxy.
@@ -129,6 +136,7 @@ export class UniverSheetsFormulaPlugin extends Plugin {
             [ImageFormulaCellInterceptorController],
             [UpdateFormulaController],
             [UpdateDefinedNameController],
+            [FormulaAutoFillController],
         ]);
 
         // There is no rendering in the nodejs environment, so initialize it here

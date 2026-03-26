@@ -76,6 +76,7 @@ export interface IValueOption<T = undefined> {
     id?: string;
     value?: string | number;
     value$?: Observable<T>;
+    params?: any;
     slot?: boolean;
     label?:
     | string
@@ -120,6 +121,10 @@ export interface IMenuSelectorItem<V = MenuItemDefaultValueType, T = undefined> 
 
 export function isMenuSelectorItem<T extends MenuItemDefaultValueType>(v: IMenuItem): v is IMenuSelectorItem<T> {
     return v.type === MenuItemType.SELECTOR || v.type === MenuItemType.SUBITEMS;
+}
+
+export function isMenuButtonSelectorItem<T extends MenuItemDefaultValueType>(v: IMenuItem): v is IMenuSelectorItem<T> {
+    return v.type === MenuItemType.BUTTON_SELECTOR;
 }
 
 export type MenuItemDefaultValueType = string | number | undefined;

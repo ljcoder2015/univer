@@ -21,7 +21,7 @@ import type { UniverRenderingContext } from '../context';
 import type { Scene } from '../scene';
 import type { IShapeProps } from './shape';
 import { ObjectType } from '../base-object';
-import { RENDER_CLASS_TYPE, Vector2 } from '../basics';
+import { RENDER_CLASS_TYPE, Transform, Vector2 } from '../basics';
 import { offsetRotationAxis } from '../basics/offset-rotation-axis';
 import { Shape } from './shape';
 
@@ -53,6 +53,8 @@ export class Image extends Shape<IImageProps> {
     private _transformCalculateSrcRect: boolean = true;
 
     override objectType = ObjectType.IMAGE;
+
+    override isDrawingObject: boolean = true;
 
     constructor(id: string, config: IImageProps) {
         super(id, config);
@@ -270,15 +272,26 @@ export class Image extends Shape<IImageProps> {
             return this;
         }
 
+        if (!this.transform) {
+            return this;
+        }
+
+        let { width: realWidth, height: realHeight, left: realLeft, top: realTop } = this;
+
+        const realBound = this.getRealBound();
+        realWidth = realBound.width;
+        realHeight = realBound.height;
+        realLeft = realBound.left;
+        realTop = realBound.top;
         // Temporarily ignore the on-demand display of elements within a group：this.isInGroup
         if (this.isRender(bounds)) {
             const { top, left, bottom, right } = bounds!.viewBound;
 
             if (
-                this.width + this.strokeWidth + this.left < left ||
-                right < this.left ||
-                this.height + this.strokeWidth + this.top < top ||
-                bottom < this.top
+                realWidth + this.strokeWidth + realLeft < left ||
+                right < realLeft ||
+                realHeight + this.strokeWidth + realTop < top ||
+                bottom < realTop
             ) {
                 return this;
             }
@@ -286,28 +299,40 @@ export class Image extends Shape<IImageProps> {
 
         const m = this.transform.getMatrix();
         mainCtx.save();
-        mainCtx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
+        // if (this.flipX || this.flipY) {
+        //     const centerX = this.left + this.width / 2;
+        //     const centerY = this.top + this.height / 2;
+        //    mainCtx.transform(m[0], m[1], m[2], m[3], centerX, centerY);
+        // }else {
+
+        //     mainCtx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
+        // }
+        const centerX = realLeft + realWidth / 2;
+        const centerY = realTop + realHeight / 2;
+        mainCtx.transform(m[0], m[1], m[2], m[3], centerX, centerY);
         if (this.opacity !== 1) {
             mainCtx.globalAlpha = this.opacity;
         }
-        this._draw(mainCtx);
+        this._draw(mainCtx, undefined, realWidth, realHeight);
         mainCtx.restore();
         this.makeDirty(false);
         return this;
     }
 
-    protected override _draw(ctx: UniverRenderingContext) {
+    protected override _draw(ctx: UniverRenderingContext, _bounds?: IViewportInfo, renderWidth?: number, renderHeight?: number) {
         if (this._native == null) {
             return;
         }
+        const w = renderWidth ?? this.width;
+        const h = renderHeight ?? this.height;
         if (!this._renderByCropper && this.srcRect) {
             const { left = 0, top = 0, right = 0, bottom = 0 } = this.srcRect;
             ctx.beginPath();
-            ctx.rect(0, 0, this.width, this.height);
+            ctx.rect(-w / 2, -h / 2, w, h);
             ctx.clip();
-            ctx.drawImage(this._native, -left, -top, this.width + right + left, this.height + bottom + top);
+            ctx.drawImage(this._native, -left - w / 2, -top - h / 2, w + right + left, h + bottom + top);
         } else {
-            ctx.drawImage(this._native, 0, 0, this.width, this.height);
+            ctx.drawImage(this._native, -w / 2, -h / 2, w, h);
         }
     }
 
@@ -360,5 +385,53 @@ export class Image extends Shape<IImageProps> {
                 bottom: newBottom,
             });
         }
+    }
+
+    override set transform(trans: Transform) {
+        this._transform = trans;
+    }
+
+    override get transform() {
+        // when active sheet is changed, maybe the image is reused, the transform need to be recalculated by transform
+        if (!this._transform) {
+            this._setTransForm();
+        }
+
+        const transform = this._transform.clone();
+        return this.transformForAngle(transform);
+    }
+
+    override isHit(coord: Vector2) {
+        // Build the same effective transform used in render():
+        // Must use realBound to match render() method's coordinate system
+        // [m[0], m[1], m[2], m[3], centerX, centerY]
+
+        const realBound = this.getRealBound();
+        const { left: realLeft, top: realTop, width: realWidth, height: realHeight } = realBound;
+        const centerX = realLeft + realWidth / 2;
+        const centerY = realTop + realHeight / 2;
+        const m = this.transform.getMatrix();
+        const renderTransform = new Transform([m[0], m[1], m[2], m[3], centerX, centerY]);
+
+        // Account for parent group transforms if applicable
+        // This handles multi-level nesting and parent flipX/flipY transformations
+        const parent = this.getParent();
+        const effectiveTransform = this.isInGroup && parent?.classType === RENDER_CLASS_TYPE.GROUP
+            ? parent.ancestorTransform.multiply(renderTransform)
+            : renderTransform;
+
+        const oCoord = effectiveTransform.invert().applyPoint(coord);
+        const halfWidth = realWidth / 2;
+        const halfHeight = realHeight / 2;
+        if (
+            oCoord.x >= -halfWidth - this.strokeWidth / 2 &&
+            oCoord.x <= halfWidth + this.strokeWidth / 2 &&
+            oCoord.y >= -halfHeight - this.strokeWidth / 2 &&
+            oCoord.y <= halfHeight + this.strokeWidth / 2
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }

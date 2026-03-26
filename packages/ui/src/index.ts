@@ -29,14 +29,11 @@ export { FontSize } from './components/font-size/FontSize';
 export { FONT_SIZE_COMPONENT, FONT_SIZE_LIST, HEADING_LIST } from './components/font-size/interface';
 export * from './components/hooks';
 export { t } from './components/hooks/locale';
-export { Menu as UIMenu } from './components/menu/desktop/Menu';
-export { Menu as DesktopMenu } from './components/menu/desktop/Menu';
 export { type INotificationOptions } from './components/notification/Notification';
 export { ProgressBar } from './components/progress-bar/ProgressBar';
+export { type IUniverUIConfig, UI_PLUGIN_CONFIG_KEY } from './config/config';
 export { UNI_DISABLE_CHANGING_FOCUS_KEY } from './const';
-export { type IUniverUIConfig, UI_PLUGIN_CONFIG_KEY } from './controllers/config.schema';
 export { ErrorController } from './controllers/error/error.controller';
-export { menuSchema as UIMenuSchema } from './controllers/menus/menu.schema';
 export {
     CopyShortcutItem,
     CutShortcutItem,
@@ -48,8 +45,9 @@ export { ShortcutPanelController } from './controllers/shortcut-display/shortcut
 export { DesktopUIController } from './controllers/ui/ui-desktop.controller';
 export { SingleUnitUIController } from './controllers/ui/ui-shared.controller';
 export { IUIController, type IWorkbenchOptions } from './controllers/ui/ui.controller';
+export { menuSchema as UIMenuSchema } from './menu/schema';
 export { UniverMobileUIPlugin } from './mobile-plugin';
-export { DISABLE_AUTO_FOCUS_KEY, UNIVER_UI_PLUGIN_NAME, UniverUIPlugin } from './plugin';
+export { DISABLE_AUTO_FOCUS_KEY, UniverUIPlugin } from './plugin';
 export { DesktopBeforeCloseService, IBeforeCloseService } from './services/before-close/before-close.service';
 export {
     BrowserClipboardService,
@@ -66,6 +64,7 @@ export {
 export { supportClipboardAPI } from './services/clipboard/clipboard-utils';
 export { CopyCommand, CutCommand, PasteCommand, SheetPasteShortKeyCommandName } from './services/clipboard/clipboard.command';
 export { DesktopConfirmService } from './services/confirm/desktop-confirm.service';
+export { ContextMenuHostService, IContextMenuHostService } from './services/contextmenu/contextmenu-host.service';
 export { ContextMenuService, type IContextMenuHandler, IContextMenuService } from './services/contextmenu/contextmenu.service';
 export { DesktopDialogService } from './services/dialog/desktop-dialog.service';
 export { IDialogService } from './services/dialog/dialog.service';
@@ -105,7 +104,7 @@ export {
     RibbonStartGroup,
     RibbonViewGroup,
 } from './services/menu/types';
-export { MockMessageService } from './services/message/__testing__/mock-message.service.ts';
+export { MockMessageService } from './services/message/__testing__/mock-message.service';
 export { DesktopMessageService } from './services/message/desktop-message.service';
 export { IMessageService } from './services/message/message.service';
 export { DesktopNotificationService } from './services/notification/desktop-notification.service';
@@ -127,7 +126,9 @@ export * from './utils';
 export { ComponentContainer, type IComponentContainerProps, useComponentsOfPart } from './views/components/ComponentContainer';
 export type { IConfirmChildrenProps } from './views/components/confirm-part/interface';
 export { type IConfirmPartMethodOptions } from './views/components/confirm-part/interface';
+export { AnchoredContextMenu, type IContextMenuAnchorRect } from './views/components/context-menu/AnchoredContextMenu';
 export { DesktopContextMenu as ContextMenu } from './views/components/context-menu/ContextMenu';
+export { ContextMenuPanel } from './views/components/context-menu/ContextMenuPanel';
 export { MobileContextMenu } from './views/components/context-menu/MobileContextMenu';
 export { type IDialogPartMethodOptions } from './views/components/dialog-part/interface';
 export { FloatDomSingle } from './views/components/dom/FloatDom';

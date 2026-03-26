@@ -22,11 +22,18 @@ import { ColorInput } from '../ColorInput';
 import { ColorPicker } from '../ColorPicker';
 import { ColorSpectrum } from '../ColorSpectrum';
 import { HueSlider } from '../HueSlider';
+import { colorPresets } from '../presets';
 import '@testing-library/jest-dom/vitest';
 
 afterEach(cleanup);
 
 describe('ColorPicker', () => {
+    it('should not contain duplicate preset colors', () => {
+        const flattenedPresets = colorPresets.flat().map((color) => color.toUpperCase());
+
+        expect(new Set(flattenedPresets).size).toBe(flattenedPresets.length);
+    });
+
     it('should render correctly', () => {
         const { container } = render(<ColorPicker />);
 
@@ -127,7 +134,7 @@ describe('ColorSpectrum', () => {
 
     it('should call onChange when color changes by pointer', () => {
         const { container } = render(<TestComponent onChange={onChange} />);
-        const spectrum = container.querySelector('[data-u-comp="color-picker-spectrum" > canvas]');
+        const spectrum = container.querySelector('[data-u-comp="color-picker-spectrum"] > canvas');
         if (spectrum) {
             spectrum.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 50 }));
             expect(onChange).toHaveBeenCalled();
