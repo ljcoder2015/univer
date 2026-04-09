@@ -18,7 +18,6 @@ import type {
     IBorderData,
     ICellData,
     IDocumentData,
-    IKeyValue,
     IRange,
     IStyleData,
     ITextDecoration,
@@ -27,37 +26,13 @@ import type {
 import { BaselineOffset, BorderStyleTypes, ColorKit, generateRandomId, getBorderStyleType, Tools } from '@univerjs/core';
 import { ptToPx } from '@univerjs/engine-render';
 
+import { parseHtmlDocument, parseHtmlFragment } from './html';
 import { textTrim } from './util';
 
 const PX_TO_PT_RATIO = 0.75;
 const MAX_FONT_SIZE = 78;
 const MIN_FONT_SIZE = 9;
-const STRIPPED_HTML_SELECTOR = 'script, iframe, object, embed';
-
-function sanitizeParsedHtml(root: ParentNode) {
-    root.querySelectorAll(STRIPPED_HTML_SELECTOR).forEach((element) => element.remove());
-    root.querySelectorAll<HTMLElement>('*').forEach((element) => {
-        for (const { name } of Array.from(element.attributes)) {
-            if (name.startsWith('on')) {
-                element.removeAttribute(name);
-            }
-        }
-    });
-}
-
-function parseHtmlFragment(html: string) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    sanitizeParsedHtml(doc);
-    return doc.body;
-}
-
-function parseHtmlDocument(html: string) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    sanitizeParsedHtml(doc);
-    return doc;
-}
+const HTML_SANITIZE_OPTIONS = { strippedSelector: 'script, iframe, object, embed' };
 
 // TODO: move to Utils
 /**
@@ -458,11 +433,11 @@ export function handleStringToStyle($dom?: HTMLElement, cssStyle: string = '') {
                     },
                 };
                 for (const k in colors) {
-                    (styleList.bd as IKeyValue)[k].cl.rgb = colors[k as keyof IBorderData];
+                    (styleList.bd as Record<string, any>)[k].cl.rgb = colors[k as keyof IBorderData];
                 }
             } else {
                 for (const k in colors) {
-                    (styleList.bd as IKeyValue)[k].cl.rgb = colors[k as keyof IBorderData];
+                    (styleList.bd as Record<string, any>)[k].cl.rgb = colors[k as keyof IBorderData];
                 }
             }
         }
@@ -470,7 +445,7 @@ export function handleStringToStyle($dom?: HTMLElement, cssStyle: string = '') {
         if (key === 'border-width' || key === 'border-style') {
             const width = handleBorder(value, ' ');
             for (const k in width) {
-                (borderInfo as IKeyValue)[k] += ` ${width[k as keyof IBorderData]}`;
+                (borderInfo as Record<string, any>)[k] += ` ${width[k as keyof IBorderData]}`;
             }
             if (!styleList.bd) {
                 styleList.bd = {
@@ -632,7 +607,7 @@ export function splitSpanText(text: string) {
 }
 
 export function handleTableColgroup(table: string) {
-    const content = parseHtmlFragment(table);
+    const content = parseHtmlFragment(table, HTML_SANITIZE_OPTIONS);
     const data: any[] = [];
     const colgroup = content.querySelectorAll('table col');
     if (!colgroup.length) return [];
@@ -666,7 +641,7 @@ function getTdHeight(height: string | null, defaultHeight: number) {
 }
 
 export function handleTableRowGroup(table: string) {
-    const content = parseHtmlFragment(table);
+    const content = parseHtmlFragment(table, HTML_SANITIZE_OPTIONS);
     const data: any[] = [];
     const rowGroup = content.querySelectorAll('table tr');
     if (!rowGroup.length) return [];
@@ -696,7 +671,7 @@ export function handleTableRowGroup(table: string) {
 // Convert table data into sheet data
 export function handelTableToJson(table: string) {
     let data: any[] = [];
-    const content = parseHtmlFragment(table);
+    const content = parseHtmlFragment(table, HTML_SANITIZE_OPTIONS);
     data = new Array(content.querySelectorAll('table tr').length);
     if (!data.length) return [];
     let colLen = 0;
@@ -840,7 +815,7 @@ export function handleTableMergeData(data: any[], selection?: IRange) {
 
 export function handelExcelToJson(html: string) {
     let data: any[] = [];
-    const content = parseHtmlDocument(html);
+    const content = parseHtmlDocument(html, HTML_SANITIZE_OPTIONS);
     const styleText = content.querySelector('style')?.innerText;
     if (!styleText) return;
     const excelStyle = getStyles(styleText);
@@ -925,8 +900,8 @@ export function handelExcelToJson(html: string) {
     return data;
 }
 
-function getStyles(styleText: string): IKeyValue {
-    const output: IKeyValue = {};
+function getStyles(styleText: string): Record<string, any> {
+    const output: Record<string, any> = {};
     const string = styleText.replaceAll('<!--', '').replaceAll('-->', '').trim();
     const style = string?.replaceAll('\t', '').replaceAll('\n', '').split('}');
     for (let i = 0; i < style.length; i++) {
