@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-import type { IActionInfo, IAllowedRequest, IBatchAllowedResponse, ICollaborator, ICreateRequest, ICreateRequest_SelectRangeObject, IListPermPointRequest, IPermissionPoint, IPutCollaboratorsRequest, IUnitRoleKV, IUpdatePermPointRequest, UnitAction, UnitObject } from '@univerjs/protocol';
+import type {
+    IActionInfo,
+    IAllowedRequest,
+    IBatchAllowedResponse,
+    ICollaborator,
+    ICreateRequest,
+    ICreateRequestSelectRangeObject,
+    IListPermPointRequest,
+    IPermissionPoint,
+    IPutCollaboratorsRequest,
+    IUnitRoleKV,
+    IUpdatePermPointRequest,
+    UnitAction,
+    UnitObject,
+} from '@univerjs/protocol';
 import type { IAuthzIoService } from './type';
-import { ObjectScope, UnitRole, UniverType } from '@univerjs/protocol';
+import { ObjectScope, UnitRole } from '@univerjs/protocol';
 import { Inject } from '../../common/di';
+import { UniverInstanceType } from '../../common/unit';
 import { generateRandomId } from '../../shared/tools';
 import { IResourceManagerService } from '../resource-manager/type';
 import { createDefaultUser, isDevRole } from '../user-manager/const';
@@ -32,7 +47,7 @@ interface IPermissionData {
     name: string;
     unitID: string;
     strategies: Array<{ action: UnitAction; role: UnitRole }>;
-    selectRangeObject?: ICreateRequest_SelectRangeObject;
+    selectRangeObject?: ICreateRequestSelectRangeObject;
 }
 
 /**
@@ -86,7 +101,7 @@ export class AuthzIoLocalService implements IAuthzIoService {
                 return JSON.parse(json);
             },
             pluginName: 'SHEET_AuthzIoMockService_PLUGIN',
-            businesses: [UniverType.UNIVER_SHEET, UniverType.UNIVER_DOC, UniverType.UNIVER_SLIDE],
+            businesses: [UniverInstanceType.UNIVER_SHEET, UniverInstanceType.UNIVER_DOC, UniverInstanceType.UNIVER_SLIDE],
             onLoad: (_unitId, resource) => {
                 for (const key in resource) {
                     this._permissionMap.set(key, resource[key]);
@@ -108,7 +123,7 @@ export class AuthzIoLocalService implements IAuthzIoService {
             unitID: rangeObject?.unitID || '',
             name: rangeObject?.name || '',
             strategies: [
-                // 默认策略：Owner 和 Editor 拥有所有权限
+                // Default strategy: Owner and Editor have all permissions
                 { action: 6, role: UnitRole.Owner },
                 { action: 16, role: UnitRole.Owner },
                 { action: 17, role: UnitRole.Owner },
@@ -200,7 +215,7 @@ export class AuthzIoLocalService implements IAuthzIoService {
             const item = {
                 objectID,
                 unitID: config.unitID,
-                objectType: rule?.objectType || (3 as UnitObject), // 默认 SelectRange = 3
+                objectType: rule?.objectType || (3 as UnitObject), // Default SelectRange = 3
                 name: rule?.name || '',
                 shareOn: false,
                 shareRole: UnitRole.Owner,

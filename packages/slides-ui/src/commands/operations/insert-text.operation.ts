@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import type { ICommand, IPageElement, SlideDataModel } from '@univerjs/core';
-import { CommandType, generateRandomId, ICommandService, IUniverInstanceService, PageElementType } from '@univerjs/core';
+import type { ICommand } from '@univerjs/core';
+import type { IPageElement, SlideDataModel } from '@univerjs/slides';
+import { CommandType, generateRandomId, ICommandService, IUniverInstanceService } from '@univerjs/core';
+import { PageElementType } from '@univerjs/slides';
 import { CanvasView } from '../../controllers/canvas-view';
 
 export interface ISlideAddTextParam {
@@ -49,7 +51,7 @@ export const SlideAddTextOperation: ICommand<ISlideAddTextParam> = {
         const textContent = params?.text || 'A New Text';
 
         const univerInstanceService = accessor.get(IUniverInstanceService);
-        // const slideData = univerInstanceService.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
+        // const slideData = univerInstanceService.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
 
         const slideData = univerInstanceService.getUnit<SlideDataModel>(unitId);
         if (!slideData) return false;

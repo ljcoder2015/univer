@@ -17,7 +17,6 @@
 import type { Workbook, Worksheet } from '@univerjs/core';
 import type { IObjectModel, IObjectPointModel } from '../type';
 import { ILogService, Inject, Injector, IPermissionService, IResourceManagerService, IUniverInstanceService, RxDisposable, UniverInstanceType } from '@univerjs/core';
-import { UniverType } from '@univerjs/protocol';
 
 import { takeUntil } from 'rxjs/operators';
 import { RangeProtectionRuleModel } from '../../../model/range-protection-rule.model';
@@ -83,11 +82,9 @@ export class WorksheetPermissionService extends RxDisposable {
             });
         };
 
-        this._univerInstanceService.getAllUnitsForType<Workbook>(UniverInstanceType.UNIVER_SHEET).forEach((workbook) => {
-            handleWorkbook(workbook);
-        });
+        this._univerInstanceService.getAllUnitsForType<Workbook>(UniverInstanceType.UNIVER_SHEET).forEach((workbook) => handleWorkbook(workbook));
 
-        this._univerInstanceService.getTypeOfUnitAdded$<Workbook>(UniverInstanceType.UNIVER_SHEET).pipe(takeUntil(this.dispose$)).subscribe(handleWorkbook);
+        this._univerInstanceService.getTypeOfUnitAdded$<Workbook>(UniverInstanceType.UNIVER_SHEET).pipe(takeUntil(this.dispose$)).subscribe((event) => handleWorkbook(event.unit));
 
         this._univerInstanceService.getTypeOfUnitDisposed$<Workbook>(UniverInstanceType.UNIVER_SHEET).pipe(takeUntil(this.dispose$)).subscribe((workbook) => {
             workbook.getSheets().forEach((worksheet) => {
@@ -147,7 +144,7 @@ export class WorksheetPermissionService extends RxDisposable {
                 toJson,
                 parseJson,
                 pluginName: RULE_MODEL_PLUGIN_NAME,
-                businesses: [UniverType.UNIVER_SHEET],
+                businesses: [UniverInstanceType.UNIVER_SHEET],
                 onLoad: (unitId, resources) => {
                     this._worksheetProtectionRuleModel.fromObject(resources);
                     Object.keys(resources).forEach((subUnitId) => {
@@ -202,7 +199,7 @@ export class WorksheetPermissionService extends RxDisposable {
                 toJson,
                 parseJson,
                 pluginName: POINT_MODEL_PLUGIN_NAME,
-                businesses: [UniverType.UNIVER_SHEET],
+                businesses: [UniverInstanceType.UNIVER_SHEET],
                 onLoad: (unitId, resources) => {
                     this._worksheetProtectionPointRuleModel.fromObject(resources);
                     Object.keys(resources).forEach((subUnitId) => {

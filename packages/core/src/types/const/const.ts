@@ -168,15 +168,6 @@ export const DEFAULT_STYLES = {
     },
 };
 
-export const DEFAULT_SLIDE = {
-    id: 'default_slide',
-    title: 'defaultSlide',
-    pageSize: {
-        width: 300,
-        height: 300,
-    },
-};
-
 export const SHEET_EDITOR_UNITS = [DOCS_NORMAL_EDITOR_UNIT_ID_KEY, DOCS_ZEN_EDITOR_UNIT_ID_KEY, DOCS_FORMULA_BAR_EDITOR_UNIT_ID_KEY];
 
 export const NAMED_STYLE_MAP: Record<NamedStyleType, Nullable<ITextStyle>> = {
@@ -192,6 +183,10 @@ export const NAMED_STYLE_MAP: Record<NamedStyleType, Nullable<ITextStyle>> = {
 };
 
 const BOTTOM_P = 4;
+
+export const DEFAULT_DOCUMENT_PARAGRAPH_LINE_SPACING = 1.5;
+export const DEFAULT_DOCUMENT_PARAGRAPH_SPACE_ABOVE = 0;
+export const DEFAULT_DOCUMENT_PARAGRAPH_SPACE_BELOW = 8;
 
 export const NAMED_STYLE_SPACE_MAP: Record<NamedStyleType, Nullable<IParagraphStyle>> = {
     [NamedStyleType.HEADING_1]: {
@@ -236,10 +231,10 @@ export const NAMED_STYLE_SPACE_MAP: Record<NamedStyleType, Nullable<IParagraphSt
     },
     [NamedStyleType.NORMAL_TEXT]: {
         spaceAbove: {
-            v: 0,
+            v: DEFAULT_DOCUMENT_PARAGRAPH_SPACE_ABOVE,
         },
         spaceBelow: {
-            v: 0,
+            v: DEFAULT_DOCUMENT_PARAGRAPH_SPACE_BELOW,
         },
     },
     [NamedStyleType.TITLE]: {

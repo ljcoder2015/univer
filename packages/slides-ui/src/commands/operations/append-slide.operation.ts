@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import type { IOperation, SlideDataModel } from '@univerjs/core';
+import type { IOperation } from '@univerjs/core';
+import type { SlideDataModel } from '@univerjs/slides';
 import { CommandType, IUniverInstanceService } from '@univerjs/core';
 
 import { CanvasView } from '../../controllers/canvas-view';
@@ -29,7 +30,7 @@ export const AppendSlideOperation: IOperation<IAppendSlideOperationParams> = {
     handler: (accessor, params: IAppendSlideOperationParams) => {
         const unitId = params.unitId;
         const univerInstanceService = accessor.get(IUniverInstanceService);
-        // const slideData = univerInstanceService.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
+        // const slideData = univerInstanceService.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
 
         const slideData = univerInstanceService.getUnit<SlideDataModel>(unitId);
 

@@ -46,6 +46,7 @@ import { ImageCacheMap } from '../shared/cache/image-cache';
 import { getIntersectRange } from '../shared/range';
 import { Skeleton } from '../skeleton';
 import { BooleanNumber, HorizontalAlign } from '../types/enum';
+import { DocumentFlavor } from '../types/interfaces';
 
 /**
  * Configuration for a single gap (visual separator between rows or columns).
@@ -74,6 +75,39 @@ export interface ISheetGapConfig {
     defaultStripeColor?: string;
     /** Default background color (lighter primary). Used when gap items don't specify color. */
     defaultBackgroundColor?: string;
+}
+
+/**
+ * Reusable gap fixture for visual and integration testing.
+ */
+export function createSheetGapTestConfig(overrides: Partial<ISheetGapConfig> = {}): ISheetGapConfig {
+    const baseConfig: ISheetGapConfig = {
+        defaultBackgroundColor: 'rgba(24, 119, 242, 0.08)',
+        defaultStripeColor: 'rgba(24, 119, 242, 0.25)',
+        rowGaps: {
+            1: { size: 6 },
+            3: { size: 10, color: 'rgba(245, 158, 11, 0.14)' },
+            6: { size: 14, color: 'rgba(16, 185, 129, 0.12)', stripeColor: 'rgba(5, 150, 105, 0.35)' },
+        },
+        colGaps: {
+            1: { size: 5 },
+            2: { size: 8, stripeColor: 'rgba(59, 130, 246, 0.35)' },
+            4: { size: 12, color: 'rgba(244, 63, 94, 0.12)', stripeColor: 'rgba(225, 29, 72, 0.30)' },
+        },
+    };
+
+    return {
+        ...baseConfig,
+        ...overrides,
+        rowGaps: {
+            ...baseConfig.rowGaps,
+            ...overrides.rowGaps,
+        },
+        colGaps: {
+            ...baseConfig.colGaps,
+            ...overrides.colGaps,
+        },
+    };
 }
 
 /**
@@ -285,8 +319,8 @@ export class SheetSkeleton extends Skeleton {
 
         return {
             ...config,
-            defaultBackgroundColor: config.defaultBackgroundColor ?? `rgba(${r}, ${g}, ${b}, 0.08)`,
-            defaultStripeColor: config.defaultStripeColor ?? `rgba(${r}, ${g}, ${b}, 0.25)`,
+            defaultBackgroundColor: config.defaultBackgroundColor ?? `rgba(${r}, ${g}, ${b}, 0.025)`,
+            defaultStripeColor: config.defaultStripeColor ?? `rgba(${r}, ${g}, ${b}, 0.08)`,
         };
     }
 
@@ -1068,20 +1102,12 @@ export class SheetSkeleton extends Skeleton {
         rowOffset: number;
     } {
         const column = searchArray(this.columnWidthAccumulation, offsetX);
-        let columnOffset = 0;
-        if (column === 0) {
-            columnOffset = offsetX;
-        } else {
-            columnOffset = offsetX - this._columnWidthAccumulation[column - 1];
-        }
+        const columnStart = (this._columnWidthAccumulation[column - 1] || 0) + this.getColGapSize(column);
+        const columnOffset = offsetX - columnStart;
 
         const row = searchArray(this.rowHeightAccumulation, offsetY);
-        let rowOffset = 0;
-        if (row === 0) {
-            rowOffset = offsetY;
-        } else {
-            rowOffset = offsetY - this._rowHeightAccumulation[row - 1];
-        }
+        const rowStart = (this._rowHeightAccumulation[row - 1] || 0) + this.getRowGapSize(row);
+        const rowOffset = offsetY - rowStart;
         return {
             row,
             column,
@@ -1149,6 +1175,8 @@ export class SheetSkeleton extends Skeleton {
             width: Number.POSITIVE_INFINITY,
             height: Number.POSITIVE_INFINITY,
         };
+        documentData.documentStyle.documentFlavor = DocumentFlavor.UNSPECIFIED;
+        documentData.documentStyle.paragraphLineGapDefault = 0;
 
         documentData.documentStyle.renderConfig = {
             ...documentData.documentStyle.renderConfig,

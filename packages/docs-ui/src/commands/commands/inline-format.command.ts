@@ -253,7 +253,10 @@ export const SetInlineFormatCommand: ICommand<ISetInlineFormatCommandParams> = {
         const univerInstanceService = accessor.get(IUniverInstanceService);
         const docMenuStyleService = accessor.get(DocMenuStyleService);
 
-        const docRanges = docSelectionManagerService.getDocRanges();
+        const textRanges = docSelectionManagerService.getTextRanges() ?? [];
+        const docRanges = textRanges.length > 0
+            ? textRanges.filter((range) => range.startOffset != null && range.endOffset != null)
+            : docSelectionManagerService.getDocRanges();
         const activeRange = docRanges.find((r) => r.isActive) ?? docRanges[0];
 
         if (docRanges.length === 0) {
@@ -262,7 +265,7 @@ export const SetInlineFormatCommand: ICommand<ISetInlineFormatCommandParams> = {
 
         const { segmentId } = docRanges[0];
 
-        const docDataModel = univerInstanceService.getCurrentUnitForType<DocumentDataModel>(UniverInstanceType.UNIVER_DOC);
+        const docDataModel = univerInstanceService.getCurrentUnitOfType<DocumentDataModel>(UniverInstanceType.UNIVER_DOC);
         if (docDataModel == null) {
             return false;
         }
@@ -359,7 +362,7 @@ export const SetInlineFormatCommand: ICommand<ISetInlineFormatCommandParams> = {
 
                 docMenuStyleService.setStyleCache(
                     {
-                        [key]: cacheStyle?.[key] !== undefined
+                        [key]: cacheStyle?.[key] !== undefined && isNeedReverseValue(key)
                             ? getReverseFormatValue(
                                 cacheStyle,
                                 key,
@@ -417,6 +420,10 @@ export const SetInlineFormatCommand: ICommand<ISetInlineFormatCommandParams> = {
 
 function isTextDecoration(value: unknown | ITextDecoration): value is ITextDecoration {
     return value !== null && typeof value === 'object';
+}
+
+function isNeedReverseValue(key: keyof IStyleBase): boolean {
+    return !(/fs|ff|cl|bg/.test(key));
 }
 
 function getReverseFormatValue(ts: Nullable<ITextStyle>, key: keyof IStyleBase, preCommandId: string) {

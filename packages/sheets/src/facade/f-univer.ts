@@ -67,8 +67,6 @@ import {
     SheetsFreezeSyncController,
     ToggleGridlinesCommand,
 } from '@univerjs/sheets';
-import { FDefinedNameBuilder } from './f-defined-name';
-import { FPermission } from './f-permission';
 import { FWorkbook } from './f-workbook';
 
 /**
@@ -134,31 +132,9 @@ export interface IFUniverSheetsMixin {
     getWorkbook(id: string): FWorkbook | null;
 
     /**
-     * Get the PermissionInstance.
-     * @deprecated This function is deprecated and will be removed in version 0.6.0. Please use the function with the same name on the `FWorkbook` instance instead.
-     */
-    getPermission(): FPermission;
-
-    /**
      * @deprecated Use `univerAPI.addEvent(univerAPI.Event.UnitCreated, () => {})`
      */
     onUniverSheetCreated(callback: (workbook: FWorkbook) => void): IDisposable;
-
-    /**
-     * Create a new defined name builder.
-     * @returns {FDefinedNameBuilder} - The defined name builder.
-     * @example
-     * ```ts
-     * const fWorkbook = univerAPI.getActiveWorkbook();
-     * const definedNameBuilder = univerAPI.newDefinedName()
-     *   .setRef('Sheet1!$A$1')
-     *   .setName('MyDefinedName')
-     *   .setComment('This is a comment');
-     * console.log(definedNameBuilder);
-     * fWorkbook.insertDefinedNameBuilder(definedNameBuilder.build());
-     * ```
-     */
-    newDefinedName(): FDefinedNameBuilder;
 
     /**
      * Get the target of the sheet.
@@ -274,7 +250,8 @@ export class FUniverSheetsMixin extends FUniver implements IFUniverSheetsMixin {
         this.disposeWithMe(
             this.registerEventHandler(
                 this.Event.WorkbookCreated,
-                () => univerInstanceService.unitAdded$.subscribe((unit) => {
+                () => univerInstanceService.unitAdded$.subscribe((event) => {
+                    const { unit } = event;
                     if (unit.type === UniverInstanceType.UNIVER_SHEET) {
                         const workbook = unit as Workbook;
                         const workbookUnit = injector.createInstance(FWorkbook, workbook);
@@ -709,7 +686,7 @@ export class FUniverSheetsMixin extends FUniver implements IFUniverSheetsMixin {
     }
 
     override getActiveWorkbook(): FWorkbook | null {
-        const workbook = this._univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET);
+        const workbook = this._univerInstanceService.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET);
         if (!workbook) {
             return null;
         }
@@ -734,21 +711,13 @@ export class FUniverSheetsMixin extends FUniver implements IFUniverSheetsMixin {
         return this.getUniverSheet(id);
     }
 
-    override getPermission(): FPermission {
-        return this._injector.createInstance(FPermission);
-    }
-
     override onUniverSheetCreated(callback: (workbook: FWorkbook) => void): IDisposable {
-        const subscription = this._univerInstanceService.getTypeOfUnitAdded$<Workbook>(UniverInstanceType.UNIVER_SHEET).subscribe((workbook) => {
-            const fworkbook = this._injector.createInstance(FWorkbook, workbook);
+        const subscription = this._univerInstanceService.getTypeOfUnitAdded$<Workbook>(UniverInstanceType.UNIVER_SHEET).subscribe((event) => {
+            const fworkbook = this._injector.createInstance(FWorkbook, event.unit);
             callback(fworkbook);
         });
 
         return toDisposable(subscription);
-    }
-
-    override newDefinedName(): FDefinedNameBuilder {
-        return this._injector.createInstance(FDefinedNameBuilder);
     }
 
     override getActiveSheet(): Nullable<{ workbook: FWorkbook; worksheet: FWorksheet }> {

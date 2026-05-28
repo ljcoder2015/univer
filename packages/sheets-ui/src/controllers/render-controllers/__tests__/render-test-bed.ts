@@ -23,6 +23,7 @@ import { SheetInterceptorService, SheetsSelectionsService } from '@univerjs/shee
 import { BehaviorSubject, Subject } from 'rxjs';
 import { SHEET_VIEW_KEY } from '../../../common/keys';
 import enUS from '../../../locale/en-US';
+import { HeaderUnhideRangeService } from '../../../services/header-unhide-range.service';
 import { SheetSkeletonManagerService } from '../../../services/sheet-skeleton-manager.service';
 
 export interface ITestEvent<TEvent, TState = { stopPropagation: () => void }> {
@@ -55,6 +56,8 @@ export interface IFakeViewport {
     top: number;
     width: number;
     height: number;
+    marginLeft: number;
+    marginTop: number;
     scrollAnimationFrameId: number | null;
     isWheelPreventDefaultX: boolean;
     isWheelPreventDefaultY: boolean;
@@ -66,6 +69,8 @@ export interface IFakeViewport {
     transScroll2ViewportScrollValue(viewportScrollX: number, viewportScrollY: number): { x: number; y: number };
     enable(): void;
     disable(): void;
+    setMargin(marginLeft: number, marginTop: number): void;
+    setViewportSize(params: Partial<{ left: number; top: number; width: number; height: number }>): void;
     setPadding(padding: { startX: number; endX: number; startY: number; endY: number }): void;
     resetPadding(): void;
     resizeWhenFreezeChange(params: { left?: number; top?: number; right?: number; bottom?: number; width?: number; height?: number }): void;
@@ -89,6 +94,8 @@ export function createFakeViewport(viewportKey: string, options?: Partial<IFakeV
         top: 0,
         width: 800,
         height: 600,
+        marginLeft: 0,
+        marginTop: 0,
         scrollAnimationFrameId: null,
         isWheelPreventDefaultX: false,
         isWheelPreventDefaultY: false,
@@ -116,6 +123,16 @@ export function createFakeViewport(viewportKey: string, options?: Partial<IFakeV
         },
         disable: () => {
             viewport.isActive = false;
+        },
+        setMargin: (marginLeft, marginTop) => {
+            viewport.marginLeft = marginLeft;
+            viewport.marginTop = marginTop;
+        },
+        setViewportSize: ({ left, top, width, height }) => {
+            if (typeof left === 'number') viewport.left = left;
+            if (typeof top === 'number') viewport.top = top;
+            if (typeof width === 'number') viewport.width = width;
+            if (typeof height === 'number') viewport.height = height;
         },
         setPadding: (padding) => {
             viewport.padding = padding;
@@ -146,6 +163,8 @@ export function createFakeViewport(viewportKey: string, options?: Partial<IFakeV
 }
 
 export interface IFakeScene {
+    width?: number;
+    height?: number;
     scaleX: number;
     scaleY: number;
     onMouseWheel$: ITestEvent<any>;
@@ -154,6 +173,7 @@ export interface IFakeScene {
     enableLayerCache(...layers: number[]): void;
     makeDirty(dirty: boolean): void;
     getViewport(key: unknown): IFakeViewport | null;
+    getMainViewport(): IFakeViewport;
     getViewports(): IFakeViewport[];
     getActiveViewportByCoord(_coord: Vector2): IFakeViewport | null;
     findViewportByPosToScene(_coord: Vector2): IFakeViewport | null;
@@ -209,6 +229,7 @@ export function createFakeScene(
         enableLayerCache: () => { },
         makeDirty: () => { },
         getViewport: (key) => viewportMap.get(key) ?? null,
+        getMainViewport: () => viewportMap.get(SHEET_VIEWPORT_KEY.VIEW_MAIN)!,
         getViewports: () => Array.from(viewportMap.values()),
         getActiveViewportByCoord: () => viewportMap.get(SHEET_VIEWPORT_KEY.VIEW_MAIN) ?? null,
         findViewportByPosToScene: () => viewportMap.get(SHEET_VIEWPORT_KEY.VIEW_MAIN) ?? null,
@@ -220,7 +241,10 @@ export function createFakeScene(
         getCoordRelativeToViewport: (vec: any) => ({ x: vec?.x ?? vec?.[0] ?? 0, y: vec?.y ?? vec?.[1] ?? 0 }),
         getScrollXYInfoByViewport: (_coords, viewport) => ({ x: viewport?.viewportScrollX ?? 0, y: viewport?.viewportScrollY ?? 0 }),
         getAncestorScale: () => ({ scaleX: scene.scaleX, scaleY: scene.scaleY }),
-        transformByState: () => { },
+        transformByState: ({ width, height }) => {
+            scene.width = width;
+            scene.height = height;
+        },
         scale: (x, y) => {
             scene.scaleX = x;
             scene.scaleY = y;
@@ -413,6 +437,7 @@ export function createRenderTestBed(options?: { workbookData?: IWorkbookData; de
         override onStarting(): void {
             this._injector.add([SheetsSelectionsService]);
             this._injector.add([SheetInterceptorService]);
+            this._injector.add([HeaderUnhideRangeService]);
             options?.dependencies?.forEach((d) => this._injector.add(d));
         }
     }

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import type { Nullable, SlideDataModel } from '@univerjs/core';
+import type { Nullable } from '@univerjs/core';
 import type { BaseObject } from '@univerjs/engine-render';
+import type { SlideDataModel } from '@univerjs/slides';
 import { IUniverInstanceService, UniverInstanceType } from '@univerjs/core';
 import { ObjectType } from '@univerjs/engine-render';
 import { useDependency } from '@univerjs/ui';
@@ -30,12 +31,12 @@ export default function RectSidebar() {
     const univerInstanceService = useDependency(IUniverInstanceService);
     const canvasView = useDependency(CanvasView);
 
-    const currentSlide = univerInstanceService.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
+    const currentSlide = univerInstanceService.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
     const pageId = currentSlide?.getActivePage()?.id;
 
     // see packages/sheets-ui/src/views/permission/permission-dialog/index.tsx@SheetPermissionDialog
     // see packages/sheets-conditional-formatting-ui/src/components/panel/rule-edit/index.tsx@getUnitId
-    // const unitId = univerInstanceService.getCurrentUnitForType(UniverInstanceType.UNIVER_SLIDE)!.getUnitId();
+    // const unitId = univerInstanceService.getCurrentUnitOfType(UniverInstanceType.UNIVER_SLIDE)!.getUnitId();
     const unitId = univerInstanceService.getFocusedUnit()?.getUnitId() || '';
 
     if (!pageId || !unitId) return null;

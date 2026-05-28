@@ -95,10 +95,15 @@ function createMenuAccessor(option: Partial<IMenuAccessorOption> = {}) {
 
     const selections = option.selections ?? [{ range: { startRow: 2, endRow: 2, startColumn: 2, endColumn: 2 } }];
     const selectionMoveEnd$ = new BehaviorSubject(selections);
+    const selectionChanged$ = new BehaviorSubject(selections);
     const selectionService = {
         selectionMoveEnd$,
+        selectionChanged$,
         getCurrentSelections: () => selections,
         getCurrentLastSelection: () => selections[0] ?? null,
+        getWorkbookSelections: () => ({
+            getSelectionsOfWorksheet: () => selections,
+        }),
     };
 
     const subUnitRules = option.subUnitRules ?? [];
@@ -144,7 +149,7 @@ function createMenuAccessor(option: Partial<IMenuAccessorOption> = {}) {
     };
 
     const pairs: Array<[unknown, unknown]> = [
-        [IUniverInstanceService, { getCurrentTypeOfUnit$: () => of(workbook), getCurrentUnitForType: () => workbook }],
+        [IUniverInstanceService, { getCurrentTypeOfUnit$: () => of(workbook), getCurrentUnitOfType: () => workbook }],
         [SheetsSelectionsService, selectionService],
         [RangeProtectionRuleModel, rangeProtectionRuleModel],
         [WorksheetProtectionRuleModel, worksheetProtectionRuleModel],

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { IDisposable, Nullable, SlideDataModel, UnitModel } from '@univerjs/core';
+import type { IDisposable, Nullable, UnitModel } from '@univerjs/core';
 import type { BaseObject, IRenderContext, IRenderModule, RichText, Scene, Slide } from '@univerjs/engine-render';
-
+import type { SlideDataModel } from '@univerjs/slides';
 import type { ISetEditorInfo } from '../services/slide-editor-bridge.service';
 import type { ISlideRichTextProps } from '../type';
 import { DisposableCollection, ICommandService, IUniverInstanceService, RxDisposable, UniverInstanceType } from '@univerjs/core';
@@ -136,7 +136,7 @@ export class SlideEditorBridgeRenderController extends RxDisposable implements I
             }));
         };
 
-        // const model = this._instanceSrv.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
+        // const model = this._instanceSrv.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
         // const pagesMap = model?.getPages() ?? {};
         // const pages = Object.values(pagesMap);
 
@@ -172,7 +172,7 @@ export class SlideEditorBridgeRenderController extends RxDisposable implements I
         this.setEditorVisible(false);
         const curRichText = this._curRichText;
 
-        const slideData = this._instanceSrv.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
+        const slideData = this._instanceSrv.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
         if (!slideData) return false;
         curRichText.refreshDocumentByDocData();
         curRichText.resizeToContentSize();

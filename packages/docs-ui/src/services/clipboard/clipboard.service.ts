@@ -53,16 +53,24 @@ import {
 } from '@univerjs/ui';
 import { CutContentCommand, InnerPasteCommand } from '../../commands/commands/clipboard.inner.command';
 import { getCursorWhenDelete } from '../../commands/commands/doc-delete.command';
-import { copyContentCache, extractId, genId } from './copy-content-cache';
+import { copyContentCache, extractId } from './copy-content-cache';
 import { HtmlToUDMService } from './html-to-udm/converter';
-import PastePluginLark from './html-to-udm/paste-plugins/plugin-lark';
-import PastePluginUniver from './html-to-udm/paste-plugins/plugin-univer';
-import PastePluginWord from './html-to-udm/paste-plugins/plugin-word';
+import LarkPastePlugin from './html-to-udm/paste-plugins/plugin-lark';
+import UniverPastePlugin from './html-to-udm/paste-plugins/plugin-univer';
+import WordPastePlugin from './html-to-udm/paste-plugins/plugin-word';
+import {
+    createInternalClipboardFragment,
+    DOC_INTERNAL_FRAGMENT_MIME,
+    embedInternalClipboardFragment,
+    extractInternalClipboardFragmentFromHtml,
+    parseInternalClipboardFragment,
+    wrapClipboardHtml,
+} from './internal-fragment';
 import { UDMToHtmlService } from './udm-to-html/convertor';
 
-HtmlToUDMService.use(PastePluginWord);
-HtmlToUDMService.use(PastePluginLark);
-HtmlToUDMService.use(PastePluginUniver);
+HtmlToUDMService.use(LarkPastePlugin);
+HtmlToUDMService.use(UniverPastePlugin);
+HtmlToUDMService.use(WordPastePlugin);
 
 export interface IClipboardPropertyItem { }
 
@@ -77,7 +85,7 @@ export interface IDocClipboardService {
     copy(sliceType?: SliceBodyType, ranges?: ITextRangeWithStyle[]): Promise<boolean>;
     cut(ranges?: ITextRangeWithStyle[]): Promise<boolean>;
     paste(items: ClipboardItem[]): Promise<boolean>;
-    legacyPaste(options: { html?: string; text?: string; files: File[] }): Promise<boolean>;
+    legacyPaste(options: { html?: string; text?: string; internalJson?: string; files: File[] }): Promise<boolean>;
     addClipboardHook(hook: IDocClipboardHook): IDisposable;
 }
 
@@ -162,11 +170,12 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
 
     async legacyPaste(options: {
         html?: string;
+        internalJson?: string;
         text?: string;
         files: File[];
     }): Promise<boolean> {
-        let { html, text, files } = options;
-        const currentDocInstance = this._univerInstanceService.getCurrentUnitForType(UniverInstanceType.UNIVER_DOC);
+        let { html, internalJson, text, files } = options;
+        const currentDocInstance = this._univerInstanceService.getCurrentUnitOfType(UniverInstanceType.UNIVER_DOC);
         const docUnitId = currentDocInstance?.getUnitId() || '';
         if (!html && !text && files.length) {
             html = await this._createImagePasteHtml(files);
@@ -175,7 +184,7 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
             this._logService.warn('[DocClipboardController] html and text cannot be both empty!');
             return false;
         }
-        const partDocData = this._genDocDataFromHtmlAndText(html, text, docUnitId);
+        const partDocData = this._genDocDataFromHtmlAndText(html, text, docUnitId, internalJson);
         // Paste in sheet editing mode without paste style, so we give textRuns empty array;
         if (docUnitId === DOCS_NORMAL_EDITOR_UNIT_ID_KEY) {
             if (text) {
@@ -257,7 +266,7 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
 
         let body = normalizeBody(_body);
 
-        const unitId = this._univerInstanceService.getCurrentUnitForType(UniverInstanceType.UNIVER_DOC)?.getUnitId();
+        const unitId = this._univerInstanceService.getCurrentUnitOfType(UniverInstanceType.UNIVER_DOC)?.getUnitId();
         if (!unitId) {
             return false;
         }
@@ -327,7 +336,7 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
     }
 
     private async _setClipboardData(documentList: IDocumentData[], needCache = true): Promise<void> {
-        const copyId = genId();
+        const copyId = generateRandomId(6);
         const text =
             (documentList.length > 1
                 ? documentList.map((doc) => doc.body?.dataStream || '').join('\n')
@@ -342,6 +351,8 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
                 .replaceAll('\r\n', ' ');
 
         let html = this._umdToHtml.convert(documentList);
+        let internalJson = '';
+        let internalDocData: Partial<IDocumentData> | null = null;
 
         // Only cache copy content when the range is 1.
         if (documentList.length === 1 && needCache) {
@@ -370,9 +381,19 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
             }
 
             copyContentCache.set(copyId, cache);
+            internalDocData = cache;
+        } else if (documentList.length === 1) {
+            internalDocData = { body: documentList[0].body };
         }
 
-        return this._clipboardInterfaceService.write(text, html);
+        if (internalDocData) {
+            internalJson = createInternalClipboardFragment(internalDocData);
+            html = embedInternalClipboardFragment(html, internalJson);
+        }
+
+        html = wrapClipboardHtml(html);
+
+        return this._clipboardInterfaceService.write(text, html, internalJson ? { [DOC_INTERNAL_FRAGMENT_MIME]: internalJson } : undefined);
     }
 
     addClipboardHook(hook: IDocClipboardHook): IDisposable {
@@ -453,10 +474,15 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
         try {
             let html = '';
             let text = '';
+            let internalJson = '';
             const files: File[] = [];
             for (const clipboardItem of items) {
                 for (const type of clipboardItem.types) {
                     switch (type) {
+                        case DOC_INTERNAL_FRAGMENT_MIME: {
+                            internalJson = await clipboardItem.getType(type).then((blob) => blob && blob.text());
+                            break;
+                        }
                         case PLAIN_TEXT_CLIPBOARD_MIME_TYPE: {
                             text = await clipboardItem.getType(type).then((blob) => blob && blob.text());
                             break;
@@ -481,13 +507,18 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
                 html = await this._createImagePasteHtml(files);
             }
 
-            return this._genDocDataFromHtmlAndText(html, text);
+            return this._genDocDataFromHtmlAndText(html, text, undefined, internalJson);
         } catch (e) {
             return Promise.reject(e);
         }
     }
 
-    private _genDocDataFromHtmlAndText(html?: string, text?: string, _unitId?: string): Partial<IDocumentData> {
+    private _genDocDataFromHtmlAndText(html?: string, text?: string, _unitId?: string, internalJson?: string): Partial<IDocumentData> {
+        const internalDocData = parseInternalClipboardFragment(internalJson) ?? extractInternalClipboardFragmentFromHtml(html);
+        if (internalDocData?.body) {
+            return internalDocData;
+        }
+
         if (!html) {
             if (text) {
                 const body = BuildTextUtils.transform.fromPlainText(text);
@@ -507,7 +538,7 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
         }
 
         if (!_unitId) {
-            const currentDocInstance = this._univerInstanceService.getCurrentUnitForType(UniverInstanceType.UNIVER_DOC);
+            const currentDocInstance = this._univerInstanceService.getCurrentUnitOfType(UniverInstanceType.UNIVER_DOC);
             const docUnitId = currentDocInstance?.getUnitId() || '';
             _unitId = docUnitId;
         }
@@ -554,8 +585,8 @@ export class DocClipboardService extends Disposable implements IDocClipboardServ
                 };
             });
         };
-        // clipboardHooks 应该被重新设计,用来处理多个 hook 处理同一个节点的能力
-        // 参考 interceptor
+        // clipboardHooks should be redesigned to handle the ability of multiple hooks processing the same node
+        // Refer to interceptor
         const onBeforePasteImage = this._clipboardHooks.find((e) => e.onBeforePasteImage)?.onBeforePasteImage ?? fileToBase64;
 
         await Promise.all(files.map(async (file, index) => {

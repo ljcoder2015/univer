@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import type { ICommand, SlideDataModel } from '@univerjs/core';
+import type { ICommand } from '@univerjs/core';
+import type { SlideDataModel } from '@univerjs/slides';
 import { CommandType, IUniverInstanceService, merge } from '@univerjs/core';
 
 export interface IUpdateElementOperationParams {
@@ -29,7 +30,7 @@ export const UpdateSlideElementOperation: ICommand<IUpdateElementOperationParams
     handler: (accessor, params: IUpdateElementOperationParams) => {
         const { oKey, props } = params!;
         const univerInstanceService = accessor.get(IUniverInstanceService);
-        // const slideData = univerInstanceService.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
+        // const slideData = univerInstanceService.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE);
 
         const unitId = params?.unitId;
         const slideData = univerInstanceService.getUnit<SlideDataModel>(unitId);

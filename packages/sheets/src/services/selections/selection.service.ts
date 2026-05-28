@@ -19,7 +19,7 @@ import type { Observable } from 'rxjs';
 import type { ISelectionWithStyle } from '../../basics/selection';
 import type { ISelectionManagerSearchParam } from './type';
 import { IUniverInstanceService, RxDisposable, Tools, UniverInstanceType } from '@univerjs/core';
-import { distinctUntilChanged, of, shareReplay, skip, switchMap, takeUntil } from 'rxjs';
+import { distinctUntilChanged, of, share, shareReplay, skip, switchMap, takeUntil } from 'rxjs';
 import { WorkbookSelectionModel } from './selection-data-model';
 import { SelectionMoveType } from './type';
 
@@ -29,7 +29,7 @@ import { SelectionMoveType } from './type';
  */
 export class SheetsSelectionsService extends RxDisposable {
     private get _currentSelectionPos(): Nullable<ISelectionManagerSearchParam> {
-        const workbook = this._instanceSrv.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET);
+        const workbook = this._instanceSrv.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET);
         if (!workbook) return null;
 
         const worksheet = workbook.getActiveSheet();
@@ -80,11 +80,24 @@ export class SheetsSelectionsService extends RxDisposable {
     protected _init(): void {
         const c$ = this._instanceSrv.getCurrentTypeOfUnit$(UniverInstanceType.UNIVER_SHEET).pipe(shareReplay(1), takeUntil(this.dispose$));
         // When workbook changed, unsubscribe the previous workbook selection$ and subscribe the new workbook selection$.
-        this.selectionMoveStart$ = c$.pipe().pipe(switchMap((workbook) => !workbook ? of() : this._ensureWorkbookSelection(workbook.getUnitId()).selectionMoveStart$)).pipe(takeUntil(this.dispose$));
-        this.selectionMoving$ = c$.pipe(switchMap((workbook) => !workbook ? of() : this._ensureWorkbookSelection(workbook.getUnitId()).selectionMoving$)).pipe(takeUntil(this.dispose$));
-        this.selectionMoveEnd$ = c$.pipe(switchMap((workbook) => !workbook ? of([]) : this._ensureWorkbookSelection(workbook.getUnitId()).selectionMoveEnd$)).pipe(takeUntil(this.dispose$));
-        this.selectionSet$ = c$.pipe(switchMap((workbook) => !workbook ? of([]) : this._ensureWorkbookSelection(workbook.getUnitId()).selectionSet$)).pipe(takeUntil(this.dispose$));
-        this.selectionChanged$ = c$.pipe(switchMap((workbook) => !workbook ? of([]) : this._ensureWorkbookSelection(workbook.getUnitId()).selectionChanged$)).pipe(
+        this.selectionMoveStart$ = c$.pipe(
+            switchMap((workbook) => !workbook ? of() : this._ensureWorkbookSelection(workbook.getUnitId()).selectionMoveStart$),
+            takeUntil(this.dispose$)
+        );
+        this.selectionMoving$ = c$.pipe(
+            switchMap((workbook) => !workbook ? of() : this._ensureWorkbookSelection(workbook.getUnitId()).selectionMoving$),
+            takeUntil(this.dispose$)
+        );
+        this.selectionMoveEnd$ = c$.pipe(
+            switchMap((workbook) => !workbook ? of([]) : this._ensureWorkbookSelection(workbook.getUnitId()).selectionMoveEnd$),
+            takeUntil(this.dispose$)
+        );
+        this.selectionSet$ = c$.pipe(
+            switchMap((workbook) => !workbook ? of([]) : this._ensureWorkbookSelection(workbook.getUnitId()).selectionSet$),
+            takeUntil(this.dispose$)
+        );
+        this.selectionChanged$ = c$.pipe(
+            switchMap((workbook) => !workbook ? of([]) : this._ensureWorkbookSelection(workbook.getUnitId()).selectionChanged$),
             distinctUntilChanged((prev, curr) => {
                 if (prev.length !== curr.length) return false;
                 if (prev.length === 0 && curr.length === 0) return true;
@@ -92,8 +105,10 @@ export class SheetsSelectionsService extends RxDisposable {
                     return JSON.stringify(item) === JSON.stringify(curr[index]);
                 });
             }),
-            skip(1)
-        ).pipe(takeUntil(this.dispose$));
+            skip(1),
+            takeUntil(this.dispose$),
+            share()
+        );
 
         this.disposeWithMe(
             this._instanceSrv.getTypeOfUnitDisposed$(UniverInstanceType.UNIVER_SHEET).pipe(takeUntil(this.dispose$)).subscribe((workbook) => {
@@ -280,7 +295,7 @@ export class SheetsSelectionsService extends RxDisposable {
         isAllValuesSame: boolean;
         value: Nullable<IStyleData[keyof IStyleData]>;
     } {
-        const worksheet = this._instanceSrv.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)?.getActiveSheet();
+        const worksheet = this._instanceSrv.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET)?.getActiveSheet();
         const selections = this.getCurrentSelections();
         if (!worksheet || selections.length === 0) {
             return {

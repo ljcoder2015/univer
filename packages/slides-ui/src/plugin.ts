@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-import type { Dependency, SlideDataModel } from '@univerjs/core';
+import type { Dependency } from '@univerjs/core';
+import type { SlideDataModel } from '@univerjs/slides';
 import type { IUniverSlidesUIConfig } from './config/config';
-import { IConfigService, Inject, Injector, IUniverInstanceService, merge, mergeOverrideWithDependencies, Plugin, UniverInstanceType } from '@univerjs/core';
+import {
+    IConfigService,
+    Inject,
+    Injector,
+    IUniverInstanceService,
+    merge,
+    mergeOverrideWithDependencies,
+    Plugin,
+    UniverInstanceType,
+} from '@univerjs/core';
 import { IRenderManagerService } from '@univerjs/engine-render';
 import pkg from '../package.json';
 import { defaultPluginConfig, SLIDES_UI_PLUGIN_CONFIG_KEY } from './config/config';
@@ -121,7 +131,7 @@ export class UniverSlidesUIPlugin extends Plugin {
     private _markSlideAsFocused() {
         const currentService = this._univerInstanceService;
         try {
-            const slideDataModel = currentService.getCurrentUnitForType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE)!;
+            const slideDataModel = currentService.getCurrentUnitOfType<SlideDataModel>(UniverInstanceType.UNIVER_SLIDE)!;
             currentService.focusUnit(slideDataModel.getUnitId());
         } catch (e) {
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Dependency, DependencyIdentifier, IDisposable, Nullable, UnitModel, UnitType, UniverInstanceType } from '@univerjs/core';
+import type { Dependency, DependencyIdentifier, ICreateUnitOptions, IDisposable, Nullable, UnitModel, UniverInstanceType } from '@univerjs/core';
 import type { Observable } from 'rxjs';
 import type { Engine } from '../engine';
 import type { Scene } from '../scene';
@@ -68,7 +68,7 @@ export interface IRenderModule extends IDisposable { }
  */
 export interface IRenderContext<T extends UnitModel = UnitModel> extends Omit<IRender, 'with'> {
     unit: T;
-    type: UnitType;
+    type: UniverInstanceType;
 }
 
 /**
@@ -82,7 +82,7 @@ export class RenderUnit extends Disposable implements IRender {
     readonly activated$ = this._activated$.pipe(distinctUntilChanged());
 
     get unitId(): string { return this._renderContext.unitId; }
-    get type(): UnitType { return this._renderContext.type; }
+    get type(): UniverInstanceType { return this._renderContext.type; }
 
     private readonly _injector: Injector;
 
@@ -99,7 +99,7 @@ export class RenderUnit extends Disposable implements IRender {
     get components(): Map<string, RenderComponentType> { return this._renderContext.components; }
 
     constructor(
-        init: Pick<IRenderContext, 'engine' | 'scene' | 'isMainScene' | 'unit'>,
+        init: Pick<IRenderContext, 'engine' | 'scene' | 'isMainScene' | 'unit'> & { createUnitOptions?: ICreateUnitOptions },
         @Inject(Injector) parentInjector: Injector
     ) {
         super();
@@ -119,6 +119,10 @@ export class RenderUnit extends Disposable implements IRender {
             activate: () => this._activated$.next(true),
             deactivate: () => this._activated$.next(false),
         };
+
+        if (init.createUnitOptions?.makeCurrent === false) {
+            this.deactivate();
+        }
     }
 
     override dispose(): void {

@@ -143,6 +143,7 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                                                   univer-items-center univer-justify-center univer-rounded-sm
                                                   univer-text-base
                                                   hover:univer-bg-gray-50
+                                                  dark:hover:!univer-bg-gray-800
                                                 `}
                                                 onClick={() => onReply(user)}
                                             >
@@ -170,7 +171,7 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                                                             className="hover:univer-bg-gray-200"
                                                             onClick={() => onEditingChange?.(true)}
                                                         >
-                                                            {localeService.t('threadCommentUI.item.edit')}
+                                                            {localeService.t('thread-comment-ui.item.edit')}
                                                         </a>
                                                     </li>
                                                     <li>
@@ -178,7 +179,7 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                                                             className="hover:univer-bg-gray-200"
                                                             onClick={handleDeleteItem}
                                                         >
-                                                            {localeService.t('threadCommentUI.item.delete')}
+                                                            {localeService.t('thread-comment-ui.item.delete')}
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -191,6 +192,7 @@ const ThreadCommentItem = (props: IThreadCommentItemProps) => {
                                               univer-items-center univer-justify-center univer-rounded-sm
                                               univer-text-base
                                               hover:univer-bg-gray-50
+                                              dark:hover:!univer-bg-gray-800
                                             `}
                                         >
                                             <MoreHorizontalIcon />

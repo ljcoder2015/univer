@@ -93,7 +93,7 @@ import {
 } from '../../commands/commands/clipboard.command';
 import { SetScrollOperation } from '../../commands/operations/scroll.operation';
 import { SHEETS_UI_PLUGIN_CONFIG_KEY } from '../../config/config';
-import { ISheetClipboardService, PREDEFINED_HOOK_NAME_COPY, PREDEFINED_HOOK_NAME_PASTE } from '../../services/clipboard/clipboard.service';
+import { escapeSpecialCode, ISheetClipboardService, PREDEFINED_HOOK_NAME_COPY, PREDEFINED_HOOK_NAME_PASTE } from '../../services/clipboard/clipboard.service';
 import { SheetSkeletonManagerService } from '../../services/sheet-skeleton-manager.service';
 import { ClipboardPopupMenu } from '../../views/clipboard/ClipboardPopupMenu';
 import { whenSheetEditorFocused } from '../shortcuts/utils';
@@ -243,11 +243,22 @@ export class SheetClipboardController extends RxDisposable {
             },
             onCopyCellContent(row: number, col: number): string {
                 const cell = currentSheet!.getCell(row, col);
+
                 if (cell?.p?.body?.paragraphs || cell?.p?.body?.textRuns) {
                     return convertBodyToHtml(cell.p);
                 }
-                const content = cell ? extractPureTextFromCell(cell) : '';
-                return content;
+
+                const content = extractPureTextFromCell(cell);
+
+                if (content.trim() === '') {
+                    return content;
+                }
+
+                /**
+                 * Used for generating the copied HTML, so we need to escape special code to avoid breaking the HTML structure.
+                 * For example, if the cell value contains <, > or &, it would break the HTML structure and cause the copied content to be incorrect.
+                 */
+                return escapeSpecialCode(content);
             },
             onCopyCellStyle: (row: number, col: number, rowSpan?: number, colSpan?: number) => {
                 const properties: IClipboardPropertyItem = {};
@@ -340,7 +351,7 @@ export class SheetClipboardController extends RxDisposable {
                 if (maxConfig && endRow * endColumn > maxConfig) {
                     self._messageService.show({
                         type: MessageType.Error,
-                        content: self._localService.t('clipboard.paste.exceedMaxCells'),
+                        content: self._localService.t('sheets-ui.clipboard.paste.exceedMaxCells'),
                     }); // TODO: show error info
                     return false;
                 }
@@ -729,7 +740,7 @@ export class SheetClipboardController extends RxDisposable {
                 label: 'specialPaste.besidesBorder',
             },
             onPasteCells: (pasteFrom, pasteTo, matrix, payload) => {
-                const workbook = self._instanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
+                const workbook = self._instanceService.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
                 const redoMutationsInfo: IMutationInfo[] = [];
                 const undoMutationsInfo: IMutationInfo[] = [];
                 const { range, unitId, subUnitId } = pasteTo;

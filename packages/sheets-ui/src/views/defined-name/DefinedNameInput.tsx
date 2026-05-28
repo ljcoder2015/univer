@@ -18,12 +18,11 @@ import type { Nullable, Workbook } from '@univerjs/core';
 import type { IDefinedNamesServiceParam } from '@univerjs/engine-formula';
 import type { ComponentType } from 'react';
 import type { IRangeSelectorProps } from '../../basics/editor/range';
-import { AbsoluteRefType, IUniverInstanceService, LocaleService, Tools, UniverInstanceType } from '@univerjs/core';
+import { AbsoluteRefType, IUniverInstanceService, LocaleService, UniverInstanceType } from '@univerjs/core';
 import { borderBottomClassName, borderClassName, Button, clsx, Input, Radio, RadioGroup, Select } from '@univerjs/design';
-import { IDefinedNamesService, IFunctionService, isReferenceStrings, isReferenceStringWithEffectiveColumn, ISuperTableService, LexerTreeBuilder, operatorToken } from '@univerjs/engine-formula';
-import { hasCJKText } from '@univerjs/engine-render';
+import { IDefinedNamesService, IFunctionService, isReferenceStrings, ISuperTableService, LexerTreeBuilder, operatorToken } from '@univerjs/engine-formula';
 import { ErrorIcon } from '@univerjs/icons';
-import { SCOPE_WORKBOOK_VALUE_DEFINED_NAME } from '@univerjs/sheets';
+import { SCOPE_WORKBOOK_VALUE_DEFINED_NAME, validateDefinedName } from '@univerjs/sheets';
 import { ComponentManager, useDependency, useSidebarClick } from '@univerjs/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMBEDDING_FORMULA_EDITOR_COMPONENT_KEY, RANGE_SELECTOR_COMPONENT_KEY } from '../../common/keys';
@@ -48,11 +47,11 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
         formulaOrRefString,
         comment = '',
         localSheetId = SCOPE_WORKBOOK_VALUE_DEFINED_NAME,
-        hidden = false, // 是否对用户隐藏，与excel兼容，暂时用不上。
+        hidden = false, // Whether to hide from users, compatible with Excel, not used for now.
         id,
     } = props;
     const univerInstanceService = useDependency(IUniverInstanceService);
-    const workbook = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
+    const workbook = univerInstanceService.getCurrentUnitOfType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
     const localeService = useDependency(LocaleService);
     const definedNamesService = useDependency(IDefinedNamesService);
     const superTableService = useDependency(ISuperTableService);
@@ -85,7 +84,7 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
     const [validFormulaOrRange, setValidFormulaOrRange] = useState(true);
 
     const options = [{
-        label: localeService.t('definedName.scopeWorkbook'),
+        label: localeService.t('sheets-ui.definedName.scopeWorkbook'),
         value: SCOPE_WORKBOOK_VALUE_DEFINED_NAME,
     }];
 
@@ -130,46 +129,23 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
     };
 
     const confirmChange = () => {
-        if (nameValue.length === 0) {
-            setValidString(localeService.t('definedName.nameEmpty'));
-            return;
-        }
-
-        // The defined name can't be duplicate with existing defined names and table names.
-        if (
-            (definedNamesService.getValueByName(unitId, nameValue) || superTableService.hasTable(unitId, nameValue)) &&
-            (id === null || id === undefined || id.length === 0)
-        ) {
-            setValidString(localeService.t('definedName.nameDuplicate'));
-            return;
-        }
-
-        if (!Tools.isValidParameter(nameValue) || isReferenceStringWithEffectiveColumn(nameValue) || (!Tools.isStartValidPosition(nameValue) && !hasCJKText(nameValue.substring(0, 1)))) {
-            setValidString(localeService.t('definedName.nameInvalid'));
-            return;
-        }
-
-        const sheetNames = workbook.getSheetOrders().map((sheetId) => {
-            return workbook.getSheetBySheetId(sheetId)?.getName() || '';
+        const validationResult = validateDefinedName(nameValue, {
+            unitId,
+            formulaOrRefString: formulaOrRefStringValue,
+            univerInstanceService,
+            definedNamesService,
+            superTableService,
+            functionService,
+            id,
         });
 
-        if (sheetNames.includes(nameValue)) {
-            setValidString(localeService.t('definedName.nameSheetConflict'));
-            return;
-        }
-
-        if (formulaOrRefStringValue.length === 0) {
-            setValidString(localeService.t('definedName.formulaOrRefStringEmpty'));
+        if (typeof validationResult === 'string') {
+            setValidString(localeService.t(validationResult));
             return;
         }
 
         if (!validFormulaOrRange) {
-            setValidString(localeService.t('definedName.formulaOrRefStringInvalid'));
-            return;
-        }
-
-        if (functionService.hasExecutor(nameValue.toUpperCase())) {
-            setValidString(localeService.t('definedName.nameConflict'));
+            setValidString(localeService.t('sheets-ui.definedName.formulaOrRefStringInvalid'));
             return;
         }
 
@@ -218,7 +194,7 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
             <div>
                 <Input
                     className="univer-w-full"
-                    placeholder={localeService.t('definedName.inputNamePlaceholder')}
+                    placeholder={localeService.t('sheets-ui.definedName.inputNamePlaceholder')}
                     value={nameValue}
                     allowClear
                     onChange={setNameValue}
@@ -226,8 +202,8 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
             </div>
             <div>
                 <RadioGroup value={typeValue} onChange={typeValueChange}>
-                    <Radio value="range">{localeService.t('definedName.ratioRange')}</Radio>
-                    <Radio value="formula">{localeService.t('definedName.ratioFormula')}</Radio>
+                    <Radio value="range">{localeService.t('sheets-ui.definedName.ratioRange')}</Radio>
+                    <Radio value="formula">{localeService.t('sheets-ui.definedName.ratioFormula')}</Radio>
                 </RadioGroup>
             </div>
             {typeValue === 'range'
@@ -283,7 +259,7 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
             <div>
                 <Input
                     className="univer-w-full"
-                    placeholder={localeService.t('definedName.inputCommentPlaceholder')}
+                    placeholder={localeService.t('sheets-ui.definedName.inputCommentPlaceholder')}
                     value={commentValue}
                     onChange={setCommentValue}
                     allowClear
@@ -307,13 +283,13 @@ export const DefinedNameInput = (props: IDefinedNameInputProps) => {
                         cancel?.();
                     }}
                 >
-                    {localeService.t('definedName.cancel')}
+                    {localeService.t('sheets-ui.definedName.cancel')}
                 </Button>
                 <Button
                     variant="primary"
                     onClick={confirmChange}
                 >
-                    {localeService.t('definedName.confirm')}
+                    {localeService.t('sheets-ui.definedName.confirm')}
                 </Button>
             </div>
         </div>

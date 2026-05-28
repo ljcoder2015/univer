@@ -17,11 +17,12 @@
 import type { IFormulaInputProps } from '@univerjs/data-validation';
 import type { ListValidator } from '@univerjs/sheets-data-validation';
 import type { IFormulaEditorRef } from '@univerjs/sheets-formula-ui';
-import { DataValidationType, generateRandomId, isFormulaString, LocaleService } from '@univerjs/core';
+import { awaitTime, DataValidationType, generateRandomId, isFormulaString, LocaleService } from '@univerjs/core';
 import { DataValidationModel, DataValidatorRegistryService } from '@univerjs/data-validation';
 import { borderClassName, clsx, DraggableList, Dropdown, FormLayout, Input, Radio, RadioGroup } from '@univerjs/design';
 import { DeleteIcon, IncreaseIcon, MoreDownIcon, SequenceIcon } from '@univerjs/icons';
-import { DataValidationFormulaController, deserializeListOptions, serializeListOptions } from '@univerjs/sheets-data-validation';
+import { deserializeListOptions, serializeListOptions } from '@univerjs/sheets';
+import { DataValidationFormulaController } from '@univerjs/sheets-data-validation';
 import { FormulaEditor } from '@univerjs/sheets-formula-ui';
 import { useDependency, useEvent, useObservable, useSidebarClick } from '@univerjs/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -185,9 +186,7 @@ export function ListFormulaInput(props: IFormulaInputProps) {
 
     useEffect(() => {
         (async () => {
-            await new Promise<any>((resolve) => {
-                setTimeout(() => resolve(true), 100);
-            });
+            await awaitTime(100);
 
             const rule = dataValidationModel.getRuleById(unitId, subUnitId, ruleId);
             const formula1 = rule?.formula1;
@@ -318,7 +317,7 @@ export function ListFormulaInput(props: IFormulaInputProps) {
                 formula2,
             });
             setFormulaStr('=');
-            setLocalError(localeService.t('dataValidation.validFail.formulaError'));
+            setLocalError(localeService.t('sheets-data-validation-ui.validFail.formulaError'));
         }
     });
 
@@ -340,7 +339,7 @@ export function ListFormulaInput(props: IFormulaInputProps) {
 
     return (
         <>
-            <FormLayout label={localeService.t('dataValidation.list.options')}>
+            <FormLayout label={localeService.t('sheets-data-validation-ui.list.options')}>
                 <RadioGroup
                     value={isFormulaStr}
                     onChange={(v) => {
@@ -354,8 +353,8 @@ export function ListFormulaInput(props: IFormulaInputProps) {
                         }
                     }}
                 >
-                    <Radio value="0">{localeService.t('dataValidation.list.customOptions')}</Radio>
-                    <Radio value="1">{localeService.t('dataValidation.list.refOptions')}</Radio>
+                    <Radio value="0">{localeService.t('sheets-data-validation-ui.list.customOptions')}</Radio>
+                    <Radio value="1">{localeService.t('sheets-data-validation-ui.list.refOptions')}</Radio>
                 </RadioGroup>
             </FormLayout>
             {isFormulaStr === '1'
@@ -430,7 +429,7 @@ export function ListFormulaInput(props: IFormulaInputProps) {
                                 onClick={handleAdd}
                             >
                                 <IncreaseIcon className="univer-mr-1" />
-                                {localeService.t('dataValidation.list.add')}
+                                {localeService.t('sheets-data-validation-ui.list.add')}
                             </a>
                         </div>
                     </FormLayout>

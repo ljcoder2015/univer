@@ -21,6 +21,8 @@ export interface IBuildOptions {
     cleanup?: boolean;
     ignorePackages?: string[];
     nodeFirst?: boolean;
+    tsdownConfigPath?: string;
+    obfuscatorIgnorePatterns?: RegExp[];
 }
 
 export type TEntryType = 'facade' | 'index' | 'locale';
@@ -34,6 +36,7 @@ export interface IEntryConfig {
 export interface IPackageJson {
     [key: string]: unknown;
     dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
     name: string;
     peerDependencies?: Record<string, string>;
 }

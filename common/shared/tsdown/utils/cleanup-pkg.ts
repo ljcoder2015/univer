@@ -46,7 +46,7 @@ interface IDerivedDependencyGroups {
 
 const SOURCE_EXTS = new Set(['.ts', '.tsx']);
 const TEST_FILE_RE = /\.(spec|test)\.[cm]?tsx?$/;
-const IMMUTABLE_MANAGED_DEPENDENCIES = new Set(['@univerjs/icons', '@univerjs/icons-svg', '@univerjs/protocol']);
+const IMMUTABLE_MANAGED_DEPENDENCIES = new Set(['@univerjs/icons', '@univerjs/icons-svg']);
 
 function filterPackageName(packageName: string): string {
     if (packageName.startsWith('@univerjs/')) {
@@ -353,6 +353,14 @@ function deriveDependencyGroups(packageDir: string, packageJson: IPackageJson): 
         const dependencyVersion = resolveUniverDependencyVersion(name);
         if (dependencyVersion) {
             devDeps[name] = dependencyVersion;
+        }
+    }
+
+    const declaredDevDependencies: Record<string, string> = (packageJson as CleanupPackageJson).devDependencies ?? {};
+    if ('react' in declaredDevDependencies && !('react' in peerDeps)) {
+        const reactPeerDep = peerDepsMap.react;
+        if (reactPeerDep) {
+            peerDeps.react = reactPeerDep.version;
         }
     }
 

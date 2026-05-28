@@ -25,7 +25,8 @@ import { ThemeService } from '../../services/theme/theme.service';
 import { ColorKit } from '../../shared';
 import { BooleanNumber, HorizontalAlign } from '../../types/enum';
 import { LocaleType } from '../../types/enum/locale-type';
-import { SheetSkeleton } from '../sheet-skeleton';
+import { DocumentFlavor } from '../../types/interfaces';
+import { createSheetGapTestConfig, SheetSkeleton } from '../sheet-skeleton';
 import { RANGE_TYPE } from '../typedef';
 import { createCoreTestBed } from './create-core-test-bed';
 
@@ -271,6 +272,8 @@ describe('SheetSkeleton integration', () => {
                     width: Number.POSITIVE_INFINITY,
                     height: Number.POSITIVE_INFINITY,
                 },
+                documentFlavor: DocumentFlavor.UNSPECIFIED,
+                paragraphLineGapDefault: 0,
                 renderConfig: {
                     horizontalAlign: HorizontalAlign.CENTER,
                 },
@@ -334,8 +337,8 @@ describe('SheetSkeleton integration', () => {
         const baseColor = themeService.getColorFromTheme('primary.500');
         const { r, g, b } = new ColorKit(baseColor).toRgb();
 
-        expect(skeleton.gapConfig.defaultBackgroundColor).toBe(`rgba(${r}, ${g}, ${b}, 0.08)`);
-        expect(skeleton.gapConfig.defaultStripeColor).toBe(`rgba(${r}, ${g}, ${b}, 0.25)`);
+        expect(skeleton.gapConfig.defaultBackgroundColor).toBe(`rgba(${r}, ${g}, ${b}, 0.025)`);
+        expect(skeleton.gapConfig.defaultStripeColor).toBe(`rgba(${r}, ${g}, ${b}, 0.08)`);
         expect(skeleton.getRowGapSize(1)).toBe(5);
         expect(skeleton.getColGapSize(2)).toBe(7);
 
@@ -348,6 +351,50 @@ describe('SheetSkeleton integration', () => {
         expect(skeleton.getRowGapAtPosition(10)).toBe(-1);
         expect(skeleton.getColGapAtPosition(195)).toBe(2);
         expect(skeleton.getColGapAtPosition(100)).toBe(-1);
+    });
+
+    it('should preserve viewport positions when decomposing offsets that land inside gaps', () => {
+        const testBed = createCoreTestBed(workbookDataFactory());
+        const injector = testBed.univer.__getInjector();
+        const worksheet = testBed.sheet.getActiveSheet()!;
+        const skeleton = new SheetSkeleton(
+            worksheet,
+            testBed.sheet.getStyles(),
+            injector.get(LocaleService),
+            injector.get(IContextService),
+            injector.get(IConfigService),
+            injector as Injector
+        ).calculate()!;
+
+        disposables.push(() => testBed.univer.dispose());
+
+        skeleton.setGapConfig({
+            rowGaps: {
+                1: { size: 5 },
+            },
+            colGaps: {
+                2: { size: 7 },
+            },
+        });
+
+        const viewportScrollX = 195;
+        const viewportScrollY = 30;
+        const { row, column, rowOffset, columnOffset } = skeleton.getOffsetRelativeToRowCol(viewportScrollX, viewportScrollY);
+        const { startX, startY } = skeleton.getCellWithCoordByIndex(row, column, false);
+
+        expect({ row, column, rowOffset, columnOffset }).toEqual({
+            row: 1,
+            column: 2,
+            rowOffset: -3,
+            columnOffset: -4,
+        });
+        expect({
+            viewportScrollX: startX + columnOffset,
+            viewportScrollY: startY + rowOffset,
+        }).toEqual({
+            viewportScrollX,
+            viewportScrollY,
+        });
     });
 
     it('should keep provided gap default colors and return no-gap helpers when row/col gaps are absent', () => {
@@ -377,6 +424,52 @@ describe('SheetSkeleton integration', () => {
         expect(skeleton.getColGapAtPosition(20)).toBe(-1);
     });
 
+    it('should expose a reusable mixed gap test fixture', () => {
+        const testBed = createCoreTestBed(workbookDataFactory());
+        const injector = testBed.univer.__getInjector();
+        const worksheet = testBed.sheet.getActiveSheet()!;
+        const skeleton = new SheetSkeleton(
+            worksheet,
+            testBed.sheet.getStyles(),
+            injector.get(LocaleService),
+            injector.get(IContextService),
+            injector.get(IConfigService),
+            injector as Injector
+        ).calculate()!;
+
+        disposables.push(() => testBed.univer.dispose());
+
+        skeleton.setGapConfig(createSheetGapTestConfig());
+
+        expect(skeleton.gapConfig.defaultBackgroundColor).toBe('rgba(24, 119, 242, 0.08)');
+        expect(skeleton.gapConfig.defaultStripeColor).toBe('rgba(24, 119, 242, 0.25)');
+        expect(skeleton.gapConfig.rowGaps?.[3]).toEqual({
+            size: 10,
+            color: 'rgba(245, 158, 11, 0.14)',
+        });
+        expect(skeleton.gapConfig.colGaps?.[4]).toEqual({
+            size: 12,
+            color: 'rgba(244, 63, 94, 0.12)',
+            stripeColor: 'rgba(225, 29, 72, 0.30)',
+        });
+
+        expect(skeleton.rowHeightAccumulation).toEqual([28, 58, 82, 116, 116, 140, 178, 202]);
+        expect(skeleton.columnWidthAccumulation).toEqual([72, 197, 277, 349, 361, 433]);
+
+        expect(skeleton.getRowGapAtPosition(30)).toBe(1);
+        expect(skeleton.getRowGapAtPosition(86)).toBe(3);
+        expect(skeleton.getRowGapAtPosition(145)).toBe(6);
+        expect(skeleton.getColGapAtPosition(74)).toBe(1);
+        expect(skeleton.getColGapAtPosition(200)).toBe(2);
+        expect(skeleton.getColGapAtPosition(355)).toBe(4);
+        expect(skeleton.getNoMergeCellWithCoordByIndex(3, 2, false)).toEqual({
+            startY: 92,
+            endY: 116,
+            startX: 205,
+            endX: 277,
+        });
+    });
+
     it('should preserve provided one-sided gap color and fill the missing side from theme', () => {
         const testBed = createCoreTestBed(workbookDataFactory());
         const injector = testBed.univer.__getInjector();
@@ -400,12 +493,12 @@ describe('SheetSkeleton integration', () => {
             defaultBackgroundColor: '#abcdef',
         });
         expect(skeleton.gapConfig.defaultBackgroundColor).toBe('#abcdef');
-        expect(skeleton.gapConfig.defaultStripeColor).toBe(`rgba(${r}, ${g}, ${b}, 0.25)`);
+        expect(skeleton.gapConfig.defaultStripeColor).toBe(`rgba(${r}, ${g}, ${b}, 0.08)`);
 
         skeleton.setGapConfig({
             defaultStripeColor: '#fedcba',
         });
         expect(skeleton.gapConfig.defaultStripeColor).toBe('#fedcba');
-        expect(skeleton.gapConfig.defaultBackgroundColor).toBe(`rgba(${r}, ${g}, ${b}, 0.08)`);
+        expect(skeleton.gapConfig.defaultBackgroundColor).toBe(`rgba(${r}, ${g}, ${b}, 0.025)`);
     });
 });

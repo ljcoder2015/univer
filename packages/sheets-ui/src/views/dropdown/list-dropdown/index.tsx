@@ -25,21 +25,15 @@ import {
 import { borderClassName, borderTopClassName, clsx, scrollbarClassName } from '@univerjs/design';
 import { CheckMarkIcon } from '@univerjs/icons';
 import {
+    deserializeListOptions,
     RangeProtectionPermissionEditPoint,
+    serializeListOptions,
     SheetPermissionCheckController,
     WorkbookEditablePermission,
     WorksheetEditPermission,
 } from '@univerjs/sheets';
 import { useDependency } from '@univerjs/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
-function serializeListOptions(options: string[]) {
-    return options.filter(Boolean).join(',');
-}
-
-function deserializeListOptions(optionsStr: string) {
-    return optionsStr.split(',').filter(Boolean);
-}
 
 interface ISelectListProps {
     value: string[];
@@ -207,7 +201,7 @@ function SelectList(props: ISelectListProps) {
                         `}
                         onClick={onEdit}
                     >
-                        {localeService.t('dataValidation.list.edit')}
+                        {localeService.t('sheets-ui.data-validation.list.edit')}
                     </a>
                 </div>
             )}
@@ -239,7 +233,7 @@ export function ListDropDown(props: { popup: IPopup<IListDropdownProps & IBaseDr
     return (
         <SelectList
             style={{ minWidth: cellWidth, maxWidth: Math.max(cellWidth, 200) }}
-            title={multiple ? localeService.t('dataValidation.listMultiple.dropdown') : localeService.t('dataValidation.list.dropdown')}
+            title={multiple ? localeService.t('sheets-ui.data-validation.listMultiple.dropdown') : localeService.t('sheets-ui.data-validation.list.dropdown')}
             value={deserializeListOptions(localValue ?? '')}
             multiple={multiple}
             onChange={async (newValue) => {
